@@ -1988,7 +1988,7 @@
           Instalar app en este dispositivo
         </button>
         <p style="font-size:11.5px;color:var(--text-mute);margin:6px 0 0;line-height:1.5;">
-          v0.7.0 · Funciona offline tras la primera carga.
+          v0.7.1 · Funciona offline tras la primera carga.
         </p>
       </div>
     </section>
@@ -2089,8 +2089,8 @@
    ============================================================= */
 
 const App = {
-  version: '0.7.0',
-  step: 6,
+  version: '0.7.1',
+  step: 7,
 
   /* ===== CONSTANTES FIJAS — nunca cambian ===== */
   FIXED: {
@@ -2143,17 +2143,17 @@ const App = {
 
   /* ===== Centrales por defecto (editables en Ajustes — Paso 4) ===== */
   CENTRALES_DEFAULT: [
-    'Coruña Centro','Coruña Norte','Santiago','Ferrol','Lugo','Ourense','Pontevedra','Vigo','Otra'
+    'Boiro','Culleredo','Santiago','Monforte de Lemos','Ribeira',
+    'Villalba','As Pontes','Pontedeume','Miño','Carral','Otra'
   ],
 
   /* ===== Trabajador inicial (el propio usuario). Editable en Ajustes ===== */
   WORKERS_DEFAULT: [
-    { id: 'w_braulio',  nombre: 'Braulio López Pardavila', categoria: 'Celador', nif: '32699833C' },
-    { id: 'w_juan',     nombre: 'Juan Ponce Orjales',      categoria: 'Celador', nif: '' },
-    { id: 'w_yago',     nombre: 'Yago Abeledo',            categoria: 'Celador', nif: '' },
-    { id: 'w_marcos',   nombre: 'Marcos Criado Barbarin',  categoria: 'Celador', nif: '' },
-    { id: 'w_braulioa', nombre: 'Braulio Arda',            categoria: 'Celador', nif: '' },
-    { id: 'w_jorgeg',   nombre: 'Jorge García',            categoria: 'Celador', nif: '' }
+    { id: 'w_braulio',  nombre: 'Braulio López Pardavila',  categoria: 'Celador', nif: '32699833C' },
+    { id: 'w_jorgeg',   nombre: 'Jorge García Leiras',      categoria: 'Celador', nif: '' },
+    { id: 'w_yago',     nombre: 'Yago Abeledo Rodríguez',   categoria: 'Celador', nif: '' },
+    { id: 'w_juan',     nombre: 'Juan Ponce Orjales',       categoria: 'Celador', nif: '' },
+    { id: 'w_marcos',   nombre: 'Marcos Criado Barbarin',   categoria: 'Celador', nif: '' }
   ],
 
   /* ===== Migraciones (operaciones que se ejecutan una sola vez al actualizar la app) ===== */
@@ -2166,6 +2166,30 @@ const App = {
       if(filtered.length !== ws.length){
         App.save(App.KEYS.workers, filtered);
       }
+    },
+    // v2 → reemplazar centrales y celadores por las nuevas listas oficiales
+    'update_defaults_v2': function(){
+      // Centrales nuevas
+      const newCentrales = ['Boiro','Culleredo','Santiago','Monforte de Lemos','Ribeira',
+                            'Villalba','As Pontes','Pontedeume','Miño','Carral','Otra'];
+      App.save(App.KEYS.centrales, newCentrales);
+
+      // Actualizar nombres de celadores
+      const ws = App.load(App.KEYS.workers, []);
+      const renames = {
+        'w_yago':    { nombre: 'Yago Abeledo Rodríguez' },
+        'w_jorgeg':  { nombre: 'Jorge García Leiras' }
+      };
+      // Quitar w_braulioa si existe (ya no está en la lista oficial)
+      const idsToRemove = ['w_braulioa'];
+      const updated = ws
+        .filter(w => !idsToRemove.includes(w.id))
+        .map(w => renames[w.id] ? { ...w, ...renames[w.id] } : w);
+      // Si Jorge no existe, lo añadimos
+      if(!updated.find(w => w.id === 'w_jorgeg')){
+        updated.push({ id: 'w_jorgeg', nombre: 'Jorge García Leiras', categoria: 'Celador', nif: '' });
+      }
+      App.save(App.KEYS.workers, updated);
     }
   },
 
@@ -3415,21 +3439,78 @@ const Pdf = {
       .replace(/\u2013|\u2014/g, '-');
   },
 
-  // Dibuja una X (dos diagonales) centrada en (cx, cy) en una página de pdf-lib
-  _drawX(page, cx, cy, size = 4.5){
-    const s = size / 2;
-    const opts = { thickness: 1, color: window.PDFLib.rgb(0, 0, 0) };
-    page.drawLine({ start: { x: cx - s, y: cy - s }, end: { x: cx + s, y: cy + s }, ...opts });
-    page.drawLine({ start: { x: cx + s, y: cy - s }, end: { x: cx - s, y: cy + s }, ...opts });
+  // Convierte texto a bytes WinAnsi escapados para PDF
+  _pdfString(txt){
+    const s = this._sanitize(txt);
+    let out = '';
+    for(const ch of s){
+      const cp = ch.codePointAt(0);
+      // Escapar paréntesis y backslash
+      if(ch === '(' || ch === ')' || ch === '\\'){
+        out += '\\' + ch;
+      } else if(cp < 128){
+        out += ch;
+      } else {
+        // Codificar en WinAnsi (CP1252) como octal
+        const winansi = this._toWinAnsi(cp);
+        if(winansi !== null){
+          out += '\\' + winansi.toString(8).padStart(3, '0');
+        } else {
+          out += '?';
+        }
+      }
+    }
+    return out;
   },
 
-  // Escribe texto en una página de pdf-lib en (x, y, size)
-  _drawText(page, txt, x, y, font, size = 9){
-    if(!txt) return;
-    page.drawText(this._sanitize(txt), {
-      x, y, size, font,
-      color: window.PDFLib.rgb(0, 0, 0)
-    });
+  // Mapeo Unicode → WinAnsi (cubre acentos y eñe españolas)
+  _toWinAnsi(cp){
+    // Caracteres que coinciden en valor de byte:
+    if(cp >= 0xA0 && cp <= 0xFF) return cp;
+    // Casos especiales WinAnsi:
+    const map = {
+      0x152: 0x8C, 0x153: 0x9C, 0x160: 0x8A, 0x161: 0x9A,
+      0x178: 0x9F, 0x17D: 0x8E, 0x17E: 0x9E, 0x192: 0x83,
+      0x2C6: 0x88, 0x2DC: 0x98, 0x2013: 0x96, 0x2014: 0x97,
+      0x2018: 0x91, 0x2019: 0x92, 0x201A: 0x82, 0x201C: 0x93,
+      0x201D: 0x94, 0x201E: 0x84, 0x2020: 0x86, 0x2021: 0x87,
+      0x2022: 0x95, 0x2026: 0x85, 0x2030: 0x89, 0x2039: 0x8B,
+      0x203A: 0x9B, 0x20AC: 0x80, 0x2122: 0x99
+    };
+    if(map[cp] !== undefined) return map[cp];
+    if(cp < 128) return cp;
+    return null;
+  },
+
+  // Aplica un overlay PostScript al final de la página, con CTM neutro
+  // ops: array de strings con operadores PDF (ya en coordenadas de página normales)
+  async _appendOverlay(pdfDoc, page, ops){
+    const { PDFContentStream, PDFName, PDFArray, PDFRawStream, decodePDFRawStream } = window.PDFLib;
+    // Construir stream limpio: "q 1 0 0 1 0 0 cm <ops> Q"
+    // Usamos pushOperators de pdf-lib que acepta operadores ya formateados
+    const opsStr = '\nq\n1 0 0 1 0 0 cm\n' + ops.join('\n') + '\nQ\n';
+    // pdf-lib expone pushOperators para añadir operadores al content stream
+    const PDFOps = window.PDFLib.PDFOperator;
+    // Truco simple: añadir un nuevo content stream al final del array de Contents
+    const ctx = pdfDoc.context;
+    const stream = ctx.flateStream(opsStr);
+    const ref = ctx.register(stream);
+    // Página
+    const pageDict = page.node;
+    let contents = pageDict.get(PDFName.of('Contents'));
+    if(!contents){
+      pageDict.set(PDFName.of('Contents'), PDFArray.withContext(ctx));
+      contents = pageDict.get(PDFName.of('Contents'));
+    }
+    if(contents instanceof PDFArray){
+      contents.push(ref);
+    } else {
+      // Era un único stream, lo convertimos a array
+      const arr = PDFArray.withContext(ctx);
+      arr.push(contents);
+      arr.push(ref);
+      pageDict.set(PDFName.of('Contents'), arr);
+    }
   },
 
   // Convierte fecha ISO YYYY-MM-DD a DD/MM/YYYY
@@ -3516,17 +3597,36 @@ const Pdf = {
      BUILD POSTES PDF
      ============================================================= */
   async buildPostes(d){
-    const { PDFDocument, StandardFonts, rgb } = window.PDFLib;
+    const { PDFDocument, StandardFonts } = window.PDFLib;
     const tplBuffer = await this.loadTemplate('postes');
     const pdfDoc = await PDFDocument.load(tplBuffer);
+    // Embeber Helvetica para que la podamos usar en nuestro stream
     const helvetica = await pdfDoc.embedFont(StandardFonts.Helvetica);
     const page = pdfDoc.getPage(0);
 
+    // Asegurar que la fuente está disponible en los recursos de la página
+    // pdf-lib la añadirá automáticamente al embeber, pero la referencia /F1 hay que crearla
+    const fontName = await this._ensureFont(pdfDoc, page, helvetica);
+
+    // === Construir lista de operadores PDF ===
+    const ops = [];
+    const txt = (x, y, sz, val) => {
+      if(!val) return;
+      ops.push(`BT /${fontName} ${sz} Tf ${x} ${y} Td (${this._pdfString(val)}) Tj ET`);
+    };
+    const drawX = (cx, cy, size = 4.5) => {
+      const s = size / 2;
+      ops.push(`q 1 w 0 0 0 RG`);
+      ops.push(`${(cx-s).toFixed(2)} ${(cy-s).toFixed(2)} m ${(cx+s).toFixed(2)} ${(cy+s).toFixed(2)} l S`);
+      ops.push(`${(cx+s).toFixed(2)} ${(cy-s).toFixed(2)} m ${(cx-s).toFixed(2)} ${(cy+s).toFixed(2)} l S`);
+      ops.push(`Q`);
+    };
+
     // === TEXTOS ===
-    const drawTxt = (key, val, sz) => {
+    const drawTxt = (key, val) => {
       const pos = this.POSTES_TEXT_POS[key];
       if(!pos || !val) return;
-      this._drawText(page, val, pos[0], pos[1], helvetica, sz || pos[2]);
+      txt(pos[0], pos[1], pos[2], val);
     };
 
     drawTxt('numPoste',     d.numPoste);
@@ -3542,107 +3642,90 @@ const Pdf = {
     drawTxt('central',      d.central);
     drawTxt('trabajo',      d.trabajo);
 
-    // Cierre
     const fechaParts = this._splitFecha(d.fecha);
     drawTxt('cierre_pob', d.poblacion);
     drawTxt('cierre_dia', fechaParts.dia);
     drawTxt('cierre_mes', fechaParts.mes);
     drawTxt('cierre_ano', fechaParts.ano);
 
-    // RP nombre y NIF
     const workers = this._resolveWorkers(d.workersSelected, d.tempWorkers);
     const rp = workers.find(w => w.id === d.rpId) || workers[0] || {};
     drawTxt('rp_nombre', rp.nombre);
     drawTxt('rp_nif',    rp.nif);
 
-    // Teléfono emergencias 061 / 112 (calibrado en pruebas)
-    this._drawText(page, '061 / 112', 480, 92, helvetica, 9);
+    // Teléfono emergencias
+    txt(480, 92, 9, '061 / 112');
 
     // === TRABAJADORES ===
-    // 2 filas en Postes (rect Y=670 y Y=660)
     if(workers.length <= 2){
       workers.forEach((w, i) => {
         const y = 670 - i * 10;
-        this._drawText(page, w.nombre,                  49, y, helvetica, 9);
-        this._drawText(page, w.categoria || 'Celador', 296, y, helvetica, 9);
+        txt(49, y, 9, w.nombre);
+        txt(296, y, 9, w.categoria || 'Celador');
       });
     } else if(workers.length === 3){
-      this._drawText(page, workers[0].nombre,                  49, 670, helvetica, 9);
-      this._drawText(page, workers[0].categoria || 'Celador', 296, 670, helvetica, 9);
+      txt(49, 670, 9, workers[0].nombre);
+      txt(296, 670, 9, workers[0].categoria || 'Celador');
       const line2 = workers[1].nombre + ', ' + workers[2].nombre;
       const sz2 = line2.length > 50 ? 8 : 9;
-      this._drawText(page, line2,                              49, 660, helvetica, sz2);
-      this._drawText(page, workers[1].categoria || 'Celador', 296, 660, helvetica, 9);
+      txt(49, 660, sz2, line2);
+      txt(296, 660, 9, workers[1].categoria || 'Celador');
     } else {
-      // 4 o más: dividir en 2 filas
       const half = Math.ceil(workers.length / 2);
       const line1 = workers.slice(0, half).map(w => w.nombre).join(', ');
       const line2 = workers.slice(half).map(w => w.nombre).join(', ');
       const sz1 = line1.length > 50 ? 8 : 9;
       const sz2 = line2.length > 50 ? 8 : 9;
-      this._drawText(page, line1,                                49, 670, helvetica, sz1);
-      this._drawText(page, workers[0].categoria || 'Celador',   296, 670, helvetica, 9);
-      this._drawText(page, line2,                                49, 660, helvetica, sz2);
-      this._drawText(page, workers[half].categoria || 'Celador',296, 660, helvetica, 9);
+      txt(49, 670, sz1, line1);
+      txt(296, 670, 9, workers[0].categoria || 'Celador');
+      txt(49, 660, sz2, line2);
+      txt(296, 660, 9, workers[half].categoria || 'Celador');
     }
 
     // === MARCAS ===
     const toMark = new Set();
-
-    // Tipo de poste
     if(d.tipo === 'Madera') toMark.add(1);
     else if(d.tipo === 'Hormigón') toMark.add(3);
     else toMark.add(4);
-
-    // Climatología
     toMark.add(d.climaOk === 'si' ? 7 : 8);
-
-    // Trabajadores SI (formación + conocen)
-    toMark.add(9);  toMark.add(13);  // tr1
-    if(workers.length >= 2){ toMark.add(10); toMark.add(14); }  // tr2
-
-    // RP: solo el primer trabajador o el específico
+    toMark.add(9);  toMark.add(13);
+    if(workers.length >= 2){ toMark.add(10); toMark.add(14); }
     if(workers.length >= 1 && workers[0].id === d.rpId) toMark.add(19);
     if(workers.length >= 2 && workers[1].id === d.rpId) toMark.add(20);
 
-    // Madera checks 1-6 SI + cambian condiciones NO
     if(d.tipo === 'Madera'){
       [21, 147, 25, 28, 27, 29].forEach(b => toMark.add(b));
-      toMark.add(150);  // cambian condiciones NO
+      toMark.add(150);
     }
 
-    // Medio de subida (único)
     const medio = d.medio || '';
     const medioBtns = this.POSTES_SUBIR_BTNS[d.tipo] || {};
     if(medioBtns[medio]) toMark.add(medioBtns[medio]);
 
-    // Escalera → marca apartado 7 SI todo + se puede usar SI
     const usaEscalera = (medio === 'Escalera' || medio === 'Escalera con patas extensibles');
     if(usaEscalera){
       [78, 79, 80, 81, 86, 88, 90].forEach(b => toMark.add(b));
-      toMark.add(102);  // se puede usar SI
+      toMark.add(102);
     }
 
-    // EPIs (siempre los fijos)
     this.POSTES_EPIS_FIJOS.forEach(b => toMark.add(b));
-
-    // Observaciones SI (las 3)
     [121, 123, 124].forEach(b => toMark.add(b));
 
-    // Pintar X de los checks
     toMark.forEach(idx => {
       const c = this.POSTES_CHECK_CENTERS[idx];
-      if(c) this._drawX(page, c[0], c[1]);
+      if(c) drawX(c[0], c[1]);
     });
 
-    // Estado del poste (sin AcroForm, coordenadas manuales)
     const estadoMap = d.estado === 'bueno' ? this.POSTES_ESTADO_BUENO : this.POSTES_ESTADO_MALO;
     if(estadoMap[d.tipo]){
       const [cx, cy] = estadoMap[d.tipo];
-      this._drawX(page, cx, cy);
+      drawX(cx, cy);
     }
 
-    // Firma del RP si la hay
+    // Aplicar overlay
+    await this._appendOverlay(pdfDoc, page, ops);
+
+    // Firma RP (imagen, esto sí va con la API normal de pdf-lib)
     if(rp.id){
       const sigs = App.load('cg1.signatures', {});
       const sig = sigs[rp.id];
@@ -3650,13 +3733,41 @@ const Pdf = {
         try {
           const pngBytes = this._dataURLtoUint8(sig);
           const pngImage = await pdfDoc.embedPng(pngBytes);
-          // Recuadro firma postes: aprox X 408, Y 35-90 (calibración aproximada)
           page.drawImage(pngImage, { x: 410, y: 35, width: 140, height: 50 });
         } catch(e){ console.warn('No se pudo embeber firma', e); }
       }
     }
 
+    // Metadatos: título personalizado
+    const fechaTxt = this._dateES(d.fecha) || '';
+    const titulo = `Parte de Poste${d.numLinea ? ' ' + d.numLinea : ''}${d.numPoste ? ' Nº ' + d.numPoste : ''}${fechaTxt ? ' ' + fechaTxt : ''}`;
+    pdfDoc.setTitle(titulo);
+    pdfDoc.setSubject('Parte de seguridad para trabajos en postes');
+    pdfDoc.setAuthor(rp.nombre || 'CG1 DIGI');
+    pdfDoc.setCreator('CG1 App');
+
     return await pdfDoc.save();
+  },
+
+  // Asegurar que la fuente está disponible en los recursos de la página, devolver su nombre
+  async _ensureFont(pdfDoc, page, font){
+    const { PDFName, PDFDict } = window.PDFLib;
+    const ctx = pdfDoc.context;
+    const pageNode = page.node;
+    let resources = pageNode.get(PDFName.of('Resources'));
+    if(!resources){
+      resources = PDFDict.fromMapWithContext(new Map(), ctx);
+      pageNode.set(PDFName.of('Resources'), resources);
+    }
+    let fonts = resources.get(PDFName.of('Font'));
+    if(!fonts){
+      fonts = PDFDict.fromMapWithContext(new Map(), ctx);
+      resources.set(PDFName.of('Font'), fonts);
+    }
+    // Buscar nombre libre
+    const fontName = 'F_CG1';
+    fonts.set(PDFName.of(fontName), font.ref);
+    return fontName;
   },
 
   /* =============================================================
@@ -3747,18 +3858,45 @@ const Pdf = {
      BUILD CCRR PDF
      ============================================================= */
   async buildCcrr(d){
-    const { PDFDocument, StandardFonts, rgb } = window.PDFLib;
+    const { PDFDocument, StandardFonts } = window.PDFLib;
     const tplBuffer = await this.loadTemplate('ccrr');
     const pdfDoc = await PDFDocument.load(tplBuffer);
     const helvetica = await pdfDoc.embedFont(StandardFonts.Helvetica);
     const page1 = pdfDoc.getPage(0);
     const page2 = pdfDoc.getPage(1);
 
+    const fontName1 = await this._ensureFont(pdfDoc, page1, helvetica);
+    const fontName2 = await this._ensureFont(pdfDoc, page2, helvetica);
+
+    const ops1 = [], ops2 = [];
+    const txt1 = (x, y, sz, val) => {
+      if(!val) return;
+      ops1.push(`BT /${fontName1} ${sz} Tf ${x} ${y} Td (${this._pdfString(val)}) Tj ET`);
+    };
+    const txt2 = (x, y, sz, val) => {
+      if(!val) return;
+      ops2.push(`BT /${fontName2} ${sz} Tf ${x} ${y} Td (${this._pdfString(val)}) Tj ET`);
+    };
+    const drawX1 = (cx, cy, size = 4.5) => {
+      const s = size / 2;
+      ops1.push(`q 1 w 0 0 0 RG`);
+      ops1.push(`${(cx-s).toFixed(2)} ${(cy-s).toFixed(2)} m ${(cx+s).toFixed(2)} ${(cy+s).toFixed(2)} l S`);
+      ops1.push(`${(cx+s).toFixed(2)} ${(cy-s).toFixed(2)} m ${(cx-s).toFixed(2)} ${(cy+s).toFixed(2)} l S`);
+      ops1.push(`Q`);
+    };
+    const drawX2 = (cx, cy, size = 4.5) => {
+      const s = size / 2;
+      ops2.push(`q 1 w 0 0 0 RG`);
+      ops2.push(`${(cx-s).toFixed(2)} ${(cy-s).toFixed(2)} m ${(cx+s).toFixed(2)} ${(cy+s).toFixed(2)} l S`);
+      ops2.push(`${(cx+s).toFixed(2)} ${(cy-s).toFixed(2)} m ${(cx-s).toFixed(2)} ${(cy+s).toFixed(2)} l S`);
+      ops2.push(`Q`);
+    };
+
     // === PÁGINA 1: Textos ===
     const drawTxtP1 = (key, val) => {
       const pos = this.CCRR_TEXT_POS_P1[key];
       if(!pos || !val) return;
-      this._drawText(page1, val, pos[0], pos[1], helvetica, pos[2]);
+      txt1(pos[0], pos[1], pos[2], val);
     };
     drawTxtP1('num',       d.num);
     drawTxtP1('provincia', d.provincia);
@@ -3772,80 +3910,71 @@ const Pdf = {
     drawTxtP1('hasta',     d.hasta);
     drawTxtP1('tapa',      d.tapa);
 
-    // === Trabajadores (3 filas) ===
+    // Trabajadores
     const workers = this._resolveWorkers(d.workersSelected, d.tempWorkers);
     if(workers.length <= 3){
       workers.forEach((w, i) => {
         const [xN, y, xC] = this.CCRR_TR_LINES_P1[i];
-        this._drawText(page1, w.nombre,                 xN, y, helvetica, 9);
-        this._drawText(page1, w.categoria || 'Celador', xC, y, helvetica, 9);
+        txt1(xN, y, 9, w.nombre);
+        txt1(xC, y, 9, w.categoria || 'Celador');
       });
     } else {
-      // 4+: filas 1 y 2 individual; fila 3 con resto agrupado
       const [xN0, y0, xC0] = this.CCRR_TR_LINES_P1[0];
-      this._drawText(page1, workers[0].nombre,                 xN0, y0, helvetica, 9);
-      this._drawText(page1, workers[0].categoria || 'Celador', xC0, y0, helvetica, 9);
+      txt1(xN0, y0, 9, workers[0].nombre);
+      txt1(xC0, y0, 9, workers[0].categoria || 'Celador');
       const [xN1, y1, xC1] = this.CCRR_TR_LINES_P1[1];
-      this._drawText(page1, workers[1].nombre,                 xN1, y1, helvetica, 9);
-      this._drawText(page1, workers[1].categoria || 'Celador', xC1, y1, helvetica, 9);
+      txt1(xN1, y1, 9, workers[1].nombre);
+      txt1(xC1, y1, 9, workers[1].categoria || 'Celador');
       const [xN2, y2, xC2] = this.CCRR_TR_LINES_P1[2];
       const restNames = workers.slice(2).map(w => w.nombre).join(', ');
       const sz = restNames.length > 38 ? 8 : 9;
-      this._drawText(page1, restNames,                          xN2, y2, helvetica, sz);
-      this._drawText(page1, workers[2].categoria || 'Celador',  xC2, y2, helvetica, 9);
+      txt1(xN2, y2, sz, restNames);
+      txt1(xC2, y2, 9, workers[2].categoria || 'Celador');
     }
 
-    // === Marcas pág 1 (todos los fijos + ubicación + señalización) ===
+    // Marcas pág 1
     const toMark = new Set();
     [...this.CCRR_FIJOS_TR, ...this.CCRR_FIJOS_PREP, ...this.CCRR_FIJOS_ESTADO,
      ...this.CCRR_FIJOS_ATM, ...this.CCRR_FIJOS_EPIS_P1].forEach(t => toMark.add(t));
-
-    // Ubicación CCRR (lo que esté en d.ubic)
     Object.entries(d.ubic || {}).forEach(([k, v]) => {
       if(v && this.CCRR_UBIC_BTNS[k]) toMark.add(this.CCRR_UBIC_BTNS[k]);
     });
-
-    // Señalización (lo que esté en d.senal)
     Object.entries(d.senal || {}).forEach(([k, v]) => {
       if(v && this.CCRR_SENAL_BTNS[k]) toMark.add(this.CCRR_SENAL_BTNS[k]);
     });
-
-    // Pintar pág 1
     toMark.forEach(t => {
       if(this._ccrrPage(t) === 1){
         const c = this.CCRR_T_CENTERS[t];
-        if(c) this._drawX(page1, c[0], c[1]);
+        if(c) drawX1(c[0], c[1]);
       }
     });
 
+    await this._appendOverlay(pdfDoc, page1, ops1);
+
     // === PÁGINA 2 ===
+    txt2(430, 698, 9, '061');
+    txt2(430, 687, 9, '112');
+    const fechaParts = this._splitFecha(d.fecha);
     const drawTxtP2 = (key, val) => {
       const pos = this.CCRR_TEXT_POS_P2[key];
       if(!pos || !val) return;
-      this._drawText(page2, val, pos[0], pos[1], helvetica, pos[2]);
+      txt2(pos[0], pos[1], pos[2], val);
     };
-
-    // Teléfonos emergencia
-    this._drawText(page2, '061', 430, 698, helvetica, 9);
-    this._drawText(page2, '112', 430, 687, helvetica, 9);
-
-    // Cierre
-    const fechaParts = this._splitFecha(d.fecha);
     drawTxtP2('cierre_pob', d.poblacion);
     drawTxtP2('cierre_dia', fechaParts.dia);
     drawTxtP2('cierre_mes', fechaParts.mes);
     drawTxtP2('cierre_ano', fechaParts.ano);
 
-    // RP nombre y NIF
     const rp = workers.find(w => w.id === d.rpId) || workers[0] || {};
     drawTxtP2('rp_nombre', rp.nombre);
     drawTxtP2('rp_nif', rp.nif);
 
-    // EPIs página 2
     this.CCRR_FIJOS_EPIS_P2.forEach(t => {
       const c = this.CCRR_T_CENTERS[t];
-      if(c) this._drawX(page2, c[0], c[1]);
+      if(c) drawX2(c[0], c[1]);
     });
+
+    await this._appendOverlay(pdfDoc, page2, ops2);
 
     // Firma RP
     if(rp.id){
@@ -3855,11 +3984,18 @@ const Pdf = {
         try {
           const pngBytes = this._dataURLtoUint8(sig);
           const pngImage = await pdfDoc.embedPng(pngBytes);
-          // Aproximadamente al lado de "Firma Recurso Preventivo:" en pág 2
           page2.drawImage(pngImage, { x: 240, y: 615, width: 130, height: 35 });
         } catch(e){ console.warn('No se pudo embeber firma', e); }
       }
     }
+
+    // Metadatos
+    const fechaTxt = this._dateES(d.fecha) || '';
+    const titulo = `Parte CCRR${d.num ? ' ' + d.num : ''}${d.poblacion ? ' ' + d.poblacion : ''}${fechaTxt ? ' ' + fechaTxt : ''}`;
+    pdfDoc.setTitle(titulo);
+    pdfDoc.setSubject('Parte de seguridad para trabajos en CCRR y recintos subterráneos');
+    pdfDoc.setAuthor(rp.nombre || 'CG1 DIGI');
+    pdfDoc.setCreator('CG1 App');
 
     return await pdfDoc.save();
   },
@@ -3868,21 +4004,26 @@ const Pdf = {
      === HISTORIAL + DESCARGA + COMPARTIR ===
      ============================================================= */
   async saveAndDownload(type, data){
-    let pdfBytes, fileName;
+    let pdfBytes, fileName, title;
     try {
+      const fechaTxt = this._dateES(data.fecha) || '';
       if(type === 'postes'){
         pdfBytes = await this.buildPostes(data);
-        fileName = `Parte_POSTES_${data.numPoste || 'sn'}_${data.fecha || ''}.pdf`;
+        // Nombre archivo: "Parte de Poste L1512007 Nº 1315 29-04-2026.pdf"
+        title = `Parte de Poste${data.numLinea ? ' ' + data.numLinea : ''}${data.numPoste ? ' Nº ' + data.numPoste : ''}${fechaTxt ? ' ' + fechaTxt : ''}`;
+        fileName = title.replace(/\//g, '-') + '.pdf';
       } else {
         pdfBytes = await this.buildCcrr(data);
-        fileName = `Parte_CCRR_${(data.num || 'sn').replace(/\s+/g,'')}_${data.fecha || ''}.pdf`;
+        title = `Parte CCRR${data.num ? ' ' + data.num : ''}${data.poblacion ? ' ' + data.poblacion : ''}${fechaTxt ? ' ' + fechaTxt : ''}`;
+        fileName = title.replace(/\//g, '-') + '.pdf';
       }
     } catch(e){
       console.error(e);
       App.toast('Error generando el PDF');
       throw e;
     }
-    fileName = fileName.replace(/[^\w\-.]/g, '_');
+    // Limpiar caracteres problemáticos en filename pero permitir espacios y º
+    fileName = fileName.replace(/[<>:"\\|?*]/g, '_');
 
     // Convertir a dataURL para guardar
     const blob = new Blob([pdfBytes], { type: 'application/pdf' });
@@ -3893,11 +4034,9 @@ const Pdf = {
     const entry = {
       id: 'r_' + Date.now() + '_' + Math.random().toString(36).slice(2,6),
       type,
-      title: type === 'postes'
-        ? `Poste ${data.numPoste || '—'} · ${data.poblacion || ''}`
-        : `${data.num || 'CCRR'} · ${data.poblacion || ''}`,
+      title,
       subtitle: type === 'postes'
-        ? `${data.tipo || ''} · ${data.medio || ''}`
+        ? `${data.tipo || ''} · ${data.medio || ''} · ${data.poblacion || ''}`
         : `${data.turno || ''} · ${data.trabajo ? data.trabajo.slice(0, 40) : ''}`,
       created_at: new Date().toISOString(),
       fileName,

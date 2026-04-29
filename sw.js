@@ -3,7 +3,7 @@
    Cachea index.html + plantillas + iconos para funcionar offline
    ============================================================= */
 
-const CACHE_VERSION = 'cg1-v0.7.0';
+const CACHE_VERSION = 'cg1-v0.7.1';
 const PRECACHE_URLS = [
   './',
   './index.html',
