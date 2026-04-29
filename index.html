@@ -1,0 +1,4493 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+<meta name="theme-color" content="#0a0e1a" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Partes CG1" />
+<title>Partes de Seguridad · CG1</title>
+
+<!-- Tipografías -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=IBM+Plex+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+
+<!-- pdf-lib para generar partes PDF a partir de plantilla auténtica -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+<script src="https://unpkg.com/@pdf-lib/fontkit@1.1.1/dist/fontkit.umd.min.js"></script>
+
+<!-- PWA -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0a0e1a">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="CG1">
+<link rel="icon" type="image/png" sizes="64x64" href="favicon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+
+<style>
+  /* ==========================================================
+     TOKENS DE DISEÑO
+     ========================================================== */
+  :root{
+    --bg:        #0a0e1a;
+    --bg-2:     #0f1525;
+    --surface:   #131a2e;
+    --surface-2: #19223b;
+    --line:      #1f2940;
+    --line-2:    #2a3754;
+    --text:      #e6ecf5;
+    --text-dim:  #94a3b8;
+    --text-mute: #64748b;
+    --amber:     #fbbf24;     /* acento principal — seguridad */
+    --amber-2:   #f59e0b;
+    --amber-glow: rgba(251,191,36,.18);
+    --cyan:      #38bdf8;     /* info */
+    --green:     #4ade80;     /* ok */
+    --red:       #f87171;     /* peligro */
+    --red-deep:  #b91c1c;
+
+    --r-sm: 10px;
+    --r-md: 14px;
+    --r-lg: 20px;
+    --r-xl: 28px;
+
+    --shadow-1: 0 1px 0 rgba(255,255,255,.04) inset, 0 8px 24px rgba(0,0,0,.35);
+    --shadow-2: 0 1px 0 rgba(255,255,255,.05) inset, 0 24px 60px rgba(0,0,0,.55);
+  }
+
+  *{ box-sizing:border-box; -webkit-tap-highlight-color: transparent; }
+  html, body{ margin:0; padding:0; }
+  html{ background: var(--bg); }
+  body{
+    font-family: 'IBM Plex Sans', system-ui, sans-serif;
+    color: var(--text);
+    background:
+      radial-gradient(1200px 600px at 80% -10%, rgba(56,189,248,.07), transparent 60%),
+      radial-gradient(900px 500px at -10% 110%, rgba(251,191,36,.06), transparent 60%),
+      var(--bg);
+    min-height: 100dvh;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    overflow-x: hidden;
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  }
+
+  /* Tipografía display */
+  .display{ font-family: 'Bricolage Grotesque', serif; letter-spacing:-0.01em; }
+  .mono{ font-family: 'JetBrains Mono', ui-monospace, monospace; }
+
+  /* ==========================================================
+     APP SHELL
+     ========================================================== */
+  .app{
+    max-width: 560px;
+    margin: 0 auto;
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+  }
+
+  /* HEADER */
+  .topbar{
+    position: sticky; top: 0; z-index: 30;
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    background: linear-gradient(180deg, rgba(10,14,26,.92), rgba(10,14,26,.78));
+    border-bottom: 1px solid var(--line);
+    padding: 14px 18px 12px;
+    display:flex; align-items:center; gap:12px;
+  }
+  .brand{
+    display:flex; align-items:center; gap:10px;
+    flex:1; min-width:0;
+  }
+  .brand-mark{
+    width: 36px; height: 36px;
+    border-radius: 9px;
+    background:
+      linear-gradient(135deg, #1a2340 0%, #0e1426 100%);
+    border: 1px solid var(--line-2);
+    display:grid; place-items:center;
+    box-shadow: var(--shadow-1);
+    position: relative;
+    overflow:hidden;
+  }
+  .brand-mark::after{
+    content:""; position:absolute; inset:0;
+    background: radial-gradient(circle at 30% 20%, var(--amber-glow), transparent 60%);
+    pointer-events:none;
+  }
+  .brand-mark svg{ width:22px; height:22px; }
+  .brand-text{ display:flex; flex-direction:column; line-height:1.1; min-width:0; }
+  .brand-text .t1{
+    font-family:'Bricolage Grotesque',serif;
+    font-weight:800; font-size: 15px;
+    letter-spacing:.02em;
+    text-transform: uppercase;
+  }
+  .brand-text .t2{
+    font-family:'JetBrains Mono', monospace;
+    font-size: 10.5px; color: var(--text-mute);
+    letter-spacing:.18em;
+    margin-top:2px;
+  }
+  .brand-text .t2 b{ color: var(--amber); font-weight:600; }
+
+  .topbar-actions{ display:flex; gap:8px; }
+  .icon-btn{
+    width:38px; height:38px; border-radius:10px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    color: var(--text-dim);
+    display:grid; place-items:center;
+    cursor: pointer;
+    transition: transform .12s ease, background .15s ease, color .15s ease, border-color .15s ease;
+  }
+  .icon-btn:hover{ color: var(--amber); border-color: var(--line-2); }
+  .icon-btn:active{ transform: scale(0.94); }
+  .icon-btn svg{ width:18px; height:18px; }
+
+  /* HAZARD STRIP — cinta de peligro decorativa */
+  .hazard-strip{
+    height: 6px;
+    background-image: repeating-linear-gradient(
+      135deg,
+      var(--amber) 0 14px,
+      #1a1a1a 14px 28px
+    );
+    opacity: .85;
+  }
+
+  /* MAIN */
+  main.view{
+    flex: 1;
+    padding: 24px 18px 32px;
+    animation: viewIn .35s cubic-bezier(.22,.8,.36,1);
+  }
+  @keyframes viewIn{
+    from{ opacity:0; transform: translateY(6px); }
+    to{ opacity:1; transform: translateY(0); }
+  }
+
+  /* SECTION HEADER */
+  .section-head{
+    display:flex; flex-direction:column; gap:6px;
+    margin-bottom: 22px;
+  }
+  .eyebrow{
+    display:inline-flex; align-items:center; gap:8px;
+    font-family:'JetBrains Mono', monospace;
+    font-size: 11px; color: var(--amber);
+    letter-spacing: .22em; text-transform: uppercase;
+  }
+  .eyebrow::before{
+    content:""; width:18px; height:1px; background: var(--amber); opacity:.7;
+  }
+  h1.section-title{
+    font-family:'Bricolage Grotesque', serif;
+    font-weight: 800;
+    font-size: clamp(28px, 7vw, 36px);
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    margin: 0;
+  }
+  h1.section-title .accent{ color: var(--amber); }
+  .section-sub{
+    color: var(--text-dim);
+    font-size: 14.5px;
+    margin-top: 4px;
+    line-height: 1.5;
+    max-width: 36ch;
+  }
+
+  /* ==========================================================
+     HOME — TARJETAS GRANDES
+     ========================================================== */
+  .card-stack{
+    display: grid;
+    gap: 16px;
+    margin-top: 6px;
+  }
+
+  .big-card{
+    position: relative;
+    display:block;
+    background:
+      linear-gradient(180deg, var(--surface) 0%, var(--bg-2) 100%);
+    border: 1px solid var(--line);
+    border-radius: var(--r-xl);
+    padding: 20px 20px 22px;
+    cursor: pointer;
+    overflow: hidden;
+    transition: transform .18s cubic-bezier(.22,.8,.36,1), border-color .15s ease, box-shadow .2s ease;
+    box-shadow: var(--shadow-1);
+    text-align:left;
+    width:100%;
+    color: inherit;
+    font: inherit;
+  }
+  .big-card::before{
+    /* grid de fondo sutil */
+    content:""; position:absolute; inset:0;
+    background-image:
+      linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px);
+    background-size: 22px 22px;
+    mask-image: radial-gradient(120% 80% at 80% 0%, black 30%, transparent 80%);
+    pointer-events:none;
+  }
+  .big-card::after{
+    /* glow accent */
+    content:""; position:absolute; inset: -1px;
+    border-radius: inherit;
+    background: radial-gradient(400px 160px at 0% 0%, var(--amber-glow), transparent 60%);
+    opacity: 0; transition: opacity .25s ease;
+    pointer-events:none;
+  }
+  .big-card:hover{ border-color: var(--line-2); transform: translateY(-2px); }
+  .big-card:hover::after{ opacity: 1; }
+  .big-card:active{ transform: translateY(0) scale(.995); }
+
+  .big-card .corner{
+    position:absolute; top:14px; right:14px;
+    width:38px; height:38px;
+    border-top:2px solid var(--amber);
+    border-right:2px solid var(--amber);
+    border-top-right-radius: 14px;
+    opacity:.6;
+  }
+  .big-card .corner.bl{
+    top:auto; right:auto; bottom:14px; left:14px;
+    border-top:none; border-right:none;
+    border-bottom:2px solid var(--amber);
+    border-left:2px solid var(--amber);
+    border-bottom-left-radius: 14px;
+  }
+
+  .big-card .illus-wrap{
+    position: relative;
+    height: 170px;
+    margin: -4px -8px 14px;
+    border-radius: var(--r-lg);
+    background:
+      radial-gradient(80% 100% at 50% 100%, rgba(56,189,248,.06), transparent 70%),
+      linear-gradient(180deg, #0c1322 0%, #0a0f1c 100%);
+    border: 1px solid var(--line);
+    overflow: hidden;
+    display:grid; place-items:center;
+  }
+  .big-card .illus-wrap svg{
+    width: 100%; height: 100%;
+    display:block;
+  }
+  /* Pequeñas marcas de mira en las esquinas del cuadro de ilustración */
+  .big-card .illus-wrap::before,
+  .big-card .illus-wrap::after{
+    content:""; position:absolute;
+    width: 14px; height:14px;
+    border: 1px solid var(--line-2);
+  }
+  .big-card .illus-wrap::before{ top:8px; left:8px; border-right:none; border-bottom:none; }
+  .big-card .illus-wrap::after{ bottom:8px; right:8px; border-left:none; border-top:none; }
+
+  .big-card .row{
+    display:flex; align-items: flex-end; justify-content: space-between; gap: 14px;
+  }
+  .big-card .label{
+    font-family:'JetBrains Mono', monospace;
+    font-size: 11px; letter-spacing:.22em;
+    color: var(--text-mute);
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .big-card .title{
+    font-family:'Bricolage Grotesque', serif;
+    font-weight: 800;
+    font-size: 26px;
+    line-height: 1.05;
+    letter-spacing: -0.015em;
+  }
+  .big-card .desc{
+    font-size: 13.5px;
+    color: var(--text-dim);
+    margin-top: 6px;
+    line-height: 1.45;
+    max-width: 36ch;
+  }
+  .big-card .go{
+    flex-shrink: 0;
+    width: 46px; height: 46px;
+    border-radius: 14px;
+    background: var(--amber);
+    color: #0a0e1a;
+    display:grid; place-items:center;
+    box-shadow: 0 8px 22px -8px rgba(251,191,36,.55);
+    transition: transform .15s ease;
+  }
+  .big-card:hover .go{ transform: translateX(3px); }
+  .big-card .go svg{ width:20px; height:20px; }
+
+  /* QUICK STATS / META BAJO LAS TARJETAS */
+  .meta-grid{
+    margin-top: 22px;
+    display:grid; grid-template-columns: repeat(3, 1fr); gap: 8px;
+  }
+  .meta-cell{
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--r-md);
+    padding: 12px 12px;
+    text-align: left;
+    min-width:0;
+  }
+  .meta-cell .k{
+    font-family:'JetBrains Mono', monospace;
+    font-size: 10px; letter-spacing:.2em;
+    color: var(--text-mute); text-transform: uppercase;
+  }
+  .meta-cell .v{
+    margin-top: 6px;
+    font-family:'Bricolage Grotesque', serif;
+    font-weight: 700;
+    font-size: 18px;
+    color: var(--text);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .meta-cell .v small{
+    font-family:'JetBrains Mono', monospace;
+    font-weight: 400;
+    color: var(--text-dim);
+    font-size: 11px;
+    margin-left:4px;
+  }
+
+  /* ==========================================================
+     PLACEHOLDER VIEWS (postes / ccrr / ajustes / historial)
+     ========================================================== */
+  .placeholder{
+    border: 1px dashed var(--line-2);
+    border-radius: var(--r-lg);
+    padding: 28px 20px;
+    background: linear-gradient(180deg, rgba(255,255,255,.015), transparent);
+    text-align: left;
+  }
+  .placeholder .pill{
+    display:inline-block;
+    font-family:'JetBrains Mono', monospace;
+    font-size: 10.5px; letter-spacing:.2em;
+    color: #0a0e1a; background: var(--amber);
+    padding: 4px 8px; border-radius: 6px;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+  .placeholder h2{
+    margin: 0 0 6px;
+    font-family:'Bricolage Grotesque', serif;
+    font-size: 22px;
+    letter-spacing:-.01em;
+  }
+  .placeholder p{ margin:0; color: var(--text-dim); line-height:1.5; font-size:14px; }
+  .placeholder ul{
+    margin: 16px 0 0; padding: 0; list-style: none;
+    display:flex; flex-direction:column; gap:8px;
+  }
+  .placeholder li{
+    font-size: 13.5px; color: var(--text-dim);
+    padding: 10px 12px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    display:flex; gap:10px; align-items:center;
+  }
+  .placeholder li .step{
+    font-family:'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    color: var(--amber);
+    letter-spacing:.15em;
+  }
+
+  .back-btn{
+    appearance:none; background: var(--surface); border:1px solid var(--line);
+    color: var(--text-dim);
+    padding: 8px 12px 8px 8px; border-radius: 999px;
+    display:inline-flex; align-items:center; gap:6px;
+    font: inherit; font-size: 13px;
+    cursor:pointer;
+    margin-bottom: 18px;
+  }
+  .back-btn:hover{ color: var(--text); border-color: var(--line-2); }
+  .back-btn svg{ width:16px; height:16px; }
+
+  /* ==========================================================
+     FOOTER
+     ========================================================== */
+  footer.app-foot{
+    border-top: 1px solid var(--line);
+    padding: 16px 18px 22px;
+    margin-top: auto;
+    display:flex; align-items:center; justify-content:space-between;
+    gap: 12px;
+  }
+  footer.app-foot .sig{
+    font-family:'JetBrains Mono', monospace;
+    font-size: 11.5px;
+    letter-spacing:.08em;
+    color: var(--text-mute);
+  }
+  footer.app-foot .sig b{ color: var(--text); font-weight:600; }
+  footer.app-foot .sig .dot{ color: var(--amber); margin: 0 6px; }
+  footer.app-foot .ver{
+    font-family:'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    color: var(--text-mute);
+    border: 1px solid var(--line);
+    padding: 4px 8px;
+    border-radius: 6px;
+    letter-spacing:.1em;
+  }
+
+  /* TOAST */
+  .toast{
+    position: fixed; left: 50%; bottom: calc(28px + env(safe-area-inset-bottom));
+    transform: translateX(-50%) translateY(20px);
+    background: #0e1426;
+    color: var(--text);
+    border: 1px solid var(--line-2);
+    border-left: 3px solid var(--amber);
+    padding: 10px 14px;
+    border-radius: 10px;
+    font-size: 13px;
+    box-shadow: var(--shadow-2);
+    opacity: 0; pointer-events:none;
+    transition: opacity .25s ease, transform .25s ease;
+    z-index: 100;
+    max-width: calc(100% - 32px);
+  }
+  .toast.show{ opacity:1; transform: translateX(-50%) translateY(0); }
+
+  /* Helpers de visibilidad de vistas */
+  .view{ display:none; }
+  .view.active{ display:block; }
+
+  @media (min-width: 600px){
+    .big-card .illus-wrap{ height: 200px; }
+  }
+
+  /* ==========================================================
+     FORMULARIOS — componentes
+     ========================================================== */
+  .form{ display:flex; flex-direction:column; gap: 18px; padding-bottom: 110px; }
+
+  .form-section{
+    background: linear-gradient(180deg, var(--surface) 0%, var(--bg-2) 100%);
+    border: 1px solid var(--line);
+    border-radius: var(--r-lg);
+    padding: 16px 16px 18px;
+    box-shadow: var(--shadow-1);
+    position: relative;
+  }
+  .form-section .sec-head{
+    display:flex; align-items:center; gap:10px;
+    margin: -2px 0 14px;
+  }
+  .form-section .sec-num{
+    font-family:'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: #0a0e1a;
+    background: var(--amber);
+    padding: 3px 7px;
+    border-radius: 6px;
+    letter-spacing:.15em;
+    font-weight: 700;
+  }
+  .form-section .sec-title{
+    font-family:'Bricolage Grotesque', serif;
+    font-size: 17px; font-weight: 700;
+    letter-spacing:-.01em;
+  }
+
+  .field{ display:flex; flex-direction:column; gap:6px; }
+  .field + .field{ margin-top: 12px; }
+  .field-row{
+    display:grid; grid-template-columns: 1fr 1fr; gap: 10px;
+    margin-top: 12px;
+  }
+  .field-row > .field{ margin-top: 0; }
+
+  .field label, .field-label{
+    font-family:'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    color: var(--text-mute);
+    letter-spacing:.18em;
+    text-transform: uppercase;
+    display:flex; align-items:center; gap:6px;
+  }
+  .field-label .req{ color: var(--amber); }
+  .field-label .hint{
+    color: var(--text-mute);
+    font-size: 9.5px;
+    font-weight: 400;
+    text-transform: none;
+    letter-spacing: .05em;
+  }
+
+  .input, .select, .textarea{
+    width: 100%;
+    background: #0c1220;
+    border: 1px solid var(--line-2);
+    color: var(--text);
+    font: inherit; font-size: 15px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    outline: none;
+    transition: border-color .15s ease, background .15s ease, box-shadow .15s ease;
+    -webkit-appearance: none;
+    appearance: none;
+  }
+  .input::placeholder, .textarea::placeholder{ color: var(--text-mute); }
+  .input:focus, .select:focus, .textarea:focus{
+    border-color: var(--amber);
+    box-shadow: 0 0 0 3px rgba(251,191,36,.12);
+    background: #0e1525;
+  }
+  .textarea{ resize: vertical; min-height: 80px; line-height: 1.5; }
+
+  .select{
+    background-image:
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'><path d='M1 1l5 5 5-5' stroke='%2394a3b8' stroke-width='1.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    padding-right: 38px;
+  }
+
+  /* Input con botón GPS al lado */
+  .input-gps{ display:flex; gap:8px; align-items:stretch; }
+  .input-gps .input{ flex: 1; }
+  .gps-btn{
+    flex-shrink:0;
+    background: var(--surface);
+    border: 1px solid var(--line-2);
+    color: var(--text);
+    border-radius: 12px;
+    padding: 0 14px;
+    cursor:pointer;
+    display:flex; align-items:center; gap:6px;
+    font-family:'JetBrains Mono', monospace;
+    font-size: 11.5px;
+    letter-spacing: .12em;
+    transition: all .15s ease;
+  }
+  .gps-btn:hover{ border-color: var(--amber); color: var(--amber); }
+  .gps-btn:active{ transform: scale(.96); }
+  .gps-btn svg{ width:16px; height:16px; }
+  .gps-btn[data-loading="1"]{ opacity:.6; pointer-events:none; }
+  .gps-btn[data-loading="1"] svg{ animation: spin 1s linear infinite; }
+  @keyframes spin{ to{ transform: rotate(360deg); } }
+
+  /* Segmented control (Madera/Hormigón/Fibra, Bueno/Malo, Diurno/Nocturno) */
+  .segmented{
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: 1fr;
+    background: #0c1220;
+    border: 1px solid var(--line-2);
+    border-radius: 12px;
+    padding: 4px;
+    gap: 4px;
+  }
+  .segmented button{
+    appearance: none;
+    background: transparent;
+    border: none;
+    color: var(--text-dim);
+    font: inherit; font-size: 13px;
+    padding: 10px 8px;
+    border-radius: 9px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all .18s ease;
+    line-height: 1.1;
+  }
+  .segmented button[aria-pressed="true"]{
+    background: var(--amber);
+    color: #0a0e1a;
+    box-shadow: 0 4px 12px -4px rgba(251,191,36,.45);
+  }
+  .segmented.danger button[aria-pressed="true"][data-danger]{
+    background: var(--red-deep);
+    color: #fff;
+    box-shadow: 0 4px 16px -4px rgba(220,38,38,.6);
+  }
+
+  /* Chip list (selección múltiple de trabajadores) */
+  .chip-list{
+    display:flex; flex-wrap:wrap; gap: 8px;
+  }
+  .chip{
+    appearance:none;
+    background: #0c1220;
+    border: 1px solid var(--line-2);
+    color: var(--text-dim);
+    padding: 9px 12px 9px 10px;
+    border-radius: 999px;
+    cursor: pointer;
+    font: inherit; font-size: 13.5px;
+    display:inline-flex; align-items:center; gap:8px;
+    transition: all .15s ease;
+    line-height: 1;
+  }
+  .chip .dot{
+    width:8px; height:8px; border-radius:50%;
+    background: var(--line-2);
+    transition: background .15s ease;
+  }
+  .chip[aria-pressed="true"]{
+    background: rgba(251,191,36,.12);
+    border-color: var(--amber);
+    color: var(--text);
+  }
+  .chip[aria-pressed="true"] .dot{ background: var(--amber); }
+  .chip:active{ transform: scale(.97); }
+  .chip-add{
+    background: transparent;
+    border: 1px dashed var(--line-2);
+    color: var(--text-dim);
+  }
+  .chip-add:hover{ border-color: var(--amber); color: var(--amber); }
+
+  .empty-list{
+    padding: 14px; border-radius: 12px;
+    background: rgba(251,191,36,.05);
+    border: 1px dashed var(--line-2);
+    font-size: 13px;
+    color: var(--text-dim);
+    line-height: 1.5;
+  }
+  .empty-list b{ color: var(--text); }
+
+  /* Banner peligro / aviso */
+  .alert-danger{
+    margin-top: 14px;
+    background: linear-gradient(135deg, rgba(185,28,28,.18), rgba(127,29,29,.08));
+    border: 1px solid rgba(248,113,113,.4);
+    border-left: 4px solid var(--red);
+    color: #fecaca;
+    padding: 14px 14px;
+    border-radius: 12px;
+    display:flex; gap: 12px; align-items:flex-start;
+    animation: dangerPulse .35s cubic-bezier(.22,.8,.36,1);
+  }
+  .alert-danger.hidden{ display:none; }
+  @keyframes dangerPulse{
+    0%{ transform: scale(.98); opacity: 0; }
+    100%{ transform: scale(1); opacity: 1; }
+  }
+  .alert-danger .alert-icon{
+    width: 32px; height: 32px; flex-shrink:0;
+    border-radius: 8px;
+    background: var(--red-deep);
+    display:grid; place-items:center;
+    color: #fff;
+  }
+  .alert-danger .alert-icon svg{ width: 18px; height: 18px; }
+  .alert-danger h4{
+    margin: 0 0 4px;
+    font-family: 'Bricolage Grotesque', serif;
+    font-size: 16px; font-weight: 800;
+    color: #fecaca;
+    letter-spacing: -.005em;
+  }
+  .alert-danger p{ margin: 0; font-size: 13px; line-height: 1.45; color: rgba(254,202,202,.85); }
+
+  /* Acción flotante inferior */
+  .action-bar{
+    position: fixed;
+    left: 0; right: 0;
+    bottom: 0;
+    z-index: 50;
+    background: linear-gradient(180deg, rgba(10,14,26,0) 0%, rgba(10,14,26,.96) 30%, rgba(10,14,26,1) 100%);
+    padding: 16px 18px calc(16px + env(safe-area-inset-bottom));
+    display:flex; gap: 10px;
+    pointer-events: none;
+  }
+  .action-bar > *{ pointer-events: auto; }
+  .action-bar .inner{
+    max-width: 560px; width: 100%;
+    margin: 0 auto;
+    display:flex; gap: 10px;
+  }
+  .btn{
+    appearance:none; border: none; cursor: pointer;
+    font: inherit; font-size: 15px; font-weight: 600;
+    padding: 14px 18px;
+    border-radius: 14px;
+    display:inline-flex; align-items:center; justify-content:center; gap: 8px;
+    transition: transform .12s ease, opacity .15s ease, background .15s ease;
+    line-height: 1;
+  }
+  .btn:active{ transform: scale(.98); }
+  .btn-primary{
+    background: var(--amber);
+    color: #0a0e1a;
+    box-shadow: 0 10px 24px -10px rgba(251,191,36,.6);
+    flex: 1;
+  }
+  .btn-primary:disabled{
+    background: #2a3754;
+    color: var(--text-mute);
+    box-shadow: none;
+    cursor: not-allowed;
+  }
+  .btn-ghost{
+    background: var(--surface);
+    border: 1px solid var(--line-2);
+    color: var(--text);
+  }
+  .btn-ghost:hover{ border-color: var(--amber); }
+  .btn svg{ width: 18px; height: 18px; }
+
+  /* Modal genérico */
+  .modal-backdrop{
+    position: fixed; inset: 0;
+    background: rgba(5,8,16,.7);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    z-index: 200;
+    display: none;
+    align-items: flex-end;
+    justify-content: center;
+    padding: 0;
+    animation: fadeIn .2s ease;
+  }
+  .modal-backdrop.show{ display:flex; }
+  @keyframes fadeIn{ from{ opacity:0; } to{ opacity:1; } }
+  .modal{
+    background: var(--bg-2);
+    border-top: 1px solid var(--line-2);
+    border-radius: 20px 20px 0 0;
+    width: 100%;
+    max-width: 560px;
+    padding: 18px 18px calc(18px + env(safe-area-inset-bottom));
+    animation: slideUp .25s cubic-bezier(.22,.8,.36,1);
+    max-height: 86dvh;
+    overflow-y: auto;
+  }
+  @keyframes slideUp{
+    from{ transform: translateY(40px); opacity:.4; }
+    to{ transform: translateY(0); opacity:1; }
+  }
+  .modal-head{
+    display:flex; align-items:center; justify-content:space-between;
+    margin-bottom: 14px;
+  }
+  .modal-head h3{
+    margin:0;
+    font-family:'Bricolage Grotesque', serif;
+    font-size: 20px; font-weight: 800;
+    letter-spacing: -.01em;
+  }
+  .modal-close{
+    appearance:none; background:transparent; border:none;
+    color: var(--text-dim); cursor:pointer;
+    width: 32px; height: 32px; border-radius: 8px;
+    display:grid; place-items:center;
+  }
+  .modal-close:hover{ color: var(--text); background: var(--surface); }
+  .modal-actions{
+    display:flex; gap: 10px;
+    margin-top: 18px;
+  }
+
+  /* Input checkbox custom (apartado señalización/ubicación de CCRR — preparado) */
+  .check{
+    display:flex; align-items:flex-start; gap: 10px;
+    padding: 10px 12px;
+    background: #0c1220;
+    border: 1px solid var(--line-2);
+    border-radius: 10px;
+    cursor: pointer;
+    user-select: none;
+    transition: border-color .15s ease, background .15s ease;
+  }
+  .check:hover{ border-color: var(--line-2); }
+  .check input{ display:none; }
+  .check .box{
+    width: 20px; height: 20px;
+    border-radius: 6px;
+    border: 1.5px solid var(--line-2);
+    background: transparent;
+    flex-shrink: 0;
+    display:grid; place-items:center;
+    margin-top: 1px;
+    transition: all .15s ease;
+  }
+  .check .box svg{ width: 14px; height:14px; opacity: 0; transform: scale(.6); transition: all .15s ease; color:#0a0e1a; }
+  .check input:checked + .box{ background: var(--amber); border-color: var(--amber); }
+  .check input:checked + .box svg{ opacity: 1; transform: scale(1); }
+  .check .lbl{ font-size: 14px; line-height: 1.3; }
+  .check input:checked ~ .lbl{ color: var(--text); }
+
+  /* ==========================================================
+     ATMÓSFERA CCRR — rejilla 3×3
+     ========================================================== */
+  .atm-grid{
+    display:grid;
+    grid-template-columns: 1.4fr repeat(3, 1fr);
+    gap: 6px;
+    align-items: center;
+  }
+  .atm-grid .atm-h{
+    font-family:'JetBrains Mono', monospace;
+    font-size: 9.5px;
+    letter-spacing:.1em;
+    color: var(--text-mute);
+    text-transform: uppercase;
+    text-align:center;
+    padding: 4px 2px 6px;
+    line-height:1.2;
+  }
+  .atm-grid .atm-row-label{
+    font-size: 12.5px;
+    color: var(--text-dim);
+    line-height: 1.25;
+    padding-right: 4px;
+  }
+  .atm-toggle{
+    appearance:none;
+    background:#0c1220;
+    border:1px solid var(--line-2);
+    border-radius: 9px;
+    padding: 8px 4px;
+    font: inherit;
+    font-size: 12.5px;
+    font-weight: 700;
+    color: var(--text-dim);
+    cursor:pointer;
+    text-align:center;
+    transition: all .15s ease;
+    display:flex; align-items:center; justify-content:center;
+    gap:4px;
+    min-height: 38px;
+  }
+  .atm-toggle[aria-pressed="true"][data-val="no"]{
+    background: rgba(74,222,128,.1);
+    border-color: var(--green);
+    color: var(--green);
+  }
+  .atm-toggle[aria-pressed="true"][data-val="si"]{
+    background: rgba(248,113,113,.12);
+    border-color: var(--red);
+    color: #fecaca;
+  }
+  .atm-toggle:active{ transform: scale(.96); }
+
+  /* ==========================================================
+     AJUSTES — listas, items, firma canvas
+     ========================================================== */
+  .settings-section{
+    background: linear-gradient(180deg, var(--surface) 0%, var(--bg-2) 100%);
+    border: 1px solid var(--line);
+    border-radius: var(--r-lg);
+    padding: 16px;
+    margin-bottom: 18px;
+    box-shadow: var(--shadow-1);
+  }
+  .settings-section .sec-head{ margin-bottom: 14px; }
+
+  .item-list{ display:flex; flex-direction:column; gap:8px; }
+  .item-card{
+    display:flex; align-items:center; gap:10px;
+    background: #0c1220;
+    border: 1px solid var(--line-2);
+    border-radius: 12px;
+    padding: 12px 12px;
+    transition: border-color .15s ease;
+  }
+  .item-card:hover{ border-color: var(--line-2); }
+  .item-card .item-main{ flex: 1; min-width: 0; }
+  .item-card .item-name{
+    font-weight: 600;
+    font-size: 14.5px;
+    color: var(--text);
+    line-height: 1.2;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+  }
+  .item-card .item-meta{
+    font-family:'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    color: var(--text-mute);
+    letter-spacing: .08em;
+    margin-top: 4px;
+    display:flex; align-items:center; gap:6px; flex-wrap: wrap;
+  }
+  .item-card .item-meta .has-sig{
+    color: var(--green);
+    display:inline-flex; align-items:center; gap:3px;
+  }
+  .item-card .item-meta .no-sig{
+    color: var(--text-mute);
+  }
+  .item-card .badge-rp{
+    background: var(--amber);
+    color: #0a0e1a;
+    font-size: 9.5px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    letter-spacing: .12em;
+    font-weight: 700;
+    margin-left: 4px;
+  }
+  .item-actions{ display:flex; gap:4px; flex-shrink:0; }
+  .icon-action{
+    width: 34px; height: 34px;
+    border-radius: 9px;
+    background: transparent;
+    border: 1px solid var(--line-2);
+    color: var(--text-dim);
+    cursor: pointer;
+    display:grid; place-items:center;
+    transition: all .15s ease;
+  }
+  .icon-action:hover{ color: var(--amber); border-color: var(--amber); }
+  .icon-action.danger:hover{ color: var(--red); border-color: var(--red); }
+  .icon-action svg{ width: 16px; height: 16px; }
+
+  .add-item-btn{
+    width: 100%;
+    padding: 12px;
+    margin-top: 10px;
+    background: transparent;
+    border: 1px dashed var(--line-2);
+    color: var(--text-dim);
+    border-radius: 12px;
+    font: inherit; font-size: 13.5px;
+    cursor: pointer;
+    display:flex; align-items:center; justify-content:center; gap:8px;
+    transition: all .15s ease;
+  }
+  .add-item-btn:hover{ border-color: var(--amber); color: var(--amber); }
+  .add-item-btn svg{ width:16px; height:16px; }
+
+  /* === FIRMA CANVAS === */
+  .signature-wrap{
+    margin-top: 10px;
+    border: 1px solid var(--line-2);
+    border-radius: 12px;
+    overflow: hidden;
+    background: #fafafa;
+    position: relative;
+  }
+  .signature-wrap .sig-canvas{
+    display: block;
+    width: 100%;
+    height: 180px;
+    touch-action: none;
+    cursor: crosshair;
+    background: #fafafa;
+  }
+  .signature-wrap .sig-baseline{
+    position: absolute;
+    bottom: 28px;
+    left: 12px;
+    right: 12px;
+    height: 1px;
+    background: rgba(0,0,0,.15);
+    pointer-events:none;
+  }
+  .signature-wrap .sig-empty-msg{
+    position:absolute; inset:0;
+    display:grid; place-items:center;
+    color: rgba(0,0,0,.35);
+    font-family:'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: .15em;
+    pointer-events:none;
+    text-transform: uppercase;
+  }
+  .signature-wrap .sig-actions{
+    display:flex;
+    background: var(--surface);
+    border-top: 1px solid var(--line-2);
+  }
+  .signature-wrap .sig-actions button{
+    flex:1;
+    background: transparent;
+    border: none;
+    color: var(--text-dim);
+    font: inherit;
+    font-size: 12.5px;
+    padding: 10px;
+    cursor: pointer;
+    display:flex; align-items:center; justify-content:center; gap:6px;
+    transition: color .15s ease, background .15s ease;
+  }
+  .signature-wrap .sig-actions button + button{
+    border-left: 1px solid var(--line-2);
+  }
+  .signature-wrap .sig-actions button:hover{
+    color: var(--amber);
+    background: var(--surface-2);
+  }
+  .signature-wrap .sig-actions svg{ width: 14px; height: 14px; }
+  .signature-wrap .sig-saved-tag{
+    position: absolute;
+    top: 8px; right: 8px;
+    font-family:'JetBrains Mono', monospace;
+    font-size: 10px;
+    background: var(--green);
+    color: #0a0e1a;
+    padding: 3px 7px;
+    border-radius: 5px;
+    letter-spacing: .1em;
+    font-weight: 700;
+    pointer-events:none;
+  }
+
+  /* Mini preview de firma en tarjetas */
+  .sig-thumb{
+    width: 50px; height: 28px;
+    background: #fafafa;
+    border-radius: 5px;
+    border: 1px solid var(--line-2);
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    flex-shrink:0;
+  }
+</style>
+</head>
+
+<body>
+<div class="app">
+
+  <!-- ========= HEADER ========= -->
+  <header class="topbar">
+    <button class="brand" id="brand-btn" aria-label="Inicio" type="button" style="background:none;border:none;padding:0;cursor:pointer;color:inherit;">
+      <span class="brand-mark" aria-hidden="true">
+        <!-- Logo: cruz de antena estilizada -->
+        <svg viewBox="0 0 24 24" fill="none">
+          <path d="M12 3v18" stroke="#fbbf24" stroke-width="2" stroke-linecap="round"/>
+          <path d="M5 7c2 1.5 4 2.2 7 2.2S17 8.5 19 7" stroke="#e6ecf5" stroke-width="1.5" stroke-linecap="round"/>
+          <path d="M6.5 11c1.6 1 3.4 1.5 5.5 1.5s3.9-.5 5.5-1.5" stroke="#e6ecf5" stroke-width="1.5" stroke-linecap="round" opacity=".7"/>
+          <circle cx="12" cy="20" r="1.5" fill="#fbbf24"/>
+        </svg>
+      </span>
+      <span class="brand-text">
+        <span class="t1">Partes Seguridad</span>
+        <span class="t2">DIGI <b>·</b> PE <b>·</b> CG1</span>
+      </span>
+    </button>
+
+    <div class="topbar-actions">
+      <button class="icon-btn" id="btn-history" aria-label="Historial" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l3 2"/>
+        </svg>
+      </button>
+      <button class="icon-btn" id="btn-settings" aria-label="Ajustes" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3h0a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5h0a1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8v0a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <div class="hazard-strip" aria-hidden="true"></div>
+
+  <!-- ========= VISTA: HOME ========= -->
+  <main class="view active" id="view-home">
+
+    <div class="section-head">
+      <span class="eyebrow">Nuevo parte</span>
+      <h1 class="section-title">¿Qué vas a <span class="accent">documentar</span> hoy?</h1>
+      <p class="section-sub">Selecciona el tipo de actuación. Los datos fijos de empresa, EPIs y emergencia ya están cargados.</p>
+    </div>
+
+    <div class="card-stack">
+
+      <!-- ==== TARJETA 1 — POSTES ==== -->
+      <button class="big-card" data-go="postes" type="button" aria-label="Crear parte de postes">
+        <span class="corner" aria-hidden="true"></span>
+        <span class="corner bl" aria-hidden="true"></span>
+
+        <div class="illus-wrap">
+          <!-- ILUSTRACIÓN POSTE + TÉCNICO CON TREPADORES -->
+          <svg viewBox="0 0 320 200" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+            <defs>
+              <linearGradient id="poleGrad" x1="0" x2="0" y1="0" y2="1">
+                <stop offset="0" stop-color="#3a4663"/>
+                <stop offset=".5" stop-color="#525d7a"/>
+                <stop offset="1" stop-color="#2c3650"/>
+              </linearGradient>
+              <linearGradient id="vestGrad" x1="0" x2="0" y1="0" y2="1">
+                <stop offset="0" stop-color="#38bdf8"/>
+                <stop offset="1" stop-color="#1e6fa3"/>
+              </linearGradient>
+              <linearGradient id="hatGrad" x1="0" x2="0" y1="0" y2="1">
+                <stop offset="0" stop-color="#fcd34d"/>
+                <stop offset="1" stop-color="#d97706"/>
+              </linearGradient>
+              <linearGradient id="groundGrad" x1="0" x2="0" y1="0" y2="1">
+                <stop offset="0" stop-color="#0e1426" stop-opacity="0"/>
+                <stop offset="1" stop-color="#0e1426" stop-opacity="1"/>
+              </linearGradient>
+            </defs>
+
+            <!-- suelo -->
+            <rect x="0" y="172" width="320" height="28" fill="url(#groundGrad)"/>
+            <line x1="0" y1="178" x2="320" y2="178" stroke="#1f2940" stroke-width="1"/>
+            <line x1="20" y1="184" x2="60" y2="184" stroke="#2a3754" stroke-width="1"/>
+            <line x1="240" y1="184" x2="290" y2="184" stroke="#2a3754" stroke-width="1"/>
+
+            <!-- cables de fondo -->
+            <path d="M0,40 Q160,72 320,40" stroke="#2a3754" stroke-width="1" fill="none"/>
+            <path d="M0,52 Q160,82 320,52" stroke="#2a3754" stroke-width="1" fill="none"/>
+            <path d="M0,62 Q160,90 320,62" stroke="#2a3754" stroke-width="1" fill="none" opacity=".7"/>
+
+            <!-- POSTE -->
+            <rect x="155" y="20" width="10" height="158" fill="url(#poleGrad)" rx="1"/>
+            <!-- vetas/anillos del poste -->
+            <line x1="155" y1="60" x2="165" y2="60" stroke="#1a2238" stroke-width="1"/>
+            <line x1="155" y1="100" x2="165" y2="100" stroke="#1a2238" stroke-width="1"/>
+            <line x1="155" y1="140" x2="165" y2="140" stroke="#1a2238" stroke-width="1"/>
+
+            <!-- travesaño / cruceta -->
+            <rect x="118" y="32" width="84" height="5" fill="#3a4663" rx="1"/>
+            <rect x="118" y="32" width="84" height="2" fill="#525d7a" rx="1"/>
+            <!-- aisladores -->
+            <rect x="124" y="26" width="4" height="8" fill="#94a3b8" rx="1"/>
+            <rect x="142" y="26" width="4" height="8" fill="#94a3b8" rx="1"/>
+            <rect x="174" y="26" width="4" height="8" fill="#94a3b8" rx="1"/>
+            <rect x="192" y="26" width="4" height="8" fill="#94a3b8" rx="1"/>
+            <!-- caja PTR/empalme arriba -->
+            <rect x="146" y="40" width="28" height="14" fill="#19223b" stroke="#2a3754" stroke-width="1" rx="2"/>
+            <rect x="150" y="44" width="20" height="2" fill="#fbbf24" opacity=".7"/>
+
+            <!-- TÉCNICO sobre el poste (lado derecho) -->
+            <!-- arnés / cinturón rodeando el poste por delante -->
+            <path d="M150,118 Q160,108 192,118 Q220,128 218,134 Q205,142 192,134 Q175,128 158,134 Q150,128 150,118 Z"
+                  fill="#0a0e1a" stroke="#fbbf24" stroke-width="1.5"/>
+            <!-- pierna trasera con trepador -->
+            <rect x="172" y="128" width="8" height="26" fill="#1f2940" rx="2"/>
+            <!-- trepador trasero (forma de hoz/garra naranja) -->
+            <path d="M168,150 L162,156 L165,160 L172,156 Z" fill="#f59e0b" stroke="#0a0e1a" stroke-width="1"/>
+            <path d="M162,156 Q156,160 152,158" stroke="#f59e0b" stroke-width="3" fill="none" stroke-linecap="round"/>
+
+            <!-- pierna delantera -->
+            <rect x="196" y="124" width="9" height="32" fill="#1f2940" rx="2"/>
+            <!-- bota -->
+            <rect x="194" y="152" width="14" height="6" fill="#0a0e1a" stroke="#2a3754" stroke-width="1" rx="2"/>
+            <!-- trepador delantero (espiga curva agarrando el poste) -->
+            <path d="M192,150 Q172,160 158,150" stroke="#f59e0b" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+            <path d="M158,150 L154,146 L156,152 Z" fill="#f59e0b"/>
+
+            <!-- torso con chaleco -->
+            <path d="M188,96 L210,96 L214,128 L184,128 Z" fill="url(#vestGrad)" stroke="#0a0e1a" stroke-width="1"/>
+            <!-- bandas reflectantes del chaleco -->
+            <rect x="184" y="108" width="30" height="3" fill="#fbbf24" opacity=".95"/>
+            <rect x="184" y="120" width="30" height="3" fill="#fbbf24" opacity=".95"/>
+            <!-- cuello/camisa -->
+            <rect x="194" y="92" width="10" height="6" fill="#e6ecf5"/>
+
+            <!-- brazo agarrado al poste -->
+            <path d="M188,102 Q170,108 162,118 Q160,124 168,124 Q180,118 190,114 Z" fill="url(#vestGrad)" stroke="#0a0e1a" stroke-width="1"/>
+            <!-- guante -->
+            <circle cx="166" cy="120" r="4.5" fill="#0a0e1a" stroke="#fbbf24" stroke-width="1"/>
+            <!-- brazo derecho con herramienta -->
+            <path d="M210,100 Q224,104 232,116 L228,122 Q218,114 208,112 Z" fill="url(#vestGrad)" stroke="#0a0e1a" stroke-width="1"/>
+            <circle cx="230" cy="120" r="4" fill="#0a0e1a"/>
+            <line x1="232" y1="118" x2="244" y2="106" stroke="#94a3b8" stroke-width="2" stroke-linecap="round"/>
+
+            <!-- cabeza -->
+            <circle cx="199" cy="84" r="9" fill="#f4d4b1" stroke="#0a0e1a" stroke-width="1"/>
+            <!-- casco -->
+            <path d="M188,84 Q188,72 199,71 Q210,72 210,84 L211,86 L187,86 Z" fill="url(#hatGrad)" stroke="#0a0e1a" stroke-width="1"/>
+            <rect x="187" y="84" width="24" height="2.5" fill="#92400e"/>
+            <!-- barbiquejo -->
+            <path d="M192,87 Q199,93 206,87" stroke="#0a0e1a" stroke-width="1" fill="none"/>
+
+            <!-- destellos / chispas pequeñas -->
+            <circle cx="246" cy="100" r="1.6" fill="#fbbf24"/>
+            <circle cx="252" cy="108" r="1" fill="#fbbf24" opacity=".7"/>
+            <circle cx="240" cy="110" r="1" fill="#fbbf24" opacity=".7"/>
+          </svg>
+        </div>
+
+        <div class="row">
+          <div>
+            <div class="label">Módulo 01</div>
+            <div class="title">Parte de Postes</div>
+            <div class="desc">Madera · Hormigón · Fibra. Trepadores, escalera, PEMP, estribos.</div>
+          </div>
+          <div class="go" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M5 12h14"/><path d="m13 6 6 6-6 6"/>
+            </svg>
+          </div>
+        </div>
+      </button>
+
+      <!-- ==== TARJETA 2 — CCRR ==== -->
+      <button class="big-card" data-go="ccrr" type="button" aria-label="Crear parte de cámara CCRR">
+        <span class="corner" aria-hidden="true"></span>
+        <span class="corner bl" aria-hidden="true"></span>
+
+        <div class="illus-wrap">
+          <!-- ILUSTRACIÓN CCRR (cámara subterránea con tapa abierta + conos + atmósfera) -->
+          <svg viewBox="0 0 320 200" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+            <defs>
+              <linearGradient id="streetGrad" x1="0" x2="0" y1="0" y2="1">
+                <stop offset="0" stop-color="#1a2238"/>
+                <stop offset="1" stop-color="#0c1322"/>
+              </linearGradient>
+              <linearGradient id="coverGrad" x1="0" x2="1" y1="0" y2="1">
+                <stop offset="0" stop-color="#5b6884"/>
+                <stop offset="1" stop-color="#2c3650"/>
+              </linearGradient>
+              <linearGradient id="holeGrad" x1="0" x2="0" y1="0" y2="1">
+                <stop offset="0" stop-color="#000"/>
+                <stop offset="1" stop-color="#0a0e1a"/>
+              </linearGradient>
+              <linearGradient id="coneGrad" x1="0" x2="0" y1="0" y2="1">
+                <stop offset="0" stop-color="#fb923c"/>
+                <stop offset="1" stop-color="#c2410c"/>
+              </linearGradient>
+            </defs>
+
+            <!-- calzada -->
+            <rect x="0" y="100" width="320" height="100" fill="url(#streetGrad)"/>
+            <!-- líneas de carril -->
+            <g stroke="#2a3754" stroke-width="2" stroke-dasharray="14 10">
+              <line x1="0" y1="170" x2="320" y2="170"/>
+            </g>
+            <line x1="0" y1="100" x2="320" y2="100" stroke="#fbbf24" stroke-width="1.5" opacity=".4"/>
+
+            <!-- gases/atmósfera saliendo del registro -->
+            <g opacity=".55">
+              <path d="M150,80 Q146,68 152,58 Q160,52 156,38" stroke="#94a3b8" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+              <path d="M170,82 Q174,72 168,62 Q160,56 166,44" stroke="#94a3b8" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+              <path d="M160,78 Q156,68 162,58" stroke="#64748b" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+            </g>
+
+            <!-- símbolo de atmósfera peligrosa (triángulo con !) -->
+            <g transform="translate(202,30)">
+              <path d="M0,28 L16,0 L32,28 Z" fill="#0a0e1a" stroke="#fbbf24" stroke-width="2.2" stroke-linejoin="round"/>
+              <rect x="14.5" y="9" width="3" height="11" fill="#fbbf24" rx="1"/>
+              <circle cx="16" cy="23.5" r="1.6" fill="#fbbf24"/>
+            </g>
+
+            <!-- TAPA abierta (en el aire, levantada) -->
+            <g transform="translate(108,48) rotate(-18)">
+              <ellipse cx="44" cy="14" rx="48" ry="10" fill="url(#coverGrad)" stroke="#0a0e1a" stroke-width="1"/>
+              <ellipse cx="44" cy="12" rx="44" ry="8" fill="none" stroke="#0a0e1a" stroke-width="1" opacity=".6"/>
+              <!-- texto/logo en la tapa -->
+              <text x="44" y="15" text-anchor="middle" font-family="JetBrains Mono, monospace"
+                    font-size="7" fill="#0a0e1a" font-weight="700" letter-spacing="1">TLF</text>
+              <!-- ganchos -->
+              <rect x="20" y="2" width="4" height="6" fill="#0a0e1a" rx="1"/>
+              <rect x="64" y="2" width="4" height="6" fill="#0a0e1a" rx="1"/>
+            </g>
+
+            <!-- AGUJERO de la cámara (vista en perspectiva) -->
+            <ellipse cx="160" cy="118" rx="58" ry="14" fill="#0a0e1a"/>
+            <ellipse cx="160" cy="116" rx="56" ry="12" fill="url(#holeGrad)"/>
+            <!-- borde superior del registro -->
+            <ellipse cx="160" cy="116" rx="58" ry="14" fill="none" stroke="#3a4663" stroke-width="1.5"/>
+            <!-- escalones interiores -->
+            <line x1="148" y1="120" x2="172" y2="120" stroke="#3a4663" stroke-width="1.2"/>
+            <line x1="146" y1="124" x2="174" y2="124" stroke="#3a4663" stroke-width="1.2" opacity=".7"/>
+            <line x1="144" y1="128" x2="176" y2="128" stroke="#3a4663" stroke-width="1.2" opacity=".5"/>
+
+            <!-- CONO IZQUIERDO -->
+            <g transform="translate(70,128)">
+              <ellipse cx="14" cy="38" rx="14" ry="4" fill="#0a0e1a" opacity=".6"/>
+              <path d="M14,4 L26,38 L2,38 Z" fill="url(#coneGrad)" stroke="#0a0e1a" stroke-width="1" stroke-linejoin="round"/>
+              <rect x="6" y="22" width="16" height="4" fill="#e6ecf5"/>
+              <rect x="4" y="36" width="20" height="3" fill="#0a0e1a"/>
+            </g>
+
+            <!-- CONO DERECHO (un poco al fondo) -->
+            <g transform="translate(238,134) scale(.85)">
+              <ellipse cx="14" cy="38" rx="14" ry="4" fill="#0a0e1a" opacity=".6"/>
+              <path d="M14,4 L26,38 L2,38 Z" fill="url(#coneGrad)" stroke="#0a0e1a" stroke-width="1" stroke-linejoin="round"/>
+              <rect x="6" y="22" width="16" height="4" fill="#e6ecf5"/>
+              <rect x="4" y="36" width="20" height="3" fill="#0a0e1a"/>
+            </g>
+
+            <!-- CONO PEQUEÑITO al fondo derecha -->
+            <g transform="translate(280,142) scale(.55)">
+              <path d="M14,4 L26,38 L2,38 Z" fill="url(#coneGrad)" stroke="#0a0e1a" stroke-width="1" stroke-linejoin="round" opacity=".75"/>
+              <rect x="6" y="22" width="16" height="4" fill="#e6ecf5" opacity=".75"/>
+            </g>
+
+            <!-- baranda con banderola roja (señalización) -->
+            <g transform="translate(50,108)">
+              <line x1="0" y1="0" x2="0" y2="22" stroke="#94a3b8" stroke-width="1.5"/>
+              <path d="M0,0 L14,4 L0,8 Z" fill="#dc2626"/>
+            </g>
+          </svg>
+        </div>
+
+        <div class="row">
+          <div>
+            <div class="label">Módulo 02</div>
+            <div class="title">Parte de Cámara<br>(CCRR)</div>
+            <div class="desc">Atmósfera, multidetector, señalización viaria, turnos.</div>
+          </div>
+          <div class="go" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M5 12h14"/><path d="m13 6 6 6-6 6"/>
+            </svg>
+          </div>
+        </div>
+      </button>
+    </div>
+
+    <!-- META / ESTADO -->
+    <div class="meta-grid" aria-label="Estado de la app">
+      <div class="meta-cell">
+        <div class="k">Empresa</div>
+        <div class="v">DIGI <small>Spain</small></div>
+      </div>
+      <div class="meta-cell">
+        <div class="k">Trabajadores</div>
+        <div class="v" id="meta-workers">0 <small>en lista</small></div>
+      </div>
+      <div class="meta-cell">
+        <div class="k">Partes</div>
+        <div class="v" id="meta-reports">0 <small>guardados</small></div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- ========= VISTA: POSTES ========= -->
+  <main class="view" id="view-postes">
+    <button class="back-btn" data-go="home" type="button">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="m15 18-6-6 6-6"/>
+      </svg>
+      Volver
+    </button>
+
+    <div class="section-head">
+      <span class="eyebrow">Módulo 01</span>
+      <h1 class="section-title">Parte de <span class="accent">Postes</span></h1>
+      <p class="section-sub">Rellena solo los campos variables. Los datos fijos (empresa, EPIs, emergencias) ya están cargados.</p>
+    </div>
+
+    <form class="form" id="form-postes" autocomplete="off" novalidate>
+
+      <!-- ===== 1. Tipo de poste ===== -->
+      <section class="form-section">
+        <div class="sec-head">
+          <span class="sec-num">01</span>
+          <span class="sec-title">Tipo de poste</span>
+        </div>
+        <div class="segmented" role="group" id="p-tipo">
+          <button type="button" data-val="Madera"   aria-pressed="true">Madera</button>
+          <button type="button" data-val="Hormigón" aria-pressed="false">Hormigón</button>
+          <button type="button" data-val="Fibra"    aria-pressed="false">Fibra (PRFV)</button>
+        </div>
+      </section>
+
+      <!-- ===== 2. Localización ===== -->
+      <section class="form-section">
+        <div class="sec-head">
+          <span class="sec-num">02</span>
+          <span class="sec-title">Localización</span>
+        </div>
+
+        <div class="field">
+          <span class="field-label">Central</span>
+          <select class="select" id="p-central">
+            <option value="">— Selecciona —</option>
+          </select>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <span class="field-label">Nº Poste</span>
+            <input class="input" type="text" id="p-num-poste" placeholder="Ej. 12345">
+          </div>
+          <div class="field">
+            <span class="field-label">Nº Línea</span>
+            <input class="input" type="text" id="p-num-linea" placeholder="Ej. L-04">
+          </div>
+        </div>
+
+        <div class="field" style="margin-top:12px;">
+          <span class="field-label">Dirección <span class="hint">(GPS opcional)</span></span>
+          <div class="input-gps">
+            <input class="input" type="text" id="p-direccion" placeholder="Calle, número…">
+            <button type="button" class="gps-btn" id="p-gps-btn" aria-label="Obtener ubicación GPS">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/><line x1="12" y1="2" x2="12" y2="6"/>
+                <line x1="12" y1="18" x2="12" y2="22"/><line x1="2" y1="12" x2="6" y2="12"/>
+                <line x1="18" y1="12" x2="22" y2="12"/><circle cx="12" cy="12" r="3"/>
+              </svg>
+              GPS
+            </button>
+          </div>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <span class="field-label">Provincia</span>
+            <input class="input" type="text" id="p-provincia" value="Coruña">
+          </div>
+          <div class="field">
+            <span class="field-label">Población</span>
+            <input class="input" type="text" id="p-poblacion" placeholder="Ej. Santiago">
+          </div>
+        </div>
+
+        <div class="field" style="margin-top:12px;">
+          <span class="field-label">Nº Actuación <span class="hint">(opcional)</span></span>
+          <input class="input" type="text" id="p-num-actuacion" placeholder="Vacío si no aplica">
+        </div>
+      </section>
+
+      <!-- ===== 3. Fecha y condiciones ===== -->
+      <section class="form-section">
+        <div class="sec-head">
+          <span class="sec-num">03</span>
+          <span class="sec-title">Fecha y condiciones</span>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <span class="field-label">Fecha</span>
+            <input class="input" type="date" id="p-fecha">
+          </div>
+          <div class="field">
+            <span class="field-label">Hora</span>
+            <input class="input" type="time" id="p-hora">
+          </div>
+        </div>
+
+        <div class="field" style="margin-top:12px;">
+          <span class="field-label">Climatología</span>
+          <select class="select" id="p-clima">
+            <option>Despejado</option>
+            <option>Nublado</option>
+            <option>Lluvia</option>
+            <option>Niebla</option>
+            <option>Nieve</option>
+            <option>Viento fuerte</option>
+          </select>
+        </div>
+
+        <div class="field" style="margin-top:12px;">
+          <span class="field-label">¿Climatología adecuada para trabajar? <span class="hint">(va al PDF)</span></span>
+          <div class="segmented" role="group" id="p-clima-ok">
+            <button type="button" data-val="si" aria-pressed="true">SÍ</button>
+            <button type="button" data-val="no" aria-pressed="false">NO</button>
+          </div>
+        </div>
+
+        <div class="field" style="margin-top:12px;">
+          <span class="field-label">Trabajo a realizar</span>
+          <textarea class="textarea" id="p-trabajo" rows="2" placeholder="Describe brevemente la actuación…"></textarea>
+        </div>
+      </section>
+
+      <!-- ===== 4. Medio para subir al poste ===== -->
+      <section class="form-section">
+        <div class="sec-head">
+          <span class="sec-num">04</span>
+          <span class="sec-title">Medio para subir al poste</span>
+        </div>
+        <p style="font-size:12.5px;color:var(--text-mute);margin:-6px 0 12px;">
+          Las opciones se ajustan según el tipo de poste seleccionado.
+        </p>
+        <div class="field">
+          <span class="field-label">Medio</span>
+          <select class="select" id="p-medio">
+            <!-- opciones rellenadas por JS según tipo -->
+          </select>
+        </div>
+        <div class="field" id="p-medio-otro-wrap" style="display:none; margin-top:12px;">
+          <span class="field-label">Especificar "Otro"</span>
+          <input class="input" type="text" id="p-medio-otro" placeholder="Describe el medio empleado">
+        </div>
+      </section>
+
+      <!-- ===== 5. Estado del poste ===== -->
+      <section class="form-section">
+        <div class="sec-head">
+          <span class="sec-num">05</span>
+          <span class="sec-title">Estado del poste</span>
+        </div>
+        <div class="segmented danger" role="group" id="p-estado">
+          <button type="button" data-val="bueno" aria-pressed="true">Bueno / Adecuado</button>
+          <button type="button" data-val="malo"  data-danger aria-pressed="false">Malo / Defectuoso</button>
+        </div>
+
+        <div class="alert-danger hidden" id="p-estado-alert" role="alert">
+          <div class="alert-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 2 1 22h22L12 2z"/><path d="M12 9v5"/><circle cx="12" cy="18" r="1.2" fill="currentColor"/>
+            </svg>
+          </div>
+          <div>
+            <h4>NO SE PUEDE TRABAJAR</h4>
+            <p>El poste presenta defectos. Detén la actuación, comunícalo al responsable y no generes el parte hasta resolver la incidencia.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== 6. Trabajadores ===== -->
+      <section class="form-section">
+        <div class="sec-head">
+          <span class="sec-num">06</span>
+          <span class="sec-title">Trabajadores presentes</span>
+        </div>
+        <div id="p-workers-empty" class="empty-list" style="display:none;">
+          Aún no hay trabajadores guardados. <b>Añade alguno temporal</b> ahora o créalos en <b>Ajustes</b> para reutilizarlos.
+        </div>
+        <div class="chip-list" id="p-workers-chips"></div>
+        <button type="button" class="chip chip-add" id="p-worker-add-temp" style="margin-top:10px;">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Añadir temporal
+        </button>
+      </section>
+
+      <!-- ===== 7. Recurso preventivo ===== -->
+      <section class="form-section">
+        <div class="sec-head">
+          <span class="sec-num">07</span>
+          <span class="sec-title">Recurso preventivo</span>
+        </div>
+        <div class="field">
+          <span class="field-label">Trabajador designado</span>
+          <select class="select" id="p-rp-select">
+            <option value="">— Selecciona de la lista —</option>
+          </select>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <span class="field-label">Nombre <span class="hint">(editable)</span></span>
+            <input class="input" type="text" id="p-rp-nombre" placeholder="Auto-rellenado">
+          </div>
+          <div class="field">
+            <span class="field-label">NIF / Matrícula</span>
+            <input class="input" type="text" id="p-rp-nif" placeholder="Auto-rellenado">
+          </div>
+        </div>
+        <p style="font-size:12.5px;color:var(--text-mute);margin:14px 0 0;">
+          ✎ Si el trabajador tiene firma guardada en <b style="color:var(--amber)">Ajustes</b>, se insertará automáticamente en el PDF.
+        </p>
+      </section>
+
+      <!-- ===== 7b. EPIs ===== -->
+      <section class="form-section">
+        <div class="sec-head">
+          <span class="sec-num">08</span>
+          <span class="sec-title">EPIs utilizados</span>
+        </div>
+        <p style="font-size:12.5px;color:var(--text-mute);margin:-6px 0 12px;">
+          Marca los equipos que se usarán. Los habituales ya están preseleccionados.
+        </p>
+        <div id="p-epis-list" style="display:flex;flex-direction:column;gap:8px;"></div>
+      </section>
+
+      <!-- ===== 8. Observaciones ===== -->
+      <section class="form-section">
+        <div class="sec-head">
+          <span class="sec-num">09</span>
+          <span class="sec-title">Observaciones</span>
+        </div>
+        <textarea class="textarea" id="p-obs" rows="3" placeholder="Notas adicionales (opcional)…"></textarea>
+      </section>
+
+    </form>
+
+    <!-- Barra de acción flotante -->
+    <div class="action-bar">
+      <div class="inner">
+        <button type="button" class="btn btn-ghost" id="p-clear">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/>
+          </svg>
+          Limpiar
+        </button>
+        <button type="button" class="btn btn-primary" id="p-generate" disabled>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
+          </svg>
+          Generar PDF
+        </button>
+      </div>
+    </div>
+  </main>
+
+  <!-- Modal: añadir trabajador temporal -->
+  <div class="modal-backdrop" id="modal-temp-worker" role="dialog" aria-modal="true" aria-labelledby="mtw-title">
+    <div class="modal">
+      <div class="modal-head">
+        <h3 id="mtw-title">Trabajador temporal</h3>
+        <button class="modal-close" type="button" data-close-modal aria-label="Cerrar">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></svg>
+        </button>
+      </div>
+      <p style="margin:0 0 14px;font-size:13px;color:var(--text-dim);line-height:1.5;">
+        Solo para este parte. No se guardará en la lista permanente (eso lo harás en <b style="color:var(--text)">Ajustes</b>).
+      </p>
+      <div class="field">
+        <span class="field-label">Nombre y apellidos</span>
+        <input class="input" type="text" id="mtw-name" autocomplete="off">
+      </div>
+      <div class="field" style="margin-top:12px;">
+        <span class="field-label">Categoría</span>
+        <input class="input" type="text" id="mtw-cat" value="Celador">
+      </div>
+      <div class="field" style="margin-top:12px;">
+        <span class="field-label">NIF / Matrícula</span>
+        <input class="input" type="text" id="mtw-nif" autocomplete="off">
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-ghost" data-close-modal style="flex:1;">Cancelar</button>
+        <button type="button" class="btn btn-primary" id="mtw-save" style="flex:1;">Añadir</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========= VISTA: CCRR ========= -->
+  <main class="view" id="view-ccrr">
+    <button class="back-btn" data-go="home" type="button">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="m15 18-6-6 6-6"/>
+      </svg>
+      Volver
+    </button>
+
+    <div class="section-head">
+      <span class="eyebrow">Módulo 02</span>
+      <h1 class="section-title">Parte de <span class="accent">Cámara</span> CCRR</h1>
+      <p class="section-sub">Espacio confinado. Atmósfera, multidetector y señalización viaria. Datos fijos ya cargados.</p>
+    </div>
+
+    <form class="form" id="form-ccrr" autocomplete="off" novalidate>
+
+      <!-- 01. Identificación -->
+      <section class="form-section">
+        <div class="sec-head"><span class="sec-num">01</span><span class="sec-title">Identificación</span></div>
+        <div class="field">
+          <span class="field-label">Nº CCRR / PTRO <span class="hint">(ej. Cr 01)</span></span>
+          <input class="input" type="text" id="c-num" placeholder="Cr 01">
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <span class="field-label">Provincia</span>
+            <input class="input" type="text" id="c-provincia" value="Coruña">
+          </div>
+          <div class="field">
+            <span class="field-label">Población</span>
+            <input class="input" type="text" id="c-poblacion" placeholder="Ej. Betanzos">
+          </div>
+        </div>
+        <div class="field" style="margin-top:12px;">
+          <span class="field-label">Dirección <span class="hint">(GPS opcional)</span></span>
+          <div class="input-gps">
+            <input class="input" type="text" id="c-direccion" placeholder="Calle, número…">
+            <button type="button" class="gps-btn" id="c-gps-btn" aria-label="GPS">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/><line x1="12" y1="2" x2="12" y2="6"/>
+                <line x1="12" y1="18" x2="12" y2="22"/><line x1="2" y1="12" x2="6" y2="12"/>
+                <line x1="18" y1="12" x2="22" y2="12"/><circle cx="12" cy="12" r="3"/>
+              </svg>
+              GPS
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- 02. Turno y condiciones -->
+      <section class="form-section">
+        <div class="sec-head"><span class="sec-num">02</span><span class="sec-title">Turno y condiciones</span></div>
+        <div class="field">
+          <span class="field-label">Turno</span>
+          <div class="segmented" role="group" id="c-turno">
+            <button type="button" data-val="Diurno"   aria-pressed="true">Diurno</button>
+            <button type="button" data-val="Nocturno" aria-pressed="false">Nocturno</button>
+          </div>
+        </div>
+        <div class="field" style="margin-top:12px;">
+          <span class="field-label">Climatología</span>
+          <select class="select" id="c-clima">
+            <option>Despejado</option><option>Nublado</option><option>Lluvia</option>
+            <option>Niebla</option><option>Nieve</option><option>Viento fuerte</option>
+          </select>
+        </div>
+        <div class="field" style="margin-top:12px;">
+          <span class="field-label">Trabajo a realizar</span>
+          <textarea class="textarea" id="c-trabajo" rows="2" placeholder="Ej. Tendido de Malla y 48Fo…"></textarea>
+        </div>
+      </section>
+
+      <!-- 03. Actuación y duración -->
+      <section class="form-section">
+        <div class="sec-head"><span class="sec-num">03</span><span class="sec-title">Fecha y duración</span></div>
+        <div class="field-row">
+          <div class="field">
+            <span class="field-label">Fecha</span>
+            <input class="input" type="date" id="c-fecha">
+          </div>
+          <div class="field">
+            <span class="field-label">Duración (h)</span>
+            <input class="input" type="number" id="c-duracion" min="0" step="0.5" placeholder="Ej. 8">
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <span class="field-label">Desde</span>
+            <input class="input" type="time" id="c-desde">
+          </div>
+          <div class="field">
+            <span class="field-label">Hasta</span>
+            <input class="input" type="time" id="c-hasta">
+          </div>
+        </div>
+      </section>
+
+      <!-- 04. Trabajadores -->
+      <section class="form-section">
+        <div class="sec-head"><span class="sec-num">04</span><span class="sec-title">Trabajadores presentes</span></div>
+        <div id="c-workers-empty" class="empty-list" style="display:none;">
+          Aún no hay trabajadores. <b>Añade alguno temporal</b> o créalos en <b>Ajustes</b>.
+        </div>
+        <div class="chip-list" id="c-workers-chips"></div>
+        <button type="button" class="chip chip-add" id="c-worker-add-temp" style="margin-top:10px;">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Añadir temporal
+        </button>
+      </section>
+
+      <!-- 05. Ubicación CCRR -->
+      <section class="form-section">
+        <div class="sec-head"><span class="sec-num">05</span><span class="sec-title">Ubicación de la CCRR</span></div>
+        <div id="c-ubic-list" style="display:flex;flex-direction:column;gap:8px;"></div>
+        <div class="field" style="margin-top:14px;">
+          <span class="field-label">Modelo de tapa <span class="hint">(opcional)</span></span>
+          <input class="input" type="text" id="c-tapa" placeholder="Ej. ICV-300">
+        </div>
+      </section>
+
+      <!-- 06. Señalización -->
+      <section class="form-section">
+        <div class="sec-head"><span class="sec-num">06</span><span class="sec-title">Señalización</span></div>
+        <div id="c-senal-list" style="display:flex;flex-direction:column;gap:8px;"></div>
+      </section>
+
+      <!-- 07. Estado de la CCRR -->
+      <section class="form-section">
+        <div class="sec-head"><span class="sec-num">07</span><span class="sec-title">Estado de la CCRR</span></div>
+        <div class="field">
+          <span class="field-label">Breve descripción <span class="hint">(opcional)</span></span>
+          <textarea class="textarea" id="c-estado-desc" rows="2" placeholder="Cámara en buen estado, sin anomalías destacables."></textarea>
+        </div>
+        <p style="font-size:12px;color:var(--text-mute);margin:12px 0 0;line-height:1.5;">
+          ⓘ Conductos obturados, longitud cuello, ventilación, control continuado, atmósfera y EPIs habituales se imprimen automáticamente en el PDF con sus valores estándar.
+        </p>
+      </section>
+
+      <!-- 08. Recurso preventivo -->
+      <section class="form-section">
+        <div class="sec-head"><span class="sec-num">08</span><span class="sec-title">Recurso preventivo</span></div>
+        <div class="field">
+          <span class="field-label">Trabajador designado</span>
+          <select class="select" id="c-rp-select">
+            <option value="">— Selecciona de la lista —</option>
+          </select>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <span class="field-label">Nombre <span class="hint">(editable)</span></span>
+            <input class="input" type="text" id="c-rp-nombre" placeholder="Auto-rellenado">
+          </div>
+          <div class="field">
+            <span class="field-label">NIF / Matrícula</span>
+            <input class="input" type="text" id="c-rp-nif" placeholder="Auto-rellenado">
+          </div>
+        </div>
+        <p style="font-size:12.5px;color:var(--text-mute);margin:14px 0 0;">
+          ✎ Si el trabajador tiene firma guardada en <b style="color:var(--amber)">Ajustes</b>, se insertará automáticamente en el PDF.
+        </p>
+      </section>
+
+      <!-- 09. Observaciones -->
+      <section class="form-section">
+        <div class="sec-head"><span class="sec-num">09</span><span class="sec-title">Observaciones</span></div>
+        <textarea class="textarea" id="c-obs" rows="3" placeholder="Notas adicionales (opcional)…"></textarea>
+      </section>
+
+    </form>
+
+    <!-- Acción flotante -->
+    <div class="action-bar">
+      <div class="inner">
+        <button type="button" class="btn btn-ghost" id="c-clear">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/>
+          </svg>
+          Limpiar
+        </button>
+        <button type="button" class="btn btn-primary" id="c-generate" disabled>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
+          </svg>
+          Generar PDF
+        </button>
+      </div>
+    </div>
+  </main>
+
+  <!-- Modal: añadir trabajador temporal CCRR (reutiliza el de postes) -->
+  <div class="modal-backdrop" id="modal-temp-worker-c" role="dialog" aria-modal="true" aria-labelledby="mtwc-title">
+    <div class="modal">
+      <div class="modal-head">
+        <h3 id="mtwc-title">Trabajador temporal</h3>
+        <button class="modal-close" type="button" data-close-modal-c aria-label="Cerrar">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></svg>
+        </button>
+      </div>
+      <p style="margin:0 0 14px;font-size:13px;color:var(--text-dim);line-height:1.5;">
+        Solo para este parte. No se guardará en la lista permanente.
+      </p>
+      <div class="field"><span class="field-label">Nombre y apellidos</span><input class="input" type="text" id="mtwc-name" autocomplete="off"></div>
+      <div class="field" style="margin-top:12px;"><span class="field-label">Categoría</span><input class="input" type="text" id="mtwc-cat" value="Celador"></div>
+      <div class="field" style="margin-top:12px;"><span class="field-label">NIF / Matrícula</span><input class="input" type="text" id="mtwc-nif" autocomplete="off"></div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-ghost" data-close-modal-c style="flex:1;">Cancelar</button>
+        <button type="button" class="btn btn-primary" id="mtwc-save" style="flex:1;">Añadir</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========= VISTA: AJUSTES ========= -->
+  <main class="view" id="view-settings">
+    <button class="back-btn" data-go="home" type="button">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="m15 18-6-6 6-6"/>
+      </svg>
+      Volver
+    </button>
+
+    <div class="section-head">
+      <span class="eyebrow">Configuración</span>
+      <h1 class="section-title">Ajustes</h1>
+    </div>
+
+    <!-- Trabajadores -->
+    <section class="settings-section">
+      <div class="sec-head">
+        <span class="sec-num">01</span>
+        <span class="sec-title">Trabajadores</span>
+      </div>
+      <p style="font-size:12.5px;color:var(--text-mute);margin:-6px 0 12px;line-height:1.5;">
+        Lista reutilizable. Cada uno puede tener su firma táctil guardada.
+      </p>
+      <div class="item-list" id="s-workers-list"></div>
+      <button type="button" class="add-item-btn" id="s-worker-add">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Añadir trabajador
+      </button>
+    </section>
+
+    <!-- RP por defecto -->
+    <section class="settings-section">
+      <div class="sec-head">
+        <span class="sec-num">02</span>
+        <span class="sec-title">Recurso Preventivo por defecto</span>
+      </div>
+      <p style="font-size:12.5px;color:var(--text-mute);margin:-6px 0 12px;line-height:1.5;">
+        Se selecciona automáticamente al crear un parte nuevo.
+      </p>
+      <div class="field">
+        <span class="field-label">Trabajador</span>
+        <select class="select" id="s-default-rp">
+          <option value="">— Sin RP por defecto —</option>
+        </select>
+      </div>
+    </section>
+
+    <!-- Centrales -->
+    <section class="settings-section">
+      <div class="sec-head">
+        <span class="sec-num">03</span>
+        <span class="sec-title">Centrales</span>
+      </div>
+      <p style="font-size:12.5px;color:var(--text-mute);margin:-6px 0 12px;line-height:1.5;">
+        Aparecen en el desplegable del parte de Postes.
+      </p>
+      <div class="item-list" id="s-centrales-list"></div>
+      <div style="display:flex;gap:8px;margin-top:10px;">
+        <input class="input" type="text" id="s-central-new" placeholder="Nueva central…" style="flex:1;">
+        <button type="button" class="btn btn-ghost" id="s-central-add" style="padding: 12px 16px;">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Añadir
+        </button>
+      </div>
+    </section>
+
+    <!-- Datos de la app -->
+    <section class="settings-section">
+      <div class="sec-head">
+        <span class="sec-num">04</span>
+        <span class="sec-title">Datos</span>
+      </div>
+      <p style="font-size:12.5px;color:var(--text-mute);margin:-6px 0 12px;line-height:1.5;">
+        Se guarda todo en este dispositivo (localStorage).
+      </p>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <button type="button" class="btn btn-ghost" id="s-export" style="justify-content:flex-start;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+          Exportar copia de seguridad
+        </button>
+        <button type="button" class="btn btn-ghost" id="s-import" style="justify-content:flex-start;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+          </svg>
+          Importar copia de seguridad
+        </button>
+        <input type="file" id="s-import-file" accept=".json,application/json" style="display:none;">
+      </div>
+    </section>
+
+    <section class="settings-section">
+      <div class="sec-head">
+        <span class="sec-num">05</span>
+        <span class="sec-title">Aplicación</span>
+      </div>
+      <p style="font-size:12.5px;color:var(--text-mute);margin:-6px 0 12px;line-height:1.5;">
+        Instala la app en este dispositivo para usarla sin conexión y abrirla desde la pantalla de inicio.
+      </p>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <button type="button" class="btn btn-primary" id="s-install-btn" style="justify-content:flex-start;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 3v12"/><polyline points="7 10 12 15 17 10"/><line x1="5" y1="21" x2="19" y2="21"/>
+          </svg>
+          Instalar app en este dispositivo
+        </button>
+        <p style="font-size:11.5px;color:var(--text-mute);margin:6px 0 0;line-height:1.5;">
+          v0.7.0 · Funciona offline tras la primera carga.
+        </p>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Modal: editar/crear trabajador (con firma) -->
+  <div class="modal-backdrop" id="modal-worker" role="dialog" aria-modal="true" aria-labelledby="mw-title">
+    <div class="modal">
+      <div class="modal-head">
+        <h3 id="mw-title">Trabajador</h3>
+        <button class="modal-close" type="button" data-close-mw aria-label="Cerrar">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></svg>
+        </button>
+      </div>
+
+      <div class="field">
+        <span class="field-label">Nombre y apellidos</span>
+        <input class="input" type="text" id="mw-name" autocomplete="off">
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <span class="field-label">Categoría</span>
+          <input class="input" type="text" id="mw-cat" value="Celador">
+        </div>
+        <div class="field">
+          <span class="field-label">NIF / Matrícula</span>
+          <input class="input" type="text" id="mw-nif" autocomplete="off">
+        </div>
+      </div>
+
+      <div style="margin-top: 14px;">
+        <span class="field-label">Firma táctil</span>
+        <p style="font-size:11.5px;color:var(--text-mute);margin: 4px 0 0;line-height:1.4;">
+          Firma con el dedo o un lápiz. Se usará en los PDFs como Recurso Preventivo.
+        </p>
+        <div class="signature-wrap" id="mw-sig-wrap">
+          <canvas class="sig-canvas" id="mw-sig-canvas"></canvas>
+          <div class="sig-baseline"></div>
+          <div class="sig-empty-msg" id="mw-sig-empty">Toca y firma aquí</div>
+          <div class="sig-actions">
+            <button type="button" id="mw-sig-clear">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/>
+              </svg>
+              Borrar firma
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" class="btn btn-ghost" id="mw-delete" style="flex:0.7; color: var(--red); border-color: rgba(248,113,113,.3); display:none;">
+          Eliminar
+        </button>
+        <button type="button" class="btn btn-ghost" data-close-mw style="flex:1;">Cancelar</button>
+        <button type="button" class="btn btn-primary" id="mw-save" style="flex:1;">Guardar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========= VISTA: HISTORIAL ========= -->
+  <main class="view" id="view-history">
+    <button class="back-btn" data-go="home" type="button">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="m15 18-6-6 6-6"/>
+      </svg>
+      Volver
+    </button>
+
+    <div class="section-head">
+      <span class="eyebrow">Archivo</span>
+      <h1 class="section-title">Historial</h1>
+      <p class="section-sub">Partes generados, guardados en este dispositivo. Toca uno para verlo o compartirlo.</p>
+    </div>
+
+    <div class="item-list" id="h-list"></div>
+  </main>
+
+  <!-- ========= FOOTER ========= -->
+  <footer class="app-foot">
+    <div class="sig">Creado por <b>Braulio</b><span class="dot">·</span>CG1</div>
+    <div class="ver" id="app-ver">v0.1 · STEP 1</div>
+  </footer>
+
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+/* =============================================================
+   APP — Paso 1
+   - Router de vistas
+   - Helpers de localStorage
+   - Toast
+   - Datos fijos precargados (constantes que usarán los Pasos 2-7)
+   ============================================================= */
+
+const App = {
+  version: '0.7.0',
+  step: 6,
+
+  /* ===== CONSTANTES FIJAS — nunca cambian ===== */
+  FIXED: {
+    empresa: 'DIGI Spain Telecom',
+    unidad: 'PE',
+    categoriaTrabajadoresDefault: 'Celador',
+    formacionAdecuada: true,
+    conocenRiesgos: true,
+    telefonoEmergencia1: '061',
+    telefonoEmergencia2: '112',
+    // Apartado 6 — checks de escalera (a-g) por defecto SÍ
+    escalera: { a:true, b:true, c:true, d:true, e:true, f:true, g:true },
+    // Apartado 8 — postes
+    postes: { medidasPreventivas:true, episAdecuados:true },
+    // CCRR
+    ccrr: {
+      // Estos valores se imprimen SIEMPRE así en el PDF (no aparecen en el formulario)
+      conductosObturados: 'si',          // siempre SÍ
+      longitudCuelloMayor3m: 'si',       // siempre SÍ
+      // Preparación antes de entrar: estas opciones siempre van marcadas
+      preparacionFija: {
+        ventilacion:        true,
+        controlContinuado:  true
+      },
+      // Control de atmósfera: siempre NO en los 3 controles para las 3 detecciones
+      atmosfera: {
+        o2:     { inicial: 'no', post1: 'no', post2: 'no' },
+        explos: { inicial: 'no', post1: 'no', post2: 'no' },
+        toxic:  { inicial: 'no', post1: 'no', post2: 'no' }
+      },
+      // EPIs siempre marcados (ya no aparecen en el formulario)
+      epis: {
+        casco:         true,
+        gafas:         true,
+        guantes_mec:   true,
+        multidetector: true,
+        arnes_tripode: true,
+        comunicacion:  true
+      },
+      descripcionEstadoDefault: ''
+    }
+  },
+
+  /* ===== MEDIOS PARA SUBIR según tipo de poste ===== */
+  MEDIOS: {
+    'Madera':    ['Escalera','Escalera con patas extensibles','PEMP','Trepadores','Otro'],
+    'Hormigón':  ['Escalera','Escalera con patas extensibles','PEMP','Estribos','Otro'],
+    'Fibra':     ['Escalera','Escalera con patas extensibles','PEMP','Herramienta especial','Otro']
+  },
+
+  /* ===== Centrales por defecto (editables en Ajustes — Paso 4) ===== */
+  CENTRALES_DEFAULT: [
+    'Coruña Centro','Coruña Norte','Santiago','Ferrol','Lugo','Ourense','Pontevedra','Vigo','Otra'
+  ],
+
+  /* ===== Trabajador inicial (el propio usuario). Editable en Ajustes ===== */
+  WORKERS_DEFAULT: [
+    { id: 'w_braulio',  nombre: 'Braulio López Pardavila', categoria: 'Celador', nif: '32699833C' },
+    { id: 'w_juan',     nombre: 'Juan Ponce Orjales',      categoria: 'Celador', nif: '' },
+    { id: 'w_yago',     nombre: 'Yago Abeledo',            categoria: 'Celador', nif: '' },
+    { id: 'w_marcos',   nombre: 'Marcos Criado Barbarin',  categoria: 'Celador', nif: '' },
+    { id: 'w_braulioa', nombre: 'Braulio Arda',            categoria: 'Celador', nif: '' },
+    { id: 'w_jorgeg',   nombre: 'Jorge García',            categoria: 'Celador', nif: '' }
+  ],
+
+  /* ===== Migraciones (operaciones que se ejecutan una sola vez al actualizar la app) ===== */
+  MIGRATIONS: {
+    // v1 → quitar trabajadores que ya no están en el default por petición del usuario
+    'remove_unwanted_workers_v1': function(){
+      const removeIds = ['w_david', 'w_jorgeb'];
+      const ws = App.load(App.KEYS.workers, []);
+      const filtered = ws.filter(w => !removeIds.includes(w.id));
+      if(filtered.length !== ws.length){
+        App.save(App.KEYS.workers, filtered);
+      }
+    }
+  },
+
+  /* ===== EPIs (apartado 7 del PDF) ===== */
+  EPIS_LIST: [
+    { id: 'casco',      label: 'Casco con sujeción facial / barbuquejo', def: true  },
+    { id: 'chaleco',    label: 'Chaleco / ropa alta visibilidad',         def: true  },
+    { id: 'guantes',    label: 'Guantes contra riesgos mecánicos',        def: true  },
+    { id: 'gafas',      label: 'Gafas de seguridad',                       def: true  },
+    { id: 'botas',      label: 'Botas de seguridad',                       def: true  },
+    { id: 'cinturon',   label: 'Cinturón de posicionamiento',              def: true  },
+    { id: 'lineavida',  label: 'Línea de vida + dispositivo deslizante',   def: true  },
+    { id: 'arnes',      label: 'Arnés de seguridad',                       def: false },
+    { id: 'doblecabo',  label: 'Doble cabo de anclaje',                    def: false },
+    { id: 'pertiga',    label: 'Pértiga + línea de vida + disp. deslizante', def: false },
+    { id: 'puntomovil', label: 'Punto anclaje móvil (aro cinta / bandola horca)', def: false },
+    { id: 'otrosepi',   label: 'Otros equipos (especificar en observaciones)', def: false }
+  ],
+
+  /* ===== CCRR — Ubicación, señalización, preparación, EPIs ===== */
+  CCRR_UBICACIONES: [
+    { id: 'acera',             label: 'Acera' },
+    { id: 'calzada_urb',       label: 'Calzada urbana' },
+    { id: 'calzada_no_urb',    label: 'Calzada no urbana' },
+    { id: 'campo',             label: 'Campo' },
+    { id: 'interfiere_carril', label: 'Interfiere carril de circulación' }
+  ],
+  CCRR_SENALIZACION: [
+    { id: 'conos',                label: 'Conos de señalización',               def: true  },
+    { id: 'baranda',              label: 'Baranda con banderola roja',          def: false },
+    { id: 'senal_obras',          label: 'Señal de peligro por obras',          def: false },
+    { id: 'senal_estrechamiento', label: 'Señal de peligro por estrechamiento', def: false },
+    { id: 'luminosa',             label: 'Señalización luminosa',               def: false }
+  ],
+
+  /* ===== KEYS de localStorage ===== */
+  KEYS: {
+    workers:    'cg1.workers',
+    centrales:  'cg1.centrales',
+    reports:    'cg1.reports',
+    settings:   'cg1.settings'
+  },
+
+  /* ===== STORAGE HELPERS ===== */
+  load(key, fallback){
+    try {
+      const raw = localStorage.getItem(key);
+      return raw ? JSON.parse(raw) : fallback;
+    } catch(e){ return fallback; }
+  },
+  save(key, value){
+    try { localStorage.setItem(key, JSON.stringify(value)); return true; }
+    catch(e){ this.toast('No se pudo guardar localmente'); return false; }
+  },
+
+  /* ===== ROUTER ===== */
+  go(view){
+    const target = document.getElementById('view-' + view);
+    if(!target) return;
+    document.querySelectorAll('main.view').forEach(v => v.classList.remove('active'));
+    target.classList.add('active');
+    // re-trigger animation
+    target.style.animation = 'none';
+    void target.offsetWidth;
+    target.style.animation = '';
+    window.scrollTo({ top: 0, behavior: 'instant' });
+
+    // Hooks por vista
+    if(view === 'postes'   && typeof Postes   !== 'undefined') Postes.onEnter();
+    if(view === 'ccrr'     && typeof Ccrr     !== 'undefined') Ccrr.onEnter();
+    if(view === 'settings' && typeof Settings !== 'undefined') Settings.onEnter();
+    if(view === 'history'  && typeof History  !== 'undefined') History.onEnter();
+  },
+
+  /* ===== TOAST ===== */
+  toast(msg, ms = 2200){
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(this._toastTimer);
+    this._toastTimer = setTimeout(() => t.classList.remove('show'), ms);
+  },
+
+  /* ===== UTIL ===== */
+  uid(){ return 'w_' + Math.random().toString(36).slice(2,9); },
+  todayISO(){ const d=new Date(); return d.toISOString().slice(0,10); },
+  nowHHMM(){ const d=new Date(); return d.toTimeString().slice(0,5); },
+
+  /* ===== Ejecuta cada migración una sola vez ===== */
+  runMigrations(){
+    const done = this.load('cg1.migrations', {});
+    let changed = false;
+    Object.keys(this.MIGRATIONS).forEach(key => {
+      if(!done[key]){
+        try { this.MIGRATIONS[key](); } catch(e){ console.error('migration', key, e); }
+        done[key] = true;
+        changed = true;
+      }
+    });
+    if(changed) this.save('cg1.migrations', done);
+  },
+
+  /* ===== INIT ===== */
+  init(){
+    // Bind navegación
+    document.querySelectorAll('[data-go]').forEach(el => {
+      el.addEventListener('click', () => this.go(el.dataset.go));
+    });
+    document.getElementById('brand-btn').addEventListener('click', () => this.go('home'));
+    document.getElementById('btn-history').addEventListener('click', () => this.go('history'));
+    document.getElementById('btn-settings').addEventListener('click', () => this.go('settings'));
+
+    // Sembrar centrales por defecto solo la primera vez
+    if(!this.load(this.KEYS.centrales, null)){
+      this.save(this.KEYS.centrales, this.CENTRALES_DEFAULT.slice());
+    }
+    // Sembrar trabajadores: añade los del default que aún no estén guardados
+    {
+      const existing = this.load(this.KEYS.workers, null);
+      if(!existing){
+        this.save(this.KEYS.workers, this.WORKERS_DEFAULT.slice());
+      } else {
+        const ids = new Set(existing.map(w => w.id));
+        const merged = existing.slice();
+        let added = 0;
+        this.WORKERS_DEFAULT.forEach(w => {
+          if(!ids.has(w.id)){ merged.push({...w}); added++; }
+        });
+        if(added > 0) this.save(this.KEYS.workers, merged);
+      }
+    }
+    // RP por defecto = primer trabajador la primera vez
+    if(!this.load(this.KEYS.settings, null)){
+      const w = this.load(this.KEYS.workers, []);
+      this.save(this.KEYS.settings, { defaultRPId: (w[0]?.id || '') });
+    }
+
+    // Migraciones (después de sembrar)
+    this.runMigrations();
+
+    // Estadísticas en home
+    this.refreshHomeStats();
+
+    // Versión visible
+    document.getElementById('app-ver').textContent = `v${this.version} · STEP ${this.step}`;
+
+    // Mensaje de bienvenida (solo primera vez)
+    if(!this.load('cg1.welcomed', false)){
+      setTimeout(() => this.toast('Listo para crear partes ⚡'), 600);
+      this.save('cg1.welcomed', true);
+    }
+
+    // Inicializar módulo Postes (deja todo listo aunque no haya entrado)
+    Postes.init();
+    // Inicializar módulo Ccrr
+    Ccrr.init();
+    // Inicializar módulo Settings (Paso 4)
+    Settings.init();
+  },
+
+  refreshHomeStats(){
+    const workers = this.load(this.KEYS.workers, []);
+    const reports = this.load(this.KEYS.reports, []);
+    const w = document.getElementById('meta-workers');
+    const r = document.getElementById('meta-reports');
+    if(w) w.innerHTML = `${workers.length} <small>en lista</small>`;
+    if(r) r.innerHTML = `${reports.length} <small>guardados</small>`;
+  }
+};
+
+/* =============================================================
+   MÓDULO POSTES — Paso 2
+   ============================================================= */
+const Postes = {
+  DRAFT_KEY: 'cg1.draft.postes',
+  TEMP_WORKERS_KEY: 'cg1.draft.postes.tempWorkers',
+
+  state: {
+    tipo: 'Madera',
+    estado: 'bueno',
+    climaOk: 'si',  // ¿Climatología adecuada? SI/NO
+    workersSelected: [], // ids
+    tempWorkers: [],     // [{id, nombre, categoria, nif, _temp:true}]
+    epis: {}             // {epiId: true|false}
+  },
+
+  /* ----- INIT (se llama una vez al cargar) ----- */
+  init(){
+    // Tipo de poste (segmented)
+    document.querySelectorAll('#p-tipo button').forEach(btn => {
+      btn.addEventListener('click', () => this.setTipo(btn.dataset.val));
+    });
+    // Estado del poste (segmented)
+    document.querySelectorAll('#p-estado button').forEach(btn => {
+      btn.addEventListener('click', () => this.setEstado(btn.dataset.val));
+    });
+    // Climatología adecuada SI/NO
+    document.querySelectorAll('#p-clima-ok button').forEach(btn => {
+      btn.addEventListener('click', () => this.setClimaOk(btn.dataset.val));
+    });
+    // Cambio de tipo de clima → sugiere SI/NO automáticamente (pero editable)
+    document.getElementById('p-clima').addEventListener('change', (e) => {
+      const adversos = ['Lluvia','Niebla','Nieve','Viento fuerte'];
+      this.setClimaOk(adversos.includes(e.target.value) ? 'no' : 'si');
+    });
+    // Medio "Otro"
+    document.getElementById('p-medio').addEventListener('change', (e)=> {
+      const otro = e.target.value === 'Otro';
+      document.getElementById('p-medio-otro-wrap').style.display = otro ? '' : 'none';
+      this.saveDraft();
+    });
+    // Recurso preventivo: al cambiar selector, autorrellenar nombre/NIF
+    document.getElementById('p-rp-select').addEventListener('change', (e)=>{
+      const id = e.target.value;
+      const w = this.allWorkers().find(x => x.id === id);
+      if(w){
+        document.getElementById('p-rp-nombre').value = w.nombre || '';
+        document.getElementById('p-rp-nif').value = w.nif || '';
+      }
+      this.saveDraft();
+    });
+
+    // GPS
+    document.getElementById('p-gps-btn').addEventListener('click', () => this.requestGPS());
+
+    // Botones de acción
+    document.getElementById('p-clear').addEventListener('click', () => this.clearForm());
+    document.getElementById('p-generate').addEventListener('click', () => this.generate());
+
+    // Trabajador temporal
+    document.getElementById('p-worker-add-temp').addEventListener('click', () => this.openTempModal());
+    document.getElementById('mtw-save').addEventListener('click', () => this.saveTempWorker());
+    document.querySelectorAll('#modal-temp-worker [data-close-modal]').forEach(b=>{
+      b.addEventListener('click', ()=> this.closeTempModal());
+    });
+    document.getElementById('modal-temp-worker').addEventListener('click', (e)=>{
+      if(e.target.id === 'modal-temp-worker') this.closeTempModal();
+    });
+
+    // Persistencia automática de inputs
+    document.getElementById('form-postes').addEventListener('input', () => this.saveDraft());
+
+    // Cargar borrador y temporales
+    const draft = App.load(this.DRAFT_KEY, null);
+    this.state.tempWorkers = App.load(this.TEMP_WORKERS_KEY, []);
+    if(draft){
+      this.state.tipo = draft.tipo || 'Madera';
+      this.state.estado = draft.estado || 'bueno';
+      this.state.climaOk = draft.climaOk || 'si';
+      this.state.workersSelected = draft.workersSelected || [];
+      this.state.epis = draft.epis || this.defaultEpis();
+    } else {
+      this.state.epis = this.defaultEpis();
+    }
+    this.renderEpis();
+  },
+
+  defaultEpis(){
+    const out = {};
+    App.EPIS_LIST.forEach(e => out[e.id] = !!e.def);
+    return out;
+  },
+
+  renderEpis(){
+    const wrap = document.getElementById('p-epis-list');
+    if(!wrap) return;
+    wrap.innerHTML = App.EPIS_LIST.map(e => `
+      <label class="check">
+        <input type="checkbox" data-epi="${this.esc(e.id)}" ${this.state.epis[e.id] ? 'checked' : ''}>
+        <span class="box">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="5 12 10 17 19 7"/></svg>
+        </span>
+        <span class="lbl">${this.esc(e.label)}</span>
+      </label>
+    `).join('');
+    wrap.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+      cb.addEventListener('change', () => {
+        this.state.epis[cb.dataset.epi] = cb.checked;
+        this.saveDraft();
+      });
+    });
+  },
+
+  /* ----- ON ENTER (cada vez que entras a la vista) ----- */
+  onEnter(){
+    this.populateCentrales();
+    this.populateMedios();
+    this.renderTipo();
+    this.renderEstado();
+    this.renderClimaOk();
+    this.renderWorkers();
+    this.populateRPSelect();
+    this.applyDraft();
+    this.autoSelectDefaultRP();
+    this.renderEpis();
+    this.refreshGenerateButton();
+  },
+
+  // Si no hay RP seleccionado y existe defaultRPId en settings, lo aplica
+  autoSelectDefaultRP(){
+    const sel = document.getElementById('p-rp-select');
+    if(sel.value) return;
+    const settings = App.load(App.KEYS.settings, {});
+    const id = settings.defaultRPId;
+    if(!id) return;
+    if([...sel.options].some(o => o.value === id)){
+      sel.value = id;
+      const w = this.allWorkers().find(x => x.id === id);
+      if(w){
+        const nameEl = document.getElementById('p-rp-nombre');
+        const nifEl  = document.getElementById('p-rp-nif');
+        if(!nameEl.value) nameEl.value = w.nombre || '';
+        if(!nifEl.value)  nifEl.value  = w.nif || '';
+      }
+      this.saveDraft();
+    }
+  },
+
+  /* ----- DATA ----- */
+  allWorkers(){
+    const perm = App.load(App.KEYS.workers, []);
+    return [...perm, ...this.state.tempWorkers];
+  },
+
+  /* ----- POPULATE ----- */
+  populateCentrales(){
+    const sel = document.getElementById('p-central');
+    const centrales = App.load(App.KEYS.centrales, App.CENTRALES_DEFAULT);
+    const current = sel.value;
+    sel.innerHTML = '<option value="">— Selecciona —</option>' +
+      centrales.map(c => `<option value="${this.esc(c)}">${this.esc(c)}</option>`).join('');
+    if(current) sel.value = current;
+  },
+
+  populateMedios(){
+    const sel = document.getElementById('p-medio');
+    const opts = App.MEDIOS[this.state.tipo] || [];
+    const current = sel.value;
+    sel.innerHTML = opts.map(o => `<option value="${this.esc(o)}">${this.esc(o)}</option>`).join('');
+    // mantener valor si sigue válido
+    if(opts.includes(current)) sel.value = current;
+    // ocultar campo "otro" si no aplica
+    const otro = sel.value === 'Otro';
+    document.getElementById('p-medio-otro-wrap').style.display = otro ? '' : 'none';
+  },
+
+  populateRPSelect(){
+    const sel = document.getElementById('p-rp-select');
+    const all = this.allWorkers();
+    const current = sel.value;
+    sel.innerHTML = '<option value="">— Selecciona de la lista —</option>' +
+      all.map(w => `<option value="${this.esc(w.id)}">${this.esc(w.nombre)}${w.nif ? ' · '+this.esc(w.nif) : ''}</option>`).join('');
+    if(current) sel.value = current;
+  },
+
+  /* ----- RENDER ----- */
+  renderTipo(){
+    document.querySelectorAll('#p-tipo button').forEach(b => {
+      b.setAttribute('aria-pressed', b.dataset.val === this.state.tipo ? 'true' : 'false');
+    });
+  },
+
+  renderEstado(){
+    document.querySelectorAll('#p-estado button').forEach(b => {
+      b.setAttribute('aria-pressed', b.dataset.val === this.state.estado ? 'true' : 'false');
+    });
+    const alert = document.getElementById('p-estado-alert');
+    if(this.state.estado === 'malo'){
+      alert.classList.remove('hidden');
+    } else {
+      alert.classList.add('hidden');
+    }
+  },
+
+  renderWorkers(){
+    const list = this.allWorkers();
+    const wrap = document.getElementById('p-workers-chips');
+    const empty = document.getElementById('p-workers-empty');
+    if(list.length === 0){
+      empty.style.display = '';
+      wrap.innerHTML = '';
+      return;
+    }
+    empty.style.display = 'none';
+    wrap.innerHTML = list.map(w => {
+      const active = this.state.workersSelected.includes(w.id);
+      const tempBadge = w._temp ? ' <span style="font-family:JetBrains Mono,monospace;font-size:10px;color:var(--amber);letter-spacing:.1em;margin-left:2px;">·TMP</span>' : '';
+      return `<button type="button" class="chip" aria-pressed="${active}" data-worker="${this.esc(w.id)}">
+        <span class="dot"></span>${this.esc(w.nombre)}${tempBadge}
+      </button>`;
+    }).join('');
+    wrap.querySelectorAll('.chip').forEach(c => {
+      c.addEventListener('click', () => this.toggleWorker(c.dataset.worker));
+    });
+  },
+
+  /* ----- ACTIONS ----- */
+  setTipo(tipo){
+    this.state.tipo = tipo;
+    this.renderTipo();
+    this.populateMedios();
+    this.saveDraft();
+  },
+
+  setEstado(estado){
+    this.state.estado = estado;
+    this.renderEstado();
+    this.refreshGenerateButton();
+    this.saveDraft();
+    if(estado === 'malo'){
+      App.toast('⚠ Trabajo bloqueado: poste defectuoso');
+    }
+  },
+
+  setClimaOk(val){
+    this.state.climaOk = val;
+    this.renderClimaOk();
+    this.saveDraft();
+  },
+
+  renderClimaOk(){
+    document.querySelectorAll('#p-clima-ok button').forEach(b => {
+      b.setAttribute('aria-pressed', b.dataset.val === this.state.climaOk ? 'true' : 'false');
+    });
+  },
+
+  toggleWorker(id){
+    const i = this.state.workersSelected.indexOf(id);
+    if(i >= 0) this.state.workersSelected.splice(i, 1);
+    else this.state.workersSelected.push(id);
+    this.renderWorkers();
+    this.saveDraft();
+  },
+
+  /* ----- TEMP WORKER MODAL ----- */
+  openTempModal(){
+    document.getElementById('mtw-name').value = '';
+    document.getElementById('mtw-cat').value = 'Celador';
+    document.getElementById('mtw-nif').value = '';
+    document.getElementById('modal-temp-worker').classList.add('show');
+    setTimeout(()=> document.getElementById('mtw-name').focus(), 50);
+  },
+  closeTempModal(){
+    document.getElementById('modal-temp-worker').classList.remove('show');
+  },
+  saveTempWorker(){
+    const nombre = document.getElementById('mtw-name').value.trim();
+    const categoria = document.getElementById('mtw-cat').value.trim() || 'Celador';
+    const nif = document.getElementById('mtw-nif').value.trim();
+    if(!nombre){ App.toast('Indica nombre y apellidos'); return; }
+    const w = { id: App.uid(), nombre, categoria, nif, _temp: true };
+    this.state.tempWorkers.push(w);
+    this.state.workersSelected.push(w.id);
+    App.save(this.TEMP_WORKERS_KEY, this.state.tempWorkers);
+    this.renderWorkers();
+    this.populateRPSelect();
+    this.closeTempModal();
+    App.toast('Trabajador temporal añadido');
+    this.saveDraft();
+  },
+
+  /* ----- GPS ----- */
+  async requestGPS(){
+    const btn = document.getElementById('p-gps-btn');
+    btn.dataset.loading = '1';
+    try {
+      const result = await Geo.resolve({ withAddress: true });
+      const dir = document.getElementById('p-direccion');
+      const pob = document.getElementById('p-poblacion');
+      const pro = document.getElementById('p-provincia');
+
+      if(result.address){
+        const a = result.address;
+        const filled = [];
+        // Solo rellenamos campos vacíos (o forzamos si dir tiene formato "Lat ..., Lon ...")
+        const dirIsCoords = /^Lat\s/i.test(dir.value);
+        if((!dir.value || dirIsCoords) && a.direccion){ dir.value = a.direccion; filled.push('dirección'); }
+        if(!pob.value && a.poblacion){ pob.value = a.poblacion; filled.push('población'); }
+        if(!pro.value && a.provincia){ pro.value = a.provincia; filled.push('provincia'); }
+        App.toast(filled.length
+          ? `📍 ${a.direccion || a.poblacion || 'GPS'}`
+          : `📍 GPS detectado, campos ya rellenos`);
+      } else {
+        // Sin red o sin resultado → fallback a coordenadas
+        if(!dir.value){
+          dir.value = `Lat ${result.lat.toFixed(5)}, Lon ${result.lon.toFixed(5)}`;
+        }
+        App.toast(result.lookupError ? `Sin red: ${result.lookupError}` : 'Coordenadas guardadas');
+      }
+      this.saveDraft();
+    } catch(err){
+      App.toast(err.message || 'No se pudo obtener la ubicación');
+    } finally {
+      btn.dataset.loading = '0';
+    }
+  },
+
+  /* ----- DRAFT ----- */
+  saveDraft(){
+    const data = this.collect();
+    App.save(this.DRAFT_KEY, data);
+    App.save(this.TEMP_WORKERS_KEY, this.state.tempWorkers);
+    this.refreshGenerateButton();
+  },
+
+  applyDraft(){
+    const d = App.load(this.DRAFT_KEY, null);
+
+    // Defaults siempre que falten
+    const fechaEl = document.getElementById('p-fecha');
+    const horaEl  = document.getElementById('p-hora');
+    if(!fechaEl.value) fechaEl.value = (d && d.fecha) ? d.fecha : App.todayISO();
+    if(!horaEl.value)  horaEl.value  = (d && d.hora)  ? d.hora  : App.nowHHMM();
+
+    if(!d) return;
+
+    const setIf = (id, v) => { const e=document.getElementById(id); if(e && v!=null) e.value=v; };
+    setIf('p-central', d.central);
+    setIf('p-num-poste', d.numPoste);
+    setIf('p-num-linea', d.numLinea);
+    setIf('p-direccion', d.direccion);
+    setIf('p-provincia', d.provincia);
+    setIf('p-poblacion', d.poblacion);
+    setIf('p-num-actuacion', d.numActuacion);
+    setIf('p-clima', d.clima);
+    setIf('p-trabajo', d.trabajo);
+    setIf('p-medio', d.medio);
+    setIf('p-medio-otro', d.medioOtro);
+    setIf('p-rp-select', d.rpId);
+    setIf('p-rp-nombre', d.rpNombre);
+    setIf('p-rp-nif', d.rpNif);
+    setIf('p-obs', d.observaciones);
+
+    // mostrar campo "Otro" si aplica
+    document.getElementById('p-medio-otro-wrap').style.display =
+      (document.getElementById('p-medio').value === 'Otro') ? '' : 'none';
+  },
+
+  collect(){
+    const v = id => (document.getElementById(id)?.value || '').trim();
+    return {
+      tipo: this.state.tipo,
+      estado: this.state.estado,
+      climaOk: this.state.climaOk,
+      central: v('p-central'),
+      numPoste: v('p-num-poste'),
+      numLinea: v('p-num-linea'),
+      direccion: v('p-direccion'),
+      provincia: v('p-provincia'),
+      poblacion: v('p-poblacion'),
+      numActuacion: v('p-num-actuacion'),
+      fecha: v('p-fecha'),
+      hora: v('p-hora'),
+      clima: v('p-clima'),
+      trabajo: v('p-trabajo'),
+      medio: v('p-medio'),
+      medioOtro: v('p-medio-otro'),
+      workersSelected: this.state.workersSelected.slice(),
+      rpId: v('p-rp-select'),
+      rpNombre: v('p-rp-nombre'),
+      rpNif: v('p-rp-nif'),
+      epis: { ...this.state.epis },
+      observaciones: v('p-obs')
+    };
+  },
+
+  /* ----- VALIDACIÓN + ACTIVAR BOTÓN ----- */
+  refreshGenerateButton(){
+    const btn = document.getElementById('p-generate');
+    if(!btn) return;
+    const d = this.collect();
+    const blocked = this.state.estado === 'malo';
+    const minOk =
+      d.central && d.numPoste && d.direccion && d.poblacion &&
+      d.fecha && d.hora && d.trabajo && d.medio &&
+      this.state.workersSelected.length > 0;
+    btn.disabled = blocked || !minOk;
+  },
+
+  clearForm(){
+    if(!confirm('¿Vaciar todos los campos del parte de postes?')) return;
+    App.save(this.DRAFT_KEY, null);
+    document.getElementById('form-postes').reset();
+    this.state.tipo = 'Madera';
+    this.state.estado = 'bueno';
+    this.state.climaOk = 'si';
+    this.state.workersSelected = [];
+    this.state.epis = this.defaultEpis();
+    document.getElementById('p-fecha').value = App.todayISO();
+    document.getElementById('p-hora').value  = App.nowHHMM();
+    document.getElementById('p-provincia').value = 'Coruña';
+    this.renderTipo();
+    this.renderEstado();
+    this.renderClimaOk();
+    this.populateMedios();
+    this.renderWorkers();
+    this.renderEpis();
+    this.refreshGenerateButton();
+    App.toast('Formulario reiniciado');
+  },
+
+  /* ----- GENERAR PDF ----- */
+  async generate(){
+    const data = this.collect();
+    if(this.state.estado === 'malo'){
+      App.toast('⚠ Estado MALO: no se puede generar');
+      return;
+    }
+    // Pasamos también los trabajadores temporales para que el PDF los resuelva
+    data.tempWorkers = this.state.tempWorkers;
+    try {
+      App.toast('Generando PDF…');
+      const entry = await Pdf.saveAndDownload('postes', data);
+      App.toast('✓ PDF generado y guardado');
+      // Ofrecer compartir si está disponible
+      if(navigator.canShare){
+        setTimeout(() => Pdf.share(entry), 600);
+      }
+    } catch(e){
+      console.error(e);
+      App.toast('Error al generar el PDF');
+    }
+  },
+
+  /* ----- HELPERS ----- */
+  esc(s){
+    return String(s ?? '').replace(/[&<>"']/g, m => ({
+      '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+    }[m]));
+  }
+};
+
+/* =============================================================
+   MÓDULO CCRR — Paso 3
+   ============================================================= */
+const Ccrr = {
+  DRAFT_KEY: 'cg1.draft.ccrr',
+  TEMP_WORKERS_KEY: 'cg1.draft.ccrr.tempWorkers',
+
+  state: {
+    turno: 'Diurno',
+    workersSelected: [],
+    tempWorkers: [],
+    ubic:   {},
+    senal:  {}
+  },
+
+  init(){
+    document.querySelectorAll('#c-turno button').forEach(b => {
+      b.addEventListener('click', () => this.setSeg('turno', b.dataset.val, '#c-turno'));
+    });
+
+    document.getElementById('c-rp-select').addEventListener('change', (e) => {
+      const id = e.target.value;
+      const w = this.allWorkers().find(x => x.id === id);
+      if(w){
+        document.getElementById('c-rp-nombre').value = w.nombre || '';
+        document.getElementById('c-rp-nif').value = w.nif || '';
+      }
+      this.saveDraft();
+    });
+
+    document.getElementById('c-gps-btn').addEventListener('click', () => this.requestGPS());
+
+    document.getElementById('c-clear').addEventListener('click', () => this.clearForm());
+    document.getElementById('c-generate').addEventListener('click', () => this.generate());
+
+    // Trabajador temporal
+    document.getElementById('c-worker-add-temp').addEventListener('click', () => this.openTempModal());
+    document.getElementById('mtwc-save').addEventListener('click', () => this.saveTempWorker());
+    document.querySelectorAll('#modal-temp-worker-c [data-close-modal-c]').forEach(b => {
+      b.addEventListener('click', () => this.closeTempModal());
+    });
+    document.getElementById('modal-temp-worker-c').addEventListener('click', (e) => {
+      if(e.target.id === 'modal-temp-worker-c') this.closeTempModal();
+    });
+
+    // Persistencia automática
+    document.getElementById('form-ccrr').addEventListener('input', () => this.saveDraft());
+
+    // Auto-cálculo de hasta = desde + duración
+    ['c-desde', 'c-duracion'].forEach(id => {
+      document.getElementById(id).addEventListener('change', () => this.recalcHasta());
+    });
+
+    // Estado inicial
+    const draft = App.load(this.DRAFT_KEY, null);
+    this.state.tempWorkers = App.load(this.TEMP_WORKERS_KEY, []);
+    if(draft){
+      this.state.turno = draft.turno || 'Diurno';
+      this.state.workersSelected = draft.workersSelected || [];
+      this.state.ubic  = draft.ubic  || {};
+      this.state.senal = draft.senal || this.defaultsFromList(App.CCRR_SENALIZACION);
+    } else {
+      this.state.senal = this.defaultsFromList(App.CCRR_SENALIZACION);
+    }
+  },
+
+  defaultsFromList(list){
+    const out = {};
+    list.forEach(x => out[x.id] = !!x.def);
+    return out;
+  },
+
+  onEnter(){
+    this.renderTurno();
+    this.renderCheckList('c-ubic-list',  App.CCRR_UBICACIONES,  this.state.ubic,  'ubic');
+    this.renderCheckList('c-senal-list', App.CCRR_SENALIZACION, this.state.senal, 'senal');
+    this.renderWorkers();
+    this.populateRPSelect();
+    this.applyDraft();
+    this.autoSelectDefaultRP();
+    this.refreshGenerateButton();
+  },
+
+  /* ----- RENDERS ----- */
+  renderTurno(){
+    document.querySelectorAll('#c-turno button').forEach(b =>
+      b.setAttribute('aria-pressed', b.dataset.val === this.state.turno ? 'true' : 'false'));
+  },
+
+  renderCheckList(containerId, list, stateMap, stateKey){
+    const wrap = document.getElementById(containerId);
+    if(!wrap) return;
+    wrap.innerHTML = list.map(item => `
+      <label class="check">
+        <input type="checkbox" data-id="${this.esc(item.id)}" ${stateMap[item.id] ? 'checked' : ''}>
+        <span class="box">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="5 12 10 17 19 7"/></svg>
+        </span>
+        <span class="lbl">${this.esc(item.label)}</span>
+      </label>
+    `).join('');
+    wrap.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+      cb.addEventListener('change', () => {
+        this.state[stateKey][cb.dataset.id] = cb.checked;
+        this.saveDraft();
+        this.refreshGenerateButton();
+      });
+    });
+  },
+
+  renderWorkers(){
+    const list = this.allWorkers();
+    const wrap = document.getElementById('c-workers-chips');
+    const empty = document.getElementById('c-workers-empty');
+    if(list.length === 0){
+      empty.style.display = '';
+      wrap.innerHTML = '';
+      return;
+    }
+    empty.style.display = 'none';
+    wrap.innerHTML = list.map(w => {
+      const active = this.state.workersSelected.includes(w.id);
+      const tempBadge = w._temp ? ' <span style="font-family:JetBrains Mono,monospace;font-size:10px;color:var(--amber);letter-spacing:.1em;margin-left:2px;">·TMP</span>' : '';
+      return `<button type="button" class="chip" aria-pressed="${active}" data-worker="${this.esc(w.id)}">
+        <span class="dot"></span>${this.esc(w.nombre)}${tempBadge}
+      </button>`;
+    }).join('');
+    wrap.querySelectorAll('.chip').forEach(c => {
+      c.addEventListener('click', () => {
+        const id = c.dataset.worker;
+        const i = this.state.workersSelected.indexOf(id);
+        if(i >= 0) this.state.workersSelected.splice(i, 1);
+        else this.state.workersSelected.push(id);
+        this.renderWorkers();
+        this.saveDraft();
+        this.refreshGenerateButton();
+      });
+    });
+  },
+
+  /* ----- DATA ----- */
+  allWorkers(){
+    const perm = App.load(App.KEYS.workers, []);
+    return [...perm, ...this.state.tempWorkers];
+  },
+  populateRPSelect(){
+    const sel = document.getElementById('c-rp-select');
+    const all = this.allWorkers();
+    const current = sel.value;
+    sel.innerHTML = '<option value="">— Selecciona de la lista —</option>' +
+      all.map(w => `<option value="${this.esc(w.id)}">${this.esc(w.nombre)}${w.nif ? ' · '+this.esc(w.nif) : ''}</option>`).join('');
+    if(current) sel.value = current;
+  },
+  autoSelectDefaultRP(){
+    const sel = document.getElementById('c-rp-select');
+    if(sel.value) return;
+    const settings = App.load(App.KEYS.settings, {});
+    const id = settings.defaultRPId;
+    if(!id) return;
+    if([...sel.options].some(o => o.value === id)){
+      sel.value = id;
+      const w = this.allWorkers().find(x => x.id === id);
+      if(w){
+        const n = document.getElementById('c-rp-nombre');
+        const f = document.getElementById('c-rp-nif');
+        if(!n.value) n.value = w.nombre || '';
+        if(!f.value) f.value = w.nif || '';
+      }
+      this.saveDraft();
+    }
+  },
+
+  /* ----- ACTIONS ----- */
+  setSeg(stateKey, val, container){
+    this.state[stateKey] = val;
+    document.querySelectorAll(`${container} button`).forEach(b =>
+      b.setAttribute('aria-pressed', b.dataset.val === val ? 'true' : 'false'));
+    this.saveDraft();
+    this.refreshGenerateButton();
+  },
+
+  recalcHasta(){
+    const desde = document.getElementById('c-desde').value;
+    const dur   = parseFloat(document.getElementById('c-duracion').value);
+    if(!desde || !isFinite(dur) || dur <= 0) return;
+    const [hh, mm] = desde.split(':').map(Number);
+    const totalMin = hh*60 + mm + Math.round(dur*60);
+    const h = Math.floor((totalMin % (24*60)) / 60);
+    const m = totalMin % 60;
+    const pad = n => String(n).padStart(2, '0');
+    document.getElementById('c-hasta').value = `${pad(h)}:${pad(m)}`;
+    this.saveDraft();
+  },
+
+  /* ----- TEMP WORKER ----- */
+  openTempModal(){
+    document.getElementById('mtwc-name').value = '';
+    document.getElementById('mtwc-cat').value = 'Celador';
+    document.getElementById('mtwc-nif').value = '';
+    document.getElementById('modal-temp-worker-c').classList.add('show');
+    setTimeout(() => document.getElementById('mtwc-name').focus(), 50);
+  },
+  closeTempModal(){
+    document.getElementById('modal-temp-worker-c').classList.remove('show');
+  },
+  saveTempWorker(){
+    const nombre = document.getElementById('mtwc-name').value.trim();
+    const categoria = document.getElementById('mtwc-cat').value.trim() || 'Celador';
+    const nif = document.getElementById('mtwc-nif').value.trim();
+    if(!nombre){ App.toast('Indica nombre y apellidos'); return; }
+    const w = { id: App.uid(), nombre, categoria, nif, _temp: true };
+    this.state.tempWorkers.push(w);
+    this.state.workersSelected.push(w.id);
+    App.save(this.TEMP_WORKERS_KEY, this.state.tempWorkers);
+    this.renderWorkers();
+    this.populateRPSelect();
+    this.closeTempModal();
+    App.toast('Trabajador temporal añadido');
+    this.saveDraft();
+  },
+
+  /* ----- GPS ----- */
+  async requestGPS(){
+    const btn = document.getElementById('c-gps-btn');
+    btn.dataset.loading = '1';
+    try {
+      const result = await Geo.resolve({ withAddress: true });
+      const dir = document.getElementById('c-direccion');
+      const pob = document.getElementById('c-poblacion');
+      const pro = document.getElementById('c-provincia');
+
+      if(result.address){
+        const a = result.address;
+        const filled = [];
+        const dirIsCoords = /^Lat\s/i.test(dir.value);
+        if((!dir.value || dirIsCoords) && a.direccion){ dir.value = a.direccion; filled.push('dirección'); }
+        if(!pob.value && a.poblacion){ pob.value = a.poblacion; filled.push('población'); }
+        if(!pro.value && a.provincia){ pro.value = a.provincia; filled.push('provincia'); }
+        App.toast(filled.length
+          ? `📍 ${a.direccion || a.poblacion || 'GPS'}`
+          : `📍 GPS detectado, campos ya rellenos`);
+      } else {
+        if(!dir.value){
+          dir.value = `Lat ${result.lat.toFixed(5)}, Lon ${result.lon.toFixed(5)}`;
+        }
+        App.toast(result.lookupError ? `Sin red: ${result.lookupError}` : 'Coordenadas guardadas');
+      }
+      this.saveDraft();
+    } catch(err){
+      App.toast(err.message || 'No se pudo obtener la ubicación');
+    } finally {
+      btn.dataset.loading = '0';
+    }
+  },
+
+  /* ----- DRAFT ----- */
+  saveDraft(){
+    App.save(this.DRAFT_KEY, this.collect());
+    App.save(this.TEMP_WORKERS_KEY, this.state.tempWorkers);
+    this.refreshGenerateButton();
+  },
+
+  applyDraft(){
+    const d = App.load(this.DRAFT_KEY, null);
+    const fechaEl = document.getElementById('c-fecha');
+    if(!fechaEl.value) fechaEl.value = (d && d.fecha) ? d.fecha : App.todayISO();
+
+    if(!d) return;
+    const setIf = (id, v) => { const e=document.getElementById(id); if(e && v!=null) e.value=v; };
+    setIf('c-num',         d.num);
+    setIf('c-provincia',   d.provincia);
+    setIf('c-poblacion',   d.poblacion);
+    setIf('c-direccion',   d.direccion);
+    setIf('c-clima',       d.clima);
+    setIf('c-trabajo',     d.trabajo);
+    setIf('c-duracion',    d.duracion);
+    setIf('c-desde',       d.desde);
+    setIf('c-hasta',       d.hasta);
+    setIf('c-tapa',        d.tapa);
+    setIf('c-estado-desc', d.estadoDesc);
+    setIf('c-rp-select',   d.rpId);
+    setIf('c-rp-nombre',   d.rpNombre);
+    setIf('c-rp-nif',      d.rpNif);
+    setIf('c-obs',         d.observaciones);
+  },
+
+  collect(){
+    const v = id => (document.getElementById(id)?.value || '').trim();
+    return {
+      turno:       this.state.turno,
+      num:         v('c-num'),
+      provincia:   v('c-provincia'),
+      poblacion:   v('c-poblacion'),
+      direccion:   v('c-direccion'),
+      clima:       v('c-clima'),
+      trabajo:     v('c-trabajo'),
+      fecha:       v('c-fecha'),
+      duracion:    v('c-duracion'),
+      desde:       v('c-desde'),
+      hasta:       v('c-hasta'),
+      tapa:        v('c-tapa'),
+      estadoDesc:  v('c-estado-desc'),
+      ubic:        { ...this.state.ubic },
+      senal:       { ...this.state.senal },
+      workersSelected: this.state.workersSelected.slice(),
+      rpId:        v('c-rp-select'),
+      rpNombre:    v('c-rp-nombre'),
+      rpNif:       v('c-rp-nif'),
+      observaciones: v('c-obs')
+    };
+  },
+
+  refreshGenerateButton(){
+    const btn = document.getElementById('c-generate');
+    if(!btn) return;
+    const d = this.collect();
+    const minOk =
+      d.num && d.provincia && d.poblacion && d.direccion &&
+      d.fecha && d.desde && d.trabajo &&
+      this.state.workersSelected.length > 0 &&
+      Object.values(d.ubic).some(Boolean) &&        // al menos una ubicación
+      Object.values(d.senal).some(Boolean);          // al menos una señalización
+    btn.disabled = !minOk;
+  },
+
+  clearForm(){
+    if(!confirm('¿Vaciar todos los campos del parte de CCRR?')) return;
+    App.save(this.DRAFT_KEY, null);
+    document.getElementById('form-ccrr').reset();
+    this.state.turno = 'Diurno';
+    this.state.workersSelected = [];
+    this.state.ubic  = {};
+    this.state.senal = this.defaultsFromList(App.CCRR_SENALIZACION);
+    document.getElementById('c-fecha').value = App.todayISO();
+    document.getElementById('c-provincia').value = 'Coruña';
+    this.onEnter();
+    App.toast('Formulario reiniciado');
+  },
+
+  async generate(){
+    const data = this.collect();
+    data.tempWorkers = this.state.tempWorkers;
+    try {
+      App.toast('Generando PDF…');
+      const entry = await Pdf.saveAndDownload('ccrr', data);
+      App.toast('✓ PDF generado y guardado');
+      if(navigator.canShare){
+        setTimeout(() => Pdf.share(entry), 600);
+      }
+    } catch(e){
+      console.error(e);
+      App.toast('Error al generar el PDF');
+    }
+  },
+
+  esc(s){
+    return String(s ?? '').replace(/[&<>"']/g, m => ({
+      '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+    }[m]));
+  }
+};
+
+/* =============================================================
+   GEO — geolocalización + reverse-geocoding (Nominatim/OSM)
+   ============================================================= */
+const Geo = {
+  // Pide la posición del dispositivo
+  getPosition(){
+    return new Promise((resolve, reject) => {
+      if(!navigator.geolocation) return reject(new Error('GPS no disponible'));
+      navigator.geolocation.getCurrentPosition(
+        (pos) => resolve({ lat: pos.coords.latitude, lon: pos.coords.longitude, acc: pos.coords.accuracy }),
+        (err) => {
+          // 1=PERMISSION_DENIED, 2=POSITION_UNAVAILABLE, 3=TIMEOUT
+          const msg = err.code === 1 ? 'Permiso denegado'
+                    : err.code === 3 ? 'GPS lento/timeout'
+                    : 'No se pudo obtener la ubicación';
+          reject(new Error(msg));
+        },
+        { enableHighAccuracy: true, timeout: 12000, maximumAge: 30000 }
+      );
+    });
+  },
+
+  // Reverse-geocoding via Nominatim (OpenStreetMap)
+  // Política: ≤1 req/s, sin abuso. Para uso personal está OK.
+  async reverseLookup(lat, lon){
+    const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}&zoom=18&accept-language=es`;
+
+    // Timeout manual con AbortController (Nominatim a veces tarda)
+    const ctrl = new AbortController();
+    const t = setTimeout(() => ctrl.abort(), 8000);
+
+    let data;
+    try {
+      const res = await fetch(url, { headers: { 'Accept': 'application/json' }, signal: ctrl.signal });
+      if(!res.ok) throw new Error('Servicio no disponible');
+      data = await res.json();
+    } finally {
+      clearTimeout(t);
+    }
+
+    if(!data || !data.address) throw new Error('Sin resultados');
+    const a = data.address;
+
+    // Calle + número
+    let direccion = '';
+    if(a.road){
+      direccion = a.road;
+      if(a.house_number) direccion += ', ' + a.house_number;
+    } else if(a.pedestrian) {
+      direccion = a.pedestrian;
+    } else if(a.footway) {
+      direccion = a.footway;
+    } else if(data.name) {
+      direccion = data.name;
+    } else {
+      direccion = (data.display_name || '').split(',')[0] || '';
+    }
+
+    // Población
+    const poblacion = a.city || a.town || a.village || a.municipality || a.hamlet || '';
+
+    // Provincia (en España: priorizamos `province`, luego `county`, evitando "Galicia" que es CCAA)
+    let provincia = a.province || '';
+    if(!provincia){
+      // a.county en Galicia suele ser "A Coruña" o "Lugo" → válido
+      // a.state suele ser "Galicia" → no nos sirve como provincia
+      const stateNoCCAA = a.state && /galicia|asturias|cantabria|navarra|rioja|murcia|madrid|aragón|cataluña|valenciana|baleares|canarias|extremadura|castilla|andalucía|euskadi|país vasco/i.test(a.state) ? '' : a.state;
+      provincia = a.county || stateNoCCAA || '';
+    }
+    // Limpieza: "Provincia de A Coruña" → "Coruña"
+    provincia = provincia.replace(/^provincia\s+de\s+/i, '').replace(/^a\s+coru[ñn]a$/i, 'Coruña').trim();
+
+    return { direccion, poblacion, provincia, raw: data };
+  },
+
+  // Helper combinado: pide GPS y opcionalmente hace lookup. Devuelve { lat, lon, address?, error? }
+  async resolve({ withAddress = true } = {}){
+    const pos = await this.getPosition();
+    const out = { lat: pos.lat, lon: pos.lon, accuracy: pos.acc };
+    if(withAddress){
+      try {
+        out.address = await this.reverseLookup(pos.lat, pos.lon);
+      } catch(e){
+        out.lookupError = e.message || 'Sin red';
+      }
+    }
+    return out;
+  }
+};
+
+/* =============================================================
+   SIGNATURE — captura de firma en canvas (reutilizable)
+   ============================================================= */
+const Signature = {
+  pads: new Map(),
+
+  attach(canvas, opts = {}){
+    if(!canvas) return null;
+    const onChange = opts.onChange || (() => {});
+    const ctx = canvas.getContext('2d');
+
+    let drawing = false;
+    let lastX = 0, lastY = 0;
+
+    const pad = {
+      canvas, ctx, hasInk: false,
+
+      resize(){
+        const rect = canvas.getBoundingClientRect();
+        if(rect.width === 0) return false;
+        const dpr = window.devicePixelRatio || 1;
+        const targetW = Math.round(rect.width * dpr);
+        const targetH = Math.round(rect.height * dpr);
+        if(canvas.width !== targetW || canvas.height !== targetH){
+          // Backup
+          let backup = null;
+          if(this.hasInk){
+            try { backup = canvas.toDataURL(); } catch(e){}
+          }
+          canvas.width  = targetW;
+          canvas.height = targetH;
+          ctx.setTransform(1, 0, 0, 1, 0, 0);
+          ctx.scale(dpr, dpr);
+          ctx.lineWidth = 2.4;
+          ctx.lineCap = 'round';
+          ctx.lineJoin = 'round';
+          ctx.strokeStyle = '#0a0e1a';
+          if(backup){
+            const img = new Image();
+            img.onload = () => ctx.drawImage(img, 0, 0, rect.width, rect.height);
+            img.src = backup;
+          }
+        } else {
+          // Asegurarnos de que los estilos están aplicados
+          ctx.lineWidth = 2.4;
+          ctx.lineCap = 'round';
+          ctx.lineJoin = 'round';
+          ctx.strokeStyle = '#0a0e1a';
+        }
+        return true;
+      },
+
+      clear(){
+        const rect = canvas.getBoundingClientRect();
+        ctx.clearRect(0, 0, rect.width, rect.height);
+        this.hasInk = false;
+        onChange(null);
+      },
+
+      load(dataUrl){
+        if(!dataUrl) return;
+        const apply = () => {
+          const rect = canvas.getBoundingClientRect();
+          if(rect.width === 0){ requestAnimationFrame(apply); return; }
+          this.resize();
+          const img = new Image();
+          img.onload = () => {
+            ctx.clearRect(0, 0, rect.width, rect.height);
+            ctx.drawImage(img, 0, 0, rect.width, rect.height);
+            this.hasInk = true;
+          };
+          img.src = dataUrl;
+        };
+        apply();
+      },
+
+      toDataURL(){
+        return this.hasInk ? canvas.toDataURL('image/png') : null;
+      }
+    };
+
+    const getPos = (e) => {
+      const rect = canvas.getBoundingClientRect();
+      return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+    };
+
+    const start = (e) => {
+      e.preventDefault();
+      pad.resize();
+      drawing = true;
+      try { canvas.setPointerCapture(e.pointerId); } catch(_){}
+      const { x, y } = getPos(e);
+      lastX = x; lastY = y;
+      ctx.beginPath();
+      ctx.arc(x, y, 1.2, 0, Math.PI * 2);
+      ctx.fillStyle = '#0a0e1a';
+      ctx.fill();
+      pad.hasInk = true;
+    };
+    const move = (e) => {
+      if(!drawing) return;
+      e.preventDefault();
+      const { x, y } = getPos(e);
+      ctx.beginPath();
+      ctx.moveTo(lastX, lastY);
+      ctx.lineTo(x, y);
+      ctx.stroke();
+      lastX = x; lastY = y;
+    };
+    const end = () => {
+      if(!drawing) return;
+      drawing = false;
+      onChange(pad.toDataURL());
+    };
+
+    canvas.addEventListener('pointerdown', start);
+    canvas.addEventListener('pointermove', move);
+    canvas.addEventListener('pointerup', end);
+    canvas.addEventListener('pointerleave', end);
+    canvas.addEventListener('pointercancel', end);
+
+    window.addEventListener('resize', () => pad.resize());
+
+    this.pads.set(canvas, pad);
+    return pad;
+  }
+};
+
+/* =============================================================
+   PDF — generación de partes oficiales con jsPDF
+   ============================================================= */
+const Pdf = {
+  /* =============================================================
+     PDF — generación de partes oficiales con pdf-lib + plantilla
+     ============================================================= */
+
+  // Cache de plantillas
+  _templates: { postes: null, ccrr: null },
+
+  // Carga la plantilla PDF como ArrayBuffer (con cache)
+  async loadTemplate(name){
+    if(this._templates[name]) return this._templates[name];
+    const url = name === 'postes' ? 'postes.pdf' : 'ccrr.pdf';
+    try {
+      const res = await fetch(url);
+      if(!res.ok) throw new Error(`No se pudo cargar ${url}`);
+      const ab = await res.arrayBuffer();
+      this._templates[name] = ab;
+      return ab;
+    } catch(e){
+      console.error('Error cargando plantilla', name, e);
+      App.toast('Error: no se encontró ' + url);
+      throw e;
+    }
+  },
+
+  // Sanitiza texto para WinAnsi (Helvetica estándar)
+  _sanitize(txt){
+    if(!txt) return '';
+    return String(txt)
+      .replace(/\u2018|\u2019/g, "'")
+      .replace(/\u201C|\u201D/g, '"')
+      .replace(/\u2013|\u2014/g, '-');
+  },
+
+  // Dibuja una X (dos diagonales) centrada en (cx, cy) en una página de pdf-lib
+  _drawX(page, cx, cy, size = 4.5){
+    const s = size / 2;
+    const opts = { thickness: 1, color: window.PDFLib.rgb(0, 0, 0) };
+    page.drawLine({ start: { x: cx - s, y: cy - s }, end: { x: cx + s, y: cy + s }, ...opts });
+    page.drawLine({ start: { x: cx + s, y: cy - s }, end: { x: cx - s, y: cy + s }, ...opts });
+  },
+
+  // Escribe texto en una página de pdf-lib en (x, y, size)
+  _drawText(page, txt, x, y, font, size = 9){
+    if(!txt) return;
+    page.drawText(this._sanitize(txt), {
+      x, y, size, font,
+      color: window.PDFLib.rgb(0, 0, 0)
+    });
+  },
+
+  // Convierte fecha ISO YYYY-MM-DD a DD/MM/YYYY
+  _dateES(iso){
+    if(!iso) return '';
+    const [y, m, d] = iso.split('-');
+    return `${d}/${m}/${y}`;
+  },
+
+  // Devuelve { dia, mes, ano } desde ISO YYYY-MM-DD
+  _splitFecha(iso){
+    if(!iso) return { dia: '', mes: '', ano: '' };
+    const meses = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+    const [y, m, d] = iso.split('-').map(Number);
+    return { dia: String(d), mes: meses[m-1] || '', ano: String(y).slice(-2) };
+  },
+
+  /* =============================================================
+     === MAPEO DE COORDENADAS POSTES ===
+     ============================================================= */
+  POSTES_TEXT_POS: {
+    'numPoste':     [440, 753, 9],
+    'numLinea':     [515, 753, 9],
+    'direccion':    [95, 743, 9],
+    'provincia':    [340, 743, 9],
+    'poblacion':    [470, 743, 9],
+    'empresa':      [90, 734, 9],
+    'unidad':       [412, 734, 9],
+    'numActuacion': [515, 734, 9],
+    'fecha':        [78, 725, 9],
+    'hora':         [175, 725, 9],
+    'central':      [411, 725, 9],
+    'trabajo':      [160, 716, 9],
+    'cierre_pob':   [63, 67, 9],
+    'cierre_dia':   [155, 67, 9],
+    'cierre_mes':   [185, 67, 9],
+    'cierre_ano':   [273, 67, 9],
+    'rp_nombre':    [124, 56, 9],
+    'rp_nif':       [107, 46, 9],
+  },
+
+  POSTES_CHECK_CENTERS: {
+    1: [110.6, 754.3], 3: [199.7, 754.3], 4: [299.8, 754.3],
+    7: [324.8, 726.2], 8: [347.0, 725.6],
+    9: [422.9, 673.3], 11: [449.0, 673.5], 13: [483.9, 673.4],
+    15: [525.3, 674.1], 17: [525.6, 673.6], 19: [549.4, 673.9],
+    10: [422.9, 664.1], 12: [449.0, 664.1], 14: [483.9, 664.1],
+    18: [525.6, 664.0], 20: [549.4, 664.4],
+    21: [504.4, 628.4],
+    147: [117.0, 609.7], 148: [141.0, 609.7],
+    22: [470.3, 600.1], 24: [470.6, 600.3], 25: [446.1, 600.1],
+    28: [136.1, 582.5], 26: [249.9, 582.6],
+    27: [190.6, 564.9], 32: [390.5, 564.9],
+    29: [196.6, 545.4], 34: [481.3, 546.2],
+    149: [66.1, 497.5], 150: [88.2, 497.5],
+    41: [157.8, 484.1], 40: [307.4, 484.5], 38: [387.9, 483.8], 62: [467.5, 483.1],
+    56: [460.7, 441.4],
+    72: [157.6, 441.7], 70: [313.1, 441.9], 48: [391.2, 441.5],
+    49: [450.2, 413.5],
+    42: [157.8, 398.7], 43: [309.2, 399.2], 47: [389.5, 398.7], 50: [552.4, 389.9],
+    78: [514.3, 318.5], 79: [515.2, 307.9], 80: [514.6, 297.7], 81: [514.3, 287.5],
+    86: [514.8, 277.4], 88: [515.0, 267.1], 90: [514.8, 257.1],
+    102: [457.9, 214.4], 99: [489.0, 214.6],
+    114: [51.0, 187.0], 109: [219.8, 187.0], 103: [374.3, 186.6],
+    117: [50.7, 177.4], 111: [220.1, 177.4], 106: [374.5, 178.3],
+    118: [51.4, 167.9], 112: [220.1, 167.7], 107: [374.7, 168.7],
+    119: [51.1, 159.4], 113: [220.2, 159.1], 108: [374.6, 159.0],
+    121: [301.8, 133.9], 123: [314.5, 126.6], 124: [310.5, 118.3],
+  },
+
+  POSTES_ESTADO_BUENO: { 'Madera': [339.6, 518], 'Hormigón': [339.6, 462], 'Fibra': [339.6, 433] },
+  POSTES_ESTADO_MALO:  { 'Madera': [525.8, 518], 'Hormigón': [525.8, 462], 'Fibra': [525.8, 433] },
+
+  POSTES_SUBIR_BTNS: {
+    'Madera':   { 'PEMP': 41, 'Escalera con patas extensibles': 40, 'Escalera': 38, 'Trepadores': 62 },
+    'Hormigón': { 'PEMP': 72, 'Escalera con patas extensibles': 70, 'Escalera': 48 },
+    'Fibra':    { 'PEMP': 42, 'Escalera con patas extensibles': 43, 'Escalera': 47, 'Herramienta especial': 50 },
+  },
+
+  // EPIs siempre marcados (postes)
+  POSTES_EPIS_FIJOS: [114, 109, 117, 118, 119, 112, 113, 111],
+
+  /* =============================================================
+     BUILD POSTES PDF
+     ============================================================= */
+  async buildPostes(d){
+    const { PDFDocument, StandardFonts, rgb } = window.PDFLib;
+    const tplBuffer = await this.loadTemplate('postes');
+    const pdfDoc = await PDFDocument.load(tplBuffer);
+    const helvetica = await pdfDoc.embedFont(StandardFonts.Helvetica);
+    const page = pdfDoc.getPage(0);
+
+    // === TEXTOS ===
+    const drawTxt = (key, val, sz) => {
+      const pos = this.POSTES_TEXT_POS[key];
+      if(!pos || !val) return;
+      this._drawText(page, val, pos[0], pos[1], helvetica, sz || pos[2]);
+    };
+
+    drawTxt('numPoste',     d.numPoste);
+    drawTxt('numLinea',     d.numLinea);
+    drawTxt('direccion',    d.direccion);
+    drawTxt('provincia',    d.provincia);
+    drawTxt('poblacion',    d.poblacion);
+    drawTxt('empresa',      App.FIXED.empresa);
+    drawTxt('unidad',       App.FIXED.unidad);
+    drawTxt('numActuacion', d.numActuacion);
+    drawTxt('fecha',        this._dateES(d.fecha));
+    drawTxt('hora',         d.hora);
+    drawTxt('central',      d.central);
+    drawTxt('trabajo',      d.trabajo);
+
+    // Cierre
+    const fechaParts = this._splitFecha(d.fecha);
+    drawTxt('cierre_pob', d.poblacion);
+    drawTxt('cierre_dia', fechaParts.dia);
+    drawTxt('cierre_mes', fechaParts.mes);
+    drawTxt('cierre_ano', fechaParts.ano);
+
+    // RP nombre y NIF
+    const workers = this._resolveWorkers(d.workersSelected, d.tempWorkers);
+    const rp = workers.find(w => w.id === d.rpId) || workers[0] || {};
+    drawTxt('rp_nombre', rp.nombre);
+    drawTxt('rp_nif',    rp.nif);
+
+    // Teléfono emergencias 061 / 112 (calibrado en pruebas)
+    this._drawText(page, '061 / 112', 480, 92, helvetica, 9);
+
+    // === TRABAJADORES ===
+    // 2 filas en Postes (rect Y=670 y Y=660)
+    if(workers.length <= 2){
+      workers.forEach((w, i) => {
+        const y = 670 - i * 10;
+        this._drawText(page, w.nombre,                  49, y, helvetica, 9);
+        this._drawText(page, w.categoria || 'Celador', 296, y, helvetica, 9);
+      });
+    } else if(workers.length === 3){
+      this._drawText(page, workers[0].nombre,                  49, 670, helvetica, 9);
+      this._drawText(page, workers[0].categoria || 'Celador', 296, 670, helvetica, 9);
+      const line2 = workers[1].nombre + ', ' + workers[2].nombre;
+      const sz2 = line2.length > 50 ? 8 : 9;
+      this._drawText(page, line2,                              49, 660, helvetica, sz2);
+      this._drawText(page, workers[1].categoria || 'Celador', 296, 660, helvetica, 9);
+    } else {
+      // 4 o más: dividir en 2 filas
+      const half = Math.ceil(workers.length / 2);
+      const line1 = workers.slice(0, half).map(w => w.nombre).join(', ');
+      const line2 = workers.slice(half).map(w => w.nombre).join(', ');
+      const sz1 = line1.length > 50 ? 8 : 9;
+      const sz2 = line2.length > 50 ? 8 : 9;
+      this._drawText(page, line1,                                49, 670, helvetica, sz1);
+      this._drawText(page, workers[0].categoria || 'Celador',   296, 670, helvetica, 9);
+      this._drawText(page, line2,                                49, 660, helvetica, sz2);
+      this._drawText(page, workers[half].categoria || 'Celador',296, 660, helvetica, 9);
+    }
+
+    // === MARCAS ===
+    const toMark = new Set();
+
+    // Tipo de poste
+    if(d.tipo === 'Madera') toMark.add(1);
+    else if(d.tipo === 'Hormigón') toMark.add(3);
+    else toMark.add(4);
+
+    // Climatología
+    toMark.add(d.climaOk === 'si' ? 7 : 8);
+
+    // Trabajadores SI (formación + conocen)
+    toMark.add(9);  toMark.add(13);  // tr1
+    if(workers.length >= 2){ toMark.add(10); toMark.add(14); }  // tr2
+
+    // RP: solo el primer trabajador o el específico
+    if(workers.length >= 1 && workers[0].id === d.rpId) toMark.add(19);
+    if(workers.length >= 2 && workers[1].id === d.rpId) toMark.add(20);
+
+    // Madera checks 1-6 SI + cambian condiciones NO
+    if(d.tipo === 'Madera'){
+      [21, 147, 25, 28, 27, 29].forEach(b => toMark.add(b));
+      toMark.add(150);  // cambian condiciones NO
+    }
+
+    // Medio de subida (único)
+    const medio = d.medio || '';
+    const medioBtns = this.POSTES_SUBIR_BTNS[d.tipo] || {};
+    if(medioBtns[medio]) toMark.add(medioBtns[medio]);
+
+    // Escalera → marca apartado 7 SI todo + se puede usar SI
+    const usaEscalera = (medio === 'Escalera' || medio === 'Escalera con patas extensibles');
+    if(usaEscalera){
+      [78, 79, 80, 81, 86, 88, 90].forEach(b => toMark.add(b));
+      toMark.add(102);  // se puede usar SI
+    }
+
+    // EPIs (siempre los fijos)
+    this.POSTES_EPIS_FIJOS.forEach(b => toMark.add(b));
+
+    // Observaciones SI (las 3)
+    [121, 123, 124].forEach(b => toMark.add(b));
+
+    // Pintar X de los checks
+    toMark.forEach(idx => {
+      const c = this.POSTES_CHECK_CENTERS[idx];
+      if(c) this._drawX(page, c[0], c[1]);
+    });
+
+    // Estado del poste (sin AcroForm, coordenadas manuales)
+    const estadoMap = d.estado === 'bueno' ? this.POSTES_ESTADO_BUENO : this.POSTES_ESTADO_MALO;
+    if(estadoMap[d.tipo]){
+      const [cx, cy] = estadoMap[d.tipo];
+      this._drawX(page, cx, cy);
+    }
+
+    // Firma del RP si la hay
+    if(rp.id){
+      const sigs = App.load('cg1.signatures', {});
+      const sig = sigs[rp.id];
+      if(sig){
+        try {
+          const pngBytes = this._dataURLtoUint8(sig);
+          const pngImage = await pdfDoc.embedPng(pngBytes);
+          // Recuadro firma postes: aprox X 408, Y 35-90 (calibración aproximada)
+          page.drawImage(pngImage, { x: 410, y: 35, width: 140, height: 50 });
+        } catch(e){ console.warn('No se pudo embeber firma', e); }
+      }
+    }
+
+    return await pdfDoc.save();
+  },
+
+  /* =============================================================
+     === MAPEO DE COORDENADAS CCRR ===
+     ============================================================= */
+  CCRR_T_CENTERS: {
+    1:[302.4,596.9], 2:[302.8,585.5], 3:[302.6,574.4], 4:[302.6,563.5],
+    5:[352.1,596.6], 6:[351.7,585.6], 7:[351.7,574.6], 8:[351.7,563.5],
+    9:[42.0,537.6], 10:[146.7,537.5], 11:[283.2,537.6], 12:[358.8,537.8], 13:[41.8,528.1],
+    14:[42.0,503.5], 15:[275.5,503.8], 16:[42.0,492.6], 17:[275.0,492.4], 18:[42.0,481.6], 19:[275.0,481.6],
+    20:[42.1,455.9], 21:[452.9,455.9],
+    22:[41.5,434.6], 23:[275.3,433.6], 24:[41.5,422.8], 25:[275.5,423.1],
+    26:[42.1,386.4], 27:[275.5,386.1], 28:[42.0,374.9],
+    29:[274.2,364.1], 30:[274.3,353.1], 31:[274.4,342.3], 32:[274.2,321.7],
+    33:[309.7,254.5], 34:[354.7,254.8],
+    35:[310.1,243.5], 36:[354.2,243.5],
+    37:[193.3,232.7], 38:[237.5,232.4],
+    39:[453.9,232.5], 40:[500.5,232.5],
+    41:[193.1,221.9], 42:[237.7,221.3],
+    43:[277.2,166.5], 44:[312.7,166.1], 45:[353.4,166.3],
+    46:[402.9,166.0], 47:[440.1,166.2], 48:[497.4,166.0],
+    49:[276.7,154.9], 50:[312.7,151.0], 51:[352.8,150.7],
+    52:[403.2,151.0], 53:[440.2,151.0], 54:[497.4,150.8],
+    55:[277.0,136.1], 56:[313.1,136.0], 57:[352.9,136.0],
+    58:[402.6,135.9], 59:[440.4,136.3], 60:[497.9,136.0],
+    61:[40.3,92.8],  62:[193.2,92.8], 63:[355.1,93.2],
+    64:[39.7,82.0],  65:[192.9,82.0], 66:[354.6,83.2],
+    67:[40.0,62.7],  68:[193.0,62.3], 69:[355.1,63.4],
+    70:[39.9,785.1], 71:[192.7,785.4],
+    72:[39.6,774.1], 73:[192.8,774.3],
+    74:[40.0,753.9], 75:[193.0,753.6],
+  },
+
+  // T → página (1-69 = pág 1, 70-75 = pág 2)
+  _ccrrPage(t){ return t >= 70 ? 2 : 1; },
+
+  CCRR_TEXT_POS_P1: {
+    'num':       [94, 718, 9],
+    'provincia': [243, 717, 9],
+    'poblacion': [398, 717, 9],
+    'direccion': [89, 707, 9],
+    'turno':     [124, 696, 9],
+    'clima':     [407, 695, 9],
+    'trabajo':   [124, 685, 9],
+    'duracion':  [130, 663, 9],
+    'desde':     [235, 663, 9],
+    'hasta':     [387, 663, 9],
+    'tapa':      [108, 514, 9],
+  },
+
+  CCRR_TR_LINES_P1: [
+    [34, 626, 267],
+    [34, 615, 267],
+    [34, 604, 267],
+  ],
+
+  CCRR_TEXT_POS_P2: {
+    'tlf_ambulancias': [430, 698, 9],
+    'tlf_medico':      [430, 687, 9],
+    'cierre_pob':  [130, 666, 9],
+    'cierre_dia':  [272, 666, 9],
+    'cierre_mes':  [320, 666, 9],
+    'cierre_ano':  [430, 666, 9],
+    'rp_nombre':   [140, 633, 9],
+    'rp_nif':      [140, 622, 9],
+  },
+
+  // Datos fijos CCRR
+  CCRR_FIJOS_TR:        [1, 2, 3, 4],         // SI conocen riesgos / medidas / formación / RP
+  CCRR_FIJOS_PREP:      [30, 32],              // ventilación + control continuado
+  CCRR_FIJOS_ESTADO:    [33, 41],              // conductos obturados SI + longitud cuello SI
+  CCRR_FIJOS_ATM:       [44, 46, 48, 50, 52, 54, 56, 58, 60],  // todos NO
+  CCRR_FIJOS_EPIS_P1:   [62, 65, 68, 69, 63], // casco, gafas, guantes, arnés trípode, eq comunicación
+  CCRR_FIJOS_EPIS_P2:   [72],                  // multidetector
+
+  CCRR_UBIC_BTNS: {
+    'acera': 9, 'calzada_urb': 10, 'campo': 11,
+    'interfiere_carril': 12, 'calzada_no_urb': 13,
+  },
+
+  CCRR_SENAL_BTNS: {
+    'baranda': 14, 'conos': 15,
+    'senal_obras': 16, 'tienda_defensa': 17,
+    'senal_estrechamiento': 18, 'luminosa': 19,
+  },
+
+  /* =============================================================
+     BUILD CCRR PDF
+     ============================================================= */
+  async buildCcrr(d){
+    const { PDFDocument, StandardFonts, rgb } = window.PDFLib;
+    const tplBuffer = await this.loadTemplate('ccrr');
+    const pdfDoc = await PDFDocument.load(tplBuffer);
+    const helvetica = await pdfDoc.embedFont(StandardFonts.Helvetica);
+    const page1 = pdfDoc.getPage(0);
+    const page2 = pdfDoc.getPage(1);
+
+    // === PÁGINA 1: Textos ===
+    const drawTxtP1 = (key, val) => {
+      const pos = this.CCRR_TEXT_POS_P1[key];
+      if(!pos || !val) return;
+      this._drawText(page1, val, pos[0], pos[1], helvetica, pos[2]);
+    };
+    drawTxtP1('num',       d.num);
+    drawTxtP1('provincia', d.provincia);
+    drawTxtP1('poblacion', d.poblacion);
+    drawTxtP1('direccion', d.direccion);
+    drawTxtP1('turno',     d.turno);
+    drawTxtP1('clima',     d.clima);
+    drawTxtP1('trabajo',   d.trabajo);
+    drawTxtP1('duracion',  d.duracion);
+    drawTxtP1('desde',     d.desde);
+    drawTxtP1('hasta',     d.hasta);
+    drawTxtP1('tapa',      d.tapa);
+
+    // === Trabajadores (3 filas) ===
+    const workers = this._resolveWorkers(d.workersSelected, d.tempWorkers);
+    if(workers.length <= 3){
+      workers.forEach((w, i) => {
+        const [xN, y, xC] = this.CCRR_TR_LINES_P1[i];
+        this._drawText(page1, w.nombre,                 xN, y, helvetica, 9);
+        this._drawText(page1, w.categoria || 'Celador', xC, y, helvetica, 9);
+      });
+    } else {
+      // 4+: filas 1 y 2 individual; fila 3 con resto agrupado
+      const [xN0, y0, xC0] = this.CCRR_TR_LINES_P1[0];
+      this._drawText(page1, workers[0].nombre,                 xN0, y0, helvetica, 9);
+      this._drawText(page1, workers[0].categoria || 'Celador', xC0, y0, helvetica, 9);
+      const [xN1, y1, xC1] = this.CCRR_TR_LINES_P1[1];
+      this._drawText(page1, workers[1].nombre,                 xN1, y1, helvetica, 9);
+      this._drawText(page1, workers[1].categoria || 'Celador', xC1, y1, helvetica, 9);
+      const [xN2, y2, xC2] = this.CCRR_TR_LINES_P1[2];
+      const restNames = workers.slice(2).map(w => w.nombre).join(', ');
+      const sz = restNames.length > 38 ? 8 : 9;
+      this._drawText(page1, restNames,                          xN2, y2, helvetica, sz);
+      this._drawText(page1, workers[2].categoria || 'Celador',  xC2, y2, helvetica, 9);
+    }
+
+    // === Marcas pág 1 (todos los fijos + ubicación + señalización) ===
+    const toMark = new Set();
+    [...this.CCRR_FIJOS_TR, ...this.CCRR_FIJOS_PREP, ...this.CCRR_FIJOS_ESTADO,
+     ...this.CCRR_FIJOS_ATM, ...this.CCRR_FIJOS_EPIS_P1].forEach(t => toMark.add(t));
+
+    // Ubicación CCRR (lo que esté en d.ubic)
+    Object.entries(d.ubic || {}).forEach(([k, v]) => {
+      if(v && this.CCRR_UBIC_BTNS[k]) toMark.add(this.CCRR_UBIC_BTNS[k]);
+    });
+
+    // Señalización (lo que esté en d.senal)
+    Object.entries(d.senal || {}).forEach(([k, v]) => {
+      if(v && this.CCRR_SENAL_BTNS[k]) toMark.add(this.CCRR_SENAL_BTNS[k]);
+    });
+
+    // Pintar pág 1
+    toMark.forEach(t => {
+      if(this._ccrrPage(t) === 1){
+        const c = this.CCRR_T_CENTERS[t];
+        if(c) this._drawX(page1, c[0], c[1]);
+      }
+    });
+
+    // === PÁGINA 2 ===
+    const drawTxtP2 = (key, val) => {
+      const pos = this.CCRR_TEXT_POS_P2[key];
+      if(!pos || !val) return;
+      this._drawText(page2, val, pos[0], pos[1], helvetica, pos[2]);
+    };
+
+    // Teléfonos emergencia
+    this._drawText(page2, '061', 430, 698, helvetica, 9);
+    this._drawText(page2, '112', 430, 687, helvetica, 9);
+
+    // Cierre
+    const fechaParts = this._splitFecha(d.fecha);
+    drawTxtP2('cierre_pob', d.poblacion);
+    drawTxtP2('cierre_dia', fechaParts.dia);
+    drawTxtP2('cierre_mes', fechaParts.mes);
+    drawTxtP2('cierre_ano', fechaParts.ano);
+
+    // RP nombre y NIF
+    const rp = workers.find(w => w.id === d.rpId) || workers[0] || {};
+    drawTxtP2('rp_nombre', rp.nombre);
+    drawTxtP2('rp_nif', rp.nif);
+
+    // EPIs página 2
+    this.CCRR_FIJOS_EPIS_P2.forEach(t => {
+      const c = this.CCRR_T_CENTERS[t];
+      if(c) this._drawX(page2, c[0], c[1]);
+    });
+
+    // Firma RP
+    if(rp.id){
+      const sigs = App.load('cg1.signatures', {});
+      const sig = sigs[rp.id];
+      if(sig){
+        try {
+          const pngBytes = this._dataURLtoUint8(sig);
+          const pngImage = await pdfDoc.embedPng(pngBytes);
+          // Aproximadamente al lado de "Firma Recurso Preventivo:" en pág 2
+          page2.drawImage(pngImage, { x: 240, y: 615, width: 130, height: 35 });
+        } catch(e){ console.warn('No se pudo embeber firma', e); }
+      }
+    }
+
+    return await pdfDoc.save();
+  },
+
+  /* =============================================================
+     === HISTORIAL + DESCARGA + COMPARTIR ===
+     ============================================================= */
+  async saveAndDownload(type, data){
+    let pdfBytes, fileName;
+    try {
+      if(type === 'postes'){
+        pdfBytes = await this.buildPostes(data);
+        fileName = `Parte_POSTES_${data.numPoste || 'sn'}_${data.fecha || ''}.pdf`;
+      } else {
+        pdfBytes = await this.buildCcrr(data);
+        fileName = `Parte_CCRR_${(data.num || 'sn').replace(/\s+/g,'')}_${data.fecha || ''}.pdf`;
+      }
+    } catch(e){
+      console.error(e);
+      App.toast('Error generando el PDF');
+      throw e;
+    }
+    fileName = fileName.replace(/[^\w\-.]/g, '_');
+
+    // Convertir a dataURL para guardar
+    const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+    const dataUrl = await this._blobToDataURL(blob);
+
+    // Guardar metadata + dataURL en historial
+    const reports = App.load(App.KEYS.reports, []);
+    const entry = {
+      id: 'r_' + Date.now() + '_' + Math.random().toString(36).slice(2,6),
+      type,
+      title: type === 'postes'
+        ? `Poste ${data.numPoste || '—'} · ${data.poblacion || ''}`
+        : `${data.num || 'CCRR'} · ${data.poblacion || ''}`,
+      subtitle: type === 'postes'
+        ? `${data.tipo || ''} · ${data.medio || ''}`
+        : `${data.turno || ''} · ${data.trabajo ? data.trabajo.slice(0, 40) : ''}`,
+      created_at: new Date().toISOString(),
+      fileName,
+      data,
+      pdf: dataUrl
+    };
+    reports.unshift(entry);
+    if(reports.length > 80) reports.length = 80;
+    App.save(App.KEYS.reports, reports);
+    App.refreshHomeStats();
+
+    // Descargar
+    this._downloadBlob(blob, fileName);
+    return entry;
+  },
+
+  async share(entry){
+    try {
+      const blob = this._dataURLtoBlob(entry.pdf);
+      const file = new File([blob], entry.fileName, { type: 'application/pdf' });
+      if(navigator.canShare && navigator.canShare({ files: [file] })){
+        await navigator.share({ files: [file], title: entry.title });
+        return true;
+      }
+      this._downloadBlob(blob, entry.fileName);
+      App.toast('Descargado (compartir no disponible)');
+      return false;
+    } catch(e){
+      if(e.name === 'AbortError') return false;
+      console.error(e);
+      App.toast('No se pudo compartir');
+      return false;
+    }
+  },
+
+  download(entry){
+    const blob = this._dataURLtoBlob(entry.pdf);
+    this._downloadBlob(blob, entry.fileName);
+  },
+
+  view(entry){
+    const blob = this._dataURLtoBlob(entry.pdf);
+    const url = URL.createObjectURL(blob);
+    window.open(url, '_blank');
+    setTimeout(() => URL.revokeObjectURL(url), 60000);
+  },
+
+  delete(id){
+    const reports = App.load(App.KEYS.reports, []);
+    const filtered = reports.filter(r => r.id !== id);
+    App.save(App.KEYS.reports, filtered);
+    App.refreshHomeStats();
+  },
+
+  _resolveWorkers(ids, tempWorkers){
+    const perm = App.load(App.KEYS.workers, []);
+    const all = [...perm, ...(tempWorkers || [])];
+    return (ids || []).map(id => all.find(w => w.id === id)).filter(Boolean);
+  },
+
+  _downloadBlob(blob, filename){
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  },
+
+  _blobToDataURL(blob){
+    return new Promise((res, rej) => {
+      const r = new FileReader();
+      r.onload = () => res(r.result);
+      r.onerror = rej;
+      r.readAsDataURL(blob);
+    });
+  },
+
+  _dataURLtoBlob(dataUrl){
+    const arr = dataUrl.split(',');
+    const mime = arr[0].match(/:(.*?);/)[1];
+    const bstr = atob(arr[1]);
+    let n = bstr.length;
+    const u8 = new Uint8Array(n);
+    while(n--) u8[n] = bstr.charCodeAt(n);
+    return new Blob([u8], { type: mime });
+  },
+
+  _dataURLtoUint8(dataUrl){
+    const base64 = dataUrl.split(',')[1];
+    const bstr = atob(base64);
+    const u8 = new Uint8Array(bstr.length);
+    for(let i = 0; i < bstr.length; i++) u8[i] = bstr.charCodeAt(i);
+    return u8;
+  },
+};
+
+
+/* =============================================================
+   MÓDULO HISTORY — Lista de partes guardados
+   ============================================================= */
+const History = {
+  onEnter(){
+    this.render();
+  },
+  render(){
+    const wrap = document.getElementById('h-list');
+    const reports = App.load(App.KEYS.reports, []);
+    if(reports.length === 0){
+      wrap.innerHTML = `<div class="empty-list" style="padding:24px;text-align:center;">
+        Aún no has generado ningún parte.<br>
+        <b>Crea uno desde la pantalla de inicio.</b>
+      </div>`;
+      return;
+    }
+    wrap.innerHTML = reports.map(r => `
+      <div class="item-card" data-id="${this._esc(r.id)}">
+        <div style="width:36px;height:36px;border-radius:8px;background:var(--surface);border:1px solid var(--line-2);display:grid;place-items:center;flex-shrink:0;">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="${r.type === 'postes' ? '#fbbf24' : '#38bdf8'}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            ${r.type === 'postes'
+              ? '<path d="M12 3v18"/><path d="M5 7c2 1.5 4 2.2 7 2.2S17 8.5 19 7"/>'
+              : '<circle cx="12" cy="14" r="6"/><path d="M6 8 Q12 4 18 8"/>'}
+          </svg>
+        </div>
+        <div class="item-main">
+          <div class="item-name">${this._esc(r.title)}</div>
+          <div class="item-meta">
+            <span>${r.type === 'postes' ? 'POSTES' : 'CCRR'}</span>
+            <span>· ${this._esc(r.subtitle || '')}</span>
+            <span>· ${this._dateShort(r.created_at)}</span>
+          </div>
+        </div>
+        <div class="item-actions">
+          <button class="icon-action" data-share="${this._esc(r.id)}" aria-label="Compartir">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+          </button>
+          <button class="icon-action" data-view="${this._esc(r.id)}" aria-label="Ver">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+          <button class="icon-action danger" data-del="${this._esc(r.id)}" aria-label="Eliminar">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg>
+          </button>
+        </div>
+      </div>
+    `).join('');
+
+    wrap.querySelectorAll('[data-share]').forEach(b => b.addEventListener('click', () => {
+      const r = reports.find(x => x.id === b.dataset.share);
+      if(r) Pdf.share(r);
+    }));
+    wrap.querySelectorAll('[data-view]').forEach(b => b.addEventListener('click', () => {
+      const r = reports.find(x => x.id === b.dataset.view);
+      if(r) Pdf.view(r);
+    }));
+    wrap.querySelectorAll('[data-del]').forEach(b => b.addEventListener('click', () => {
+      const r = reports.find(x => x.id === b.dataset.del);
+      if(!r) return;
+      if(!confirm(`¿Eliminar "${r.title}"?`)) return;
+      Pdf.delete(r.id);
+      this.render();
+      App.toast('Parte eliminado');
+    }));
+  },
+  _esc(s){
+    return String(s ?? '').replace(/[&<>"']/g, m => ({
+      '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+    }[m]));
+  },
+  _dateShort(iso){
+    const d = new Date(iso);
+    return d.toLocaleDateString('es-ES') + ' ' + d.toLocaleTimeString('es-ES', {hour: '2-digit', minute: '2-digit'});
+  }
+};
+
+/* =============================================================
+   MÓDULO SETTINGS — Paso 4
+   ============================================================= */
+const Settings = {
+  state: {
+    editingId: null,
+    sigData: null,
+    sigPad: null
+  },
+
+  init(){
+    document.getElementById('s-worker-add').addEventListener('click', () => this.openWorker(null));
+    document.querySelectorAll('#modal-worker [data-close-mw]').forEach(b => {
+      b.addEventListener('click', () => this.closeWorker());
+    });
+    document.getElementById('modal-worker').addEventListener('click', (e) => {
+      if(e.target.id === 'modal-worker') this.closeWorker();
+    });
+    document.getElementById('mw-save').addEventListener('click', () => this.saveWorker());
+    document.getElementById('mw-delete').addEventListener('click', () => this.deleteWorker());
+    document.getElementById('mw-sig-clear').addEventListener('click', () => this.clearSig());
+
+    document.getElementById('s-default-rp').addEventListener('change', (e) => {
+      const settings = App.load(App.KEYS.settings, {});
+      settings.defaultRPId = e.target.value || '';
+      App.save(App.KEYS.settings, settings);
+      App.toast('RP por defecto actualizado');
+    });
+
+    document.getElementById('s-central-add').addEventListener('click', () => this.addCentral());
+    document.getElementById('s-central-new').addEventListener('keydown', (e) => {
+      if(e.key === 'Enter'){ e.preventDefault(); this.addCentral(); }
+    });
+
+    document.getElementById('s-export').addEventListener('click', () => this.exportData());
+    document.getElementById('s-import').addEventListener('click', () => document.getElementById('s-import-file').click());
+    document.getElementById('s-import-file').addEventListener('change', (e) => this.importData(e));
+    const installBtn = document.getElementById('s-install-btn');
+    if(installBtn){
+      installBtn.addEventListener('click', () => PWA.install());
+      // Refrescar estado al entrar en ajustes
+      PWA.refreshInstallButton();
+    }
+  },
+
+  onEnter(){
+    this.renderWorkers();
+    this.renderCentrales();
+    this.renderDefaultRP();
+  },
+
+  /* === TRABAJADORES === */
+  renderWorkers(){
+    const wrap = document.getElementById('s-workers-list');
+    const workers = App.load(App.KEYS.workers, []);
+    const settings = App.load(App.KEYS.settings, {});
+    const defaultRP = settings.defaultRPId;
+    const sigs = App.load('cg1.signatures', {});
+
+    if(workers.length === 0){
+      wrap.innerHTML = `<div class="empty-list">No hay trabajadores. Añade uno con el botón.</div>`;
+      return;
+    }
+    wrap.innerHTML = workers.map(w => {
+      const isRP = (w.id === defaultRP);
+      const hasSig = !!sigs[w.id];
+      const sigStyle = hasSig ? `style="background-image:url('${sigs[w.id]}')"` : '';
+      return `
+        <div class="item-card" data-id="${this.esc(w.id)}">
+          ${hasSig ? `<div class="sig-thumb" ${sigStyle}></div>` : ''}
+          <div class="item-main">
+            <div class="item-name">${this.esc(w.nombre)}${isRP ? '<span class="badge-rp">RP</span>' : ''}</div>
+            <div class="item-meta">
+              <span>${this.esc(w.categoria || 'Celador')}</span>
+              ${w.nif ? `<span>· ${this.esc(w.nif)}</span>` : ''}
+              ${hasSig ? '<span class="has-sig">· firma ✓</span>' : '<span class="no-sig">· sin firma</span>'}
+            </div>
+          </div>
+          <div class="item-actions">
+            <button class="icon-action" data-edit="${this.esc(w.id)}" aria-label="Editar">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            </button>
+          </div>
+        </div>
+      `;
+    }).join('');
+    wrap.querySelectorAll('[data-edit]').forEach(b => {
+      b.addEventListener('click', () => this.openWorker(b.dataset.edit));
+    });
+  },
+
+  openWorker(id){
+    this.state.editingId = id;
+    this.state.sigData = null;
+    const isNew = !id;
+
+    document.getElementById('mw-title').textContent = isNew ? 'Nuevo trabajador' : 'Editar trabajador';
+    document.getElementById('mw-delete').style.display = isNew ? 'none' : '';
+
+    if(isNew){
+      document.getElementById('mw-name').value = '';
+      document.getElementById('mw-cat').value = 'Celador';
+      document.getElementById('mw-nif').value = '';
+    } else {
+      const w = App.load(App.KEYS.workers, []).find(x => x.id === id);
+      if(!w) return;
+      document.getElementById('mw-name').value = w.nombre || '';
+      document.getElementById('mw-cat').value  = w.categoria || 'Celador';
+      document.getElementById('mw-nif').value  = w.nif || '';
+      const sigs = App.load('cg1.signatures', {});
+      this.state.sigData = sigs[id] || null;
+    }
+
+    document.getElementById('modal-worker').classList.add('show');
+
+    requestAnimationFrame(() => {
+      const canvas = document.getElementById('mw-sig-canvas');
+      if(!this.state.sigPad){
+        this.state.sigPad = Signature.attach(canvas, {
+          onChange: (data) => {
+            this.state.sigData = data;
+            this.refreshSigEmpty();
+          }
+        });
+      }
+      this.state.sigPad.resize();
+      this.state.sigPad.clear();
+      if(this.state.sigData){
+        this.state.sigPad.load(this.state.sigData);
+      }
+      this.refreshSigEmpty();
+    });
+
+    setTimeout(() => document.getElementById('mw-name').focus(), 80);
+  },
+
+  refreshSigEmpty(){
+    const empty = document.getElementById('mw-sig-empty');
+    if(!empty) return;
+    empty.style.display = this.state.sigData ? 'none' : '';
+  },
+
+  clearSig(){
+    if(this.state.sigPad) this.state.sigPad.clear();
+    this.state.sigData = null;
+    this.refreshSigEmpty();
+  },
+
+  closeWorker(){
+    document.getElementById('modal-worker').classList.remove('show');
+    this.state.editingId = null;
+    this.state.sigData = null;
+  },
+
+  saveWorker(){
+    const nombre = document.getElementById('mw-name').value.trim();
+    const categoria = document.getElementById('mw-cat').value.trim() || 'Celador';
+    const nif = document.getElementById('mw-nif').value.trim();
+    if(!nombre){ App.toast('Indica nombre y apellidos'); return; }
+
+    const workers = App.load(App.KEYS.workers, []);
+    const sigs = App.load('cg1.signatures', {});
+
+    if(this.state.editingId){
+      const idx = workers.findIndex(w => w.id === this.state.editingId);
+      if(idx >= 0){
+        workers[idx] = { ...workers[idx], nombre, categoria, nif };
+        if(this.state.sigData) sigs[this.state.editingId] = this.state.sigData;
+        else delete sigs[this.state.editingId];
+      }
+    } else {
+      const newW = { id: App.uid(), nombre, categoria, nif };
+      workers.push(newW);
+      if(this.state.sigData) sigs[newW.id] = this.state.sigData;
+    }
+
+    App.save(App.KEYS.workers, workers);
+    App.save('cg1.signatures', sigs);
+
+    this.renderWorkers();
+    this.renderDefaultRP();
+    App.refreshHomeStats();
+    this.closeWorker();
+    App.toast('Trabajador guardado');
+  },
+
+  deleteWorker(){
+    if(!this.state.editingId) return;
+    const workers = App.load(App.KEYS.workers, []);
+    const w = workers.find(x => x.id === this.state.editingId);
+    if(!w) return;
+    if(!confirm(`¿Eliminar a ${w.nombre}?`)) return;
+
+    const filtered = workers.filter(x => x.id !== this.state.editingId);
+    App.save(App.KEYS.workers, filtered);
+
+    const sigs = App.load('cg1.signatures', {});
+    delete sigs[this.state.editingId];
+    App.save('cg1.signatures', sigs);
+
+    const settings = App.load(App.KEYS.settings, {});
+    if(settings.defaultRPId === this.state.editingId){
+      settings.defaultRPId = filtered[0]?.id || '';
+      App.save(App.KEYS.settings, settings);
+    }
+
+    this.renderWorkers();
+    this.renderDefaultRP();
+    App.refreshHomeStats();
+    this.closeWorker();
+    App.toast('Trabajador eliminado');
+  },
+
+  /* === RP POR DEFECTO === */
+  renderDefaultRP(){
+    const sel = document.getElementById('s-default-rp');
+    const workers = App.load(App.KEYS.workers, []);
+    const settings = App.load(App.KEYS.settings, {});
+    sel.innerHTML = '<option value="">— Sin RP por defecto —</option>' +
+      workers.map(w => `<option value="${this.esc(w.id)}">${this.esc(w.nombre)}</option>`).join('');
+    sel.value = settings.defaultRPId || '';
+  },
+
+  /* === CENTRALES === */
+  renderCentrales(){
+    const wrap = document.getElementById('s-centrales-list');
+    const list = App.load(App.KEYS.centrales, []);
+    if(list.length === 0){
+      wrap.innerHTML = `<div class="empty-list">No hay centrales. Añade alguna abajo.</div>`;
+      return;
+    }
+    wrap.innerHTML = list.map((c, i) => `
+      <div class="item-card">
+        <div class="item-main">
+          <div class="item-name">${this.esc(c)}</div>
+        </div>
+        <div class="item-actions">
+          <button class="icon-action danger" data-del-cen="${i}" aria-label="Eliminar">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+          </button>
+        </div>
+      </div>
+    `).join('');
+    wrap.querySelectorAll('[data-del-cen]').forEach(b => {
+      b.addEventListener('click', () => this.removeCentral(parseInt(b.dataset.delCen, 10)));
+    });
+  },
+
+  addCentral(){
+    const inp = document.getElementById('s-central-new');
+    const name = inp.value.trim();
+    if(!name){ App.toast('Escribe el nombre de la central'); return; }
+    const list = App.load(App.KEYS.centrales, []);
+    if(list.some(c => c.toLowerCase() === name.toLowerCase())){
+      App.toast('Esa central ya existe'); return;
+    }
+    list.push(name);
+    App.save(App.KEYS.centrales, list);
+    inp.value = '';
+    this.renderCentrales();
+    App.toast('Central añadida');
+  },
+
+  removeCentral(idx){
+    const list = App.load(App.KEYS.centrales, []);
+    if(!confirm(`¿Eliminar "${list[idx]}"?`)) return;
+    list.splice(idx, 1);
+    App.save(App.KEYS.centrales, list);
+    this.renderCentrales();
+  },
+
+  /* === EXPORT / IMPORT === */
+  exportData(){
+    const data = {
+      version: App.version,
+      exported_at: new Date().toISOString(),
+      workers:    App.load(App.KEYS.workers, []),
+      centrales:  App.load(App.KEYS.centrales, []),
+      settings:   App.load(App.KEYS.settings, {}),
+      signatures: App.load('cg1.signatures', {}),
+      reports:    App.load(App.KEYS.reports, [])
+    };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const stamp = new Date().toISOString().slice(0,16).replace(/[:T]/g,'-');
+    a.href = url;
+    a.download = `cg1-backup-${stamp}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    App.toast('Copia descargada');
+  },
+
+  importData(e){
+    const file = e.target.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      try{
+        const data = JSON.parse(ev.target.result);
+        if(!data || !Array.isArray(data.workers)){
+          App.toast('Archivo no válido'); return;
+        }
+        if(!confirm('Esto sobrescribirá tus datos actuales. ¿Continuar?')) return;
+        App.save(App.KEYS.workers,   data.workers   || []);
+        App.save(App.KEYS.centrales, data.centrales || []);
+        App.save(App.KEYS.settings,  data.settings  || {});
+        App.save('cg1.signatures',   data.signatures|| {});
+        if(Array.isArray(data.reports)) App.save(App.KEYS.reports, data.reports);
+        this.onEnter();
+        App.refreshHomeStats();
+        App.toast('Copia importada');
+      } catch(err){
+        App.toast('Error al leer el archivo');
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = '';
+  },
+
+  esc(s){
+    return String(s ?? '').replace(/[&<>"']/g, m => ({
+      '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+    }[m]));
+  }
+};
+
+/* =============================================================
+   PWA — Service Worker + Instalación
+   ============================================================= */
+const PWA = {
+  deferredPrompt: null,
+  installed: false,
+
+  init(){
+    // Registrar service worker
+    if('serviceWorker' in navigator){
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js')
+          .then(reg => {
+            console.log('[PWA] SW registrado:', reg.scope);
+            // Detectar actualizaciones
+            reg.addEventListener('updatefound', () => {
+              const nw = reg.installing;
+              if(!nw) return;
+              nw.addEventListener('statechange', () => {
+                if(nw.state === 'installed' && navigator.serviceWorker.controller){
+                  // Hay una nueva versión esperando
+                  App.toast('Nueva versión disponible. Cierra y abre la app.');
+                }
+              });
+            });
+          })
+          .catch(err => console.warn('[PWA] SW falló:', err));
+      });
+    }
+
+    // Capturar evento de instalación
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      this.deferredPrompt = e;
+      this.refreshInstallButton();
+    });
+
+    // Detectar si ya está instalada
+    window.addEventListener('appinstalled', () => {
+      this.installed = true;
+      this.deferredPrompt = null;
+      this.refreshInstallButton();
+      App.toast('✓ App instalada');
+    });
+
+    // Detectar si ya se está ejecutando como PWA
+    if(window.matchMedia('(display-mode: standalone)').matches ||
+       window.navigator.standalone === true){
+      this.installed = true;
+    }
+  },
+
+  async install(){
+    if(!this.deferredPrompt){
+      // iOS Safari: instrucciones manuales
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+      if(isIOS){
+        alert('Para instalar en iOS:\n\n1. Toca el botón de Compartir (cuadrado con flecha hacia arriba).\n2. Desplázate y toca "Añadir a pantalla de inicio".\n3. Confirma con "Añadir".');
+      } else {
+        alert('Para instalar:\n\n1. En Chrome: menú (⋮) → "Instalar app" o "Añadir a pantalla de inicio".\n2. Si no aparece la opción, intenta usar la app un poco antes.');
+      }
+      return;
+    }
+    this.deferredPrompt.prompt();
+    const { outcome } = await this.deferredPrompt.userChoice;
+    this.deferredPrompt = null;
+    this.refreshInstallButton();
+  },
+
+  refreshInstallButton(){
+    const btn = document.getElementById('s-install-btn');
+    if(!btn) return;
+    if(this.installed){
+      btn.textContent = '✓ App instalada';
+      btn.disabled = true;
+      btn.style.opacity = '0.6';
+    } else {
+      btn.textContent = 'Instalar app en este dispositivo';
+      btn.disabled = false;
+      btn.style.opacity = '1';
+    }
+  }
+};
+
+document.addEventListener('DOMContentLoaded', () => App.init());
+document.addEventListener('DOMContentLoaded', () => PWA.init());
+</script>
+
+</body>
+</html>
