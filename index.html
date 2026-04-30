@@ -2106,7 +2106,7 @@
    ============================================================= */
 
 const App = {
-  version: '0.7.4',
+  version: '0.7.5',
   step: 7,
 
   /* ===== CONSTANTES FIJAS — nunca cambian ===== */
@@ -3555,182 +3555,144 @@ const Pdf = {
   POSTES_EPIS_FIJOS: [114, 109, 117, 118, 119, 112, 113, 111],
 
   /* =============================================================
-     BUILD POSTES PDF — usando AcroForm + flatten (como ilovepdf)
+     BUILD POSTES PDF — AcroForm checks + texto overlay
      ============================================================= */
   async buildPostes(d){
-    const { PDFDocument } = window.PDFLib;
+    const { PDFDocument, StandardFonts, rgb } = window.PDFLib;
     const tplBuffer = await this.loadTemplate('postes');
     const pdfDoc = await PDFDocument.load(tplBuffer);
     const form = pdfDoc.getForm();
     const allFields = form.getFields();
+    const helvetica = await pdfDoc.embedFont(StandardFonts.Helvetica);
+    const page = pdfDoc.getPage(0);
+    const black = rgb(0, 0, 0);
 
-    // ===== TEXTOS =====
-    // Mapeo idx → key (basado en orden de array y mi calibración previa)
-    // Los Tx están en idx 128..165 según el análisis
-    // Mapeo por idx exacto:
-    const TX_BY_IDX = {
-      128: 'direccion',     // (143.5, 743.9)
-      129: 'empresa',       // (128.4, 735.6) → DIGI Spain Telecom
-      130: 'fecha',         // (104.5, 726.3)
-      131: 'hora',          // (186.7, 726.3)
-      132: 'numPoste',      // (457.3, 754.3)
-      135: 'numLinea',      // (511.9, 743.9)
-      138: 'unidad',        // (536.0, 735.1) → PE
-      140: 'central',       // (442.7, 725.8)
-      141: 'trabajo',       // (223.2, 717.3)
-      // numActuacion: idx 137? ... lo dejamos vacío
-      // Trabajadores: 142,143,144,146 (nombres y categorías)
-      142: 'tr1_nombre',    // (170.4, 673.5)
-      144: 'tr1_categoria', // (348.0, 673.3)
-      143: 'tr2_nombre',    // (170.2, 664.1)
-      146: 'tr2_categoria', // (348.0, 664.3)
-      // 145 (273.3, 635.5) → quizás algo de tabla, ignorar
-      // 151 (305.1, 352.7) → JUSTIFICACIÓN MEDIO ACCESO (apt 6)
-      // 152 (516.1, 159.1) → tlf emergencias (caja)
-      152: 'tlf_emergencia',
-      // Cierre apartado final:
-      158: 'cierre_pob',    // (93.1, 68.2)
-      159: 'cierre_dia',    // (163.5, 68.2)
-      160: 'cierre_mes',    // (218.8, 69.1)
-      161: 'cierre_ano',    // (287.4, 68.2)
-      163: 'rp_nombre',     // (216.2, 58.6)
-      165: 'rp_nif',        // (190.7, 47.6)
-      // 162 (287.7, 47.7) y 164 (236.6, 30.6) → otros campos opcionales
-    };
-
-    const fechaParts = this._splitFecha(d.fecha);
     const workers = this._resolveWorkers(d.workersSelected, d.tempWorkers);
     const rp = workers.find(w => w.id === d.rpId) || workers[0] || {};
+    const fechaParts = this._splitFecha(d.fecha);
 
-    // Preparar valores de texto
-    const textValues = {
-      direccion:    d.direccion || '',
-      empresa:      App.FIXED.empresa,
-      fecha:        this._dateES(d.fecha) || '',
-      hora:         d.hora || '',
-      numPoste:     d.numPoste || '',
-      numLinea:     d.numLinea || '',
-      unidad:       App.FIXED.unidad,
-      central:      d.central || '',
-      trabajo:      d.trabajo || '',
-      tlf_emergencia: '061 / 112',
-      cierre_pob:   d.poblacion || '',
-      cierre_dia:   fechaParts.dia,
-      cierre_mes:   fechaParts.mes,
-      cierre_ano:   fechaParts.ano,
-      rp_nombre:    rp.nombre || '',
-      rp_nif:       rp.nif || '',
-      tr1_nombre:    workers[0] ? workers[0].nombre : '',
-      tr1_categoria: workers[0] ? (workers[0].categoria || 'Celador') : '',
-      tr2_nombre:    workers[1] ? workers[1].nombre : '',
-      tr2_categoria: workers[1] ? (workers[1].categoria || 'Celador') : '',
-    };
-
-    // Si hay 3+ trabajadores, agrupamos resto en tr2_nombre
-    if(workers.length >= 3){
-      textValues.tr2_nombre = workers.slice(1).map(w => w.nombre).join(', ');
-    }
-
-    // Hay que mapear PROVINCIA y POBLACIÓN. Veamos cuál es cuál:
-    // (143.5, 743.9) idx 128 — ya lo tengo como direccion, pero la dirección está más a la izquierda
-    // Mirar orden de coordenadas por X:
-    // direccion empieza X≈90, provincia X≈340, poblacion X≈470
-    // En el array idx 128 cx=143 → realmente direccion (rango X 88-200)
-    // Entonces dónde está provincia? Y poblacion?
-    // Faltan, no aparecieron en mi listado de Tx. Eso significa que provincia y población
-    // NO son campos de texto sino que se rellenan por encima del PDF a mano.
-    // Pero ilovepdf SÍ pudo escribirlos... espera, déjame mirar más Tx.
-
-    // Asignar valores a los campos de texto
-    Object.entries(TX_BY_IDX).forEach(([idxStr, key]) => {
-      const idx = parseInt(idxStr);
-      const field = allFields[idx];
-      if(!field) return;
-      const val = textValues[key];
-      if(val === undefined || val === null || val === '') return;
-      try {
-        if(field.setText) field.setText(this._sanitize(String(val)));
-      } catch(e){
-        console.warn('No se pudo setText en idx', idx, e);
-      }
-    });
-
-    // ===== CHECKBOXES =====
+    // ===== PASO 1: marcar checkboxes via AcroForm =====
+    // Los checks que queremos marcar (idx en mi calibración por coordenadas)
     const toMark = new Set();
     if(d.tipo === 'Madera') toMark.add(1);
     else if(d.tipo === 'Hormigón') toMark.add(3);
     else toMark.add(4);
-
     toMark.add(d.climaOk === 'si' ? 7 : 8);
-
-    // Trabajadores SI (formación + conocen)
     toMark.add(9);  toMark.add(13);
     if(workers.length >= 2){ toMark.add(10); toMark.add(14); }
-
-    // RP
     if(workers.length >= 1 && workers[0].id === d.rpId) toMark.add(19);
     if(workers.length >= 2 && workers[1].id === d.rpId) toMark.add(20);
-
-    // Madera checks 1-6 SI + cambian condiciones NO
     if(d.tipo === 'Madera'){
       [21, 147, 25, 28, 27, 29].forEach(b => toMark.add(b));
       toMark.add(150);
     }
-
-    // Estado del poste (BUENO/MALO) — buscar idx de los checks
-    // Estos son botones que NO están en el AcroForm (son rects manuales)
-    // El usuario de ilovepdf no pudo marcarlos así, debe de haber un Btn AcroForm equivalente
-    // Por ahora seguimos con coordenadas manuales para BUENO/MALO
-
-    // Medio de subida
     const medio = d.medio || '';
     const medioBtns = this.POSTES_SUBIR_BTNS[d.tipo] || {};
     if(medioBtns[medio]) toMark.add(medioBtns[medio]);
-
-    // Escalera → marcar apt 7 SI todo + se puede usar SI
     const usaEscalera = (medio === 'Escalera' || medio === 'Escalera con patas extensibles');
     if(usaEscalera){
       [78, 79, 80, 81, 86, 88, 90].forEach(b => toMark.add(b));
       toMark.add(102);
     }
-
     this.POSTES_EPIS_FIJOS.forEach(b => toMark.add(b));
     [121, 123, 124].forEach(b => toMark.add(b));
 
-    // Marcar checkboxes a través de AcroForm
+    // Para cada idx, marcar el campo Y todos los superpuestos en la misma coordenada
+    // (porque algunos checkboxes están duplicados en el PDF)
     toMark.forEach(idx => {
-      const field = allFields[idx];
-      if(!field) return;
-      try {
-        if(field.check) field.check();
-      } catch(e){
-        console.warn('No se pudo check en idx', idx, e);
-      }
+      const target = this.POSTES_CHECK_CENTERS[idx];
+      if(!target) return;
+      const [tcx, tcy] = target;
+      // Buscar todos los Btn cuyo centro coincida (tolerancia 2pt)
+      allFields.forEach(field => {
+        try {
+          const acroField = field.acroField;
+          if(!acroField || acroField.constructor.name !== 'PDFAcroCheckBox') return;
+          const widget = acroField.getWidgets()[0];
+          if(!widget) return;
+          const r = widget.getRectangle();
+          const cx = r.x + r.width / 2;
+          const cy = r.y + r.height / 2;
+          if(Math.abs(cx - tcx) < 3 && Math.abs(cy - tcy) < 3){
+            if(field.check) field.check();
+          }
+        } catch(e){}
+      });
     });
 
-    // ===== APLANAR EL FORMULARIO =====
-    // form.flatten() convierte los campos en gráfico estático,
-    // que se renderiza igual en cualquier visor (como hace ilovepdf)
-    try {
-      form.flatten();
-    } catch(e){
-      console.warn('No se pudo aplanar el formulario:', e);
+    // ===== PASO 2: dibujar los textos como overlay =====
+    // Esto evita el bug del flatten (que pinta rects negros).
+    // Como NO aplanamos, los textos del formulario quedan vacíos pero los nuestros se ven encima.
+    const txt = (x, y, sz, val) => {
+      if(!val) return;
+      page.drawText(this._sanitize(String(val)), {
+        x, y, size: sz, font: helvetica, color: black
+      });
+    };
+
+    txt(440, 753, 9, d.numPoste);
+    txt(515, 753, 9, d.numLinea);
+    txt(95,  743, 9, d.direccion);
+    txt(340, 743, 9, d.provincia);
+    txt(470, 743, 9, d.poblacion);
+    txt(90,  734, 9, App.FIXED.empresa);
+    txt(412, 734, 9, App.FIXED.unidad);
+    txt(515, 734, 9, d.numActuacion);
+    txt(78,  725, 9, this._dateES(d.fecha));
+    txt(175, 725, 9, d.hora);
+    txt(411, 725, 9, d.central);
+    txt(160, 716, 9, d.trabajo);
+
+    // Cierre
+    txt(63,  67,  9, d.poblacion);
+    txt(155, 67,  9, fechaParts.dia);
+    txt(185, 67,  9, fechaParts.mes);
+    txt(273, 67,  9, fechaParts.ano);
+    txt(124, 56,  9, rp.nombre);
+    txt(107, 46,  9, rp.nif);
+
+    // Teléfono emergencias
+    txt(480, 92,  9, '061 / 112');
+
+    // Trabajadores
+    if(workers.length <= 2){
+      workers.forEach((w, i) => {
+        const y = 670 - i * 10;
+        txt(49, y, 9, w.nombre);
+        txt(296, y, 9, w.categoria || 'Celador');
+      });
+    } else if(workers.length === 3){
+      txt(49, 670, 9, workers[0].nombre);
+      txt(296, 670, 9, workers[0].categoria || 'Celador');
+      const line2 = workers[1].nombre + ', ' + workers[2].nombre;
+      const sz2 = line2.length > 50 ? 8 : 9;
+      txt(49, 660, sz2, line2);
+      txt(296, 660, 9, workers[1].categoria || 'Celador');
+    } else {
+      const half = Math.ceil(workers.length / 2);
+      const line1 = workers.slice(0, half).map(w => w.nombre).join(', ');
+      const line2 = workers.slice(half).map(w => w.nombre).join(', ');
+      const sz1 = line1.length > 50 ? 8 : 9;
+      const sz2 = line2.length > 50 ? 8 : 9;
+      txt(49, 670, sz1, line1);
+      txt(296, 670, 9, workers[0].categoria || 'Celador');
+      txt(49, 660, sz2, line2);
+      txt(296, 660, 9, workers[half].categoria || 'Celador');
     }
 
-    // ===== Estado del poste (X manual, no es AcroForm) =====
-    // Después de flatten, dibujamos las X manuales en BUENO/MALO
-    const page = pdfDoc.getPage(0);
+    // Estado del poste (BUENO/MALO) — son rects manuales, no AcroForm
+    const drawX = (cx, cy, size = 4.5) => {
+      const s = size / 2;
+      page.drawLine({ start: { x: cx-s, y: cy-s }, end: { x: cx+s, y: cy+s }, thickness: 1.4, color: black });
+      page.drawLine({ start: { x: cx+s, y: cy-s }, end: { x: cx-s, y: cy+s }, thickness: 1.4, color: black });
+    };
     const estadoMap = d.estado === 'bueno' ? this.POSTES_ESTADO_BUENO : this.POSTES_ESTADO_MALO;
     if(estadoMap[d.tipo]){
       const [cx, cy] = estadoMap[d.tipo];
-      const { rgb } = window.PDFLib;
-      const black = rgb(0, 0, 0);
-      const s = 2.25;
-      page.drawLine({ start: { x: cx-s, y: cy-s }, end: { x: cx+s, y: cy+s }, thickness: 1, color: black });
-      page.drawLine({ start: { x: cx+s, y: cy-s }, end: { x: cx-s, y: cy+s }, thickness: 1, color: black });
+      drawX(cx, cy);
     }
 
-    // ===== Firma RP =====
+    // Firma RP
     if(rp.id){
       const sigs = App.load('cg1.signatures', {});
       const sig = sigs[rp.id];
@@ -3743,7 +3705,7 @@ const Pdf = {
       }
     }
 
-    // ===== Metadatos =====
+    // Metadatos
     const fechaTxt = this._dateES(d.fecha) || '';
     const titulo = `Parte de Poste${d.numLinea ? ' ' + d.numLinea : ''}${d.numPoste ? ' Nº ' + d.numPoste : ''}${fechaTxt ? ' ' + fechaTxt : ''}`;
     pdfDoc.setTitle(titulo);
@@ -3891,129 +3853,24 @@ const Pdf = {
   },
 
   /* =============================================================
-     BUILD CCRR PDF — AcroForm + flatten
+     BUILD CCRR PDF — AcroForm checks + texto overlay
      ============================================================= */
   async buildCcrr(d){
-    const { PDFDocument } = window.PDFLib;
+    const { PDFDocument, StandardFonts, rgb } = window.PDFLib;
     const tplBuffer = await this.loadTemplate('ccrr');
     const pdfDoc = await PDFDocument.load(tplBuffer);
     const form = pdfDoc.getForm();
     const allFields = form.getFields();
+    const helvetica = await pdfDoc.embedFont(StandardFonts.Helvetica);
+    const page1 = pdfDoc.getPage(0);
+    const page2 = pdfDoc.getPage(1);
+    const black = rgb(0, 0, 0);
 
     const workers = this._resolveWorkers(d.workersSelected, d.tempWorkers);
     const rp = workers.find(w => w.id === d.rpId) || workers[0] || {};
     const fechaParts = this._splitFecha(d.fecha);
 
-    // Mapeo idx → key para Tx en CCRR
-    // (Las posiciones que ya teníamos calibradas)
-    const TX_VALUES = {};
-    // Asignar valores simples por nombre semántico
-    // El orden exacto de idx hay que verlo en runtime; por ahora intentamos por etiquetas T
-    // En CCRR los nombres T son '1','2',... Los Tx tienen otros nombres también (idx_offset)
-
-    // Estrategia más robusta: usar form.getTextField('T_NAME')
-    // Pero los Tx en CCRR usan otros nombres (no 1-75 que son los Btn)
-    // Por simplicidad, usamos el índice de allFields
-
-    // Datos a meter en cada Tx (por idx aproximado tras los Btn)
-    const txData = {
-      num:       d.num || '',
-      provincia: d.provincia || '',
-      poblacion: d.poblacion || '',
-      direccion: d.direccion || '',
-      turno:     d.turno || '',
-      clima:     d.clima || '',
-      trabajo:   d.trabajo || '',
-      duracion:  d.duracion || '',
-      desde:     d.desde || '',
-      hasta:     d.hasta || '',
-      tapa:      d.tapa || '',
-      cierre_pob: d.poblacion || '',
-      cierre_dia: fechaParts.dia,
-      cierre_mes: fechaParts.mes,
-      cierre_ano: fechaParts.ano,
-      rp_nombre:  rp.nombre || '',
-      rp_nif:     rp.nif || '',
-      tlf_amb:    '061',
-      tlf_med:    '112',
-    };
-
-    // Usaremos getFields() y un mapa de coordenadas para detectar cada Tx
-    // En el momento de la escritura.
-    const target = (cx, cy, tol = 5) => {
-      // Buscar primer Tx cuyo rect contenga ese punto
-      const PDFLib = window.PDFLib;
-      for(const field of allFields){
-        try {
-          const w = field.acroField;
-          if(!w || w.constructor.name !== 'PDFAcroText') continue;
-          // Intentar obtener su rect
-          const widget = w.getWidgets()[0];
-          if(!widget) continue;
-          const rect = widget.getRectangle();
-          const ccx = (rect.x + rect.width / 2);
-          const ccy = (rect.y + rect.height / 2);
-          if(Math.abs(ccx - cx) < tol + rect.width/2 && Math.abs(ccy - cy) < tol + rect.height/2){
-            return field;
-          }
-        } catch(e){}
-      }
-      return null;
-    };
-
-    // Mapeo coords → key (lo que ya tenía)
-    const TX_POS_TO_KEY = [
-      [94, 718, 'num'],
-      [243, 717, 'provincia'],
-      [398, 717, 'poblacion'],
-      [89, 707, 'direccion'],
-      [124, 696, 'turno'],
-      [407, 695, 'clima'],
-      [124, 685, 'trabajo'],
-      [130, 663, 'duracion'],
-      [235, 663, 'desde'],
-      [387, 663, 'hasta'],
-      [108, 514, 'tapa'],
-    ];
-    TX_POS_TO_KEY.forEach(([x, y, key]) => {
-      const f = target(x, y, 30);
-      if(f && f.setText && txData[key]) {
-        try { f.setText(this._sanitize(String(txData[key]))); } catch(e){}
-      }
-    });
-
-    // Trabajadores filas 1-3
-    const trLines = [[34, 626], [34, 615], [34, 604]];
-    const catLines = [[267, 626], [267, 615], [267, 604]];
-    if(workers.length <= 3){
-      workers.forEach((w, i) => {
-        const tn = target(trLines[i][0]+50, trLines[i][1], 30);
-        const tc = target(catLines[i][0]+50, catLines[i][1], 30);
-        if(tn && tn.setText) try { tn.setText(this._sanitize(w.nombre)); } catch(e){}
-        if(tc && tc.setText) try { tc.setText(this._sanitize(w.categoria || 'Celador')); } catch(e){}
-      });
-    } else {
-      [0, 1].forEach(i => {
-        const tn = target(trLines[i][0]+50, trLines[i][1], 30);
-        const tc = target(catLines[i][0]+50, catLines[i][1], 30);
-        if(tn && tn.setText) try { tn.setText(this._sanitize(workers[i].nombre)); } catch(e){}
-        if(tc && tc.setText) try { tc.setText(this._sanitize(workers[i].categoria || 'Celador')); } catch(e){}
-      });
-      const restNames = workers.slice(2).map(w => w.nombre).join(', ');
-      const tn = target(trLines[2][0]+50, trLines[2][1], 30);
-      const tc = target(catLines[2][0]+50, catLines[2][1], 30);
-      if(tn && tn.setText) try { tn.setText(this._sanitize(restNames)); } catch(e){}
-      if(tc && tc.setText) try { tc.setText(this._sanitize(workers[2].categoria || 'Celador')); } catch(e){}
-    }
-
-    // Pág 2: cierre, RP, teléfonos
-    const tlfAmb = target(516, 698, 50);
-    if(tlfAmb && tlfAmb.setText) try { tlfAmb.setText('061'); } catch(e){}
-    const tlfMed = target(516, 687, 50);
-    if(tlfMed && tlfMed.setText) try { tlfMed.setText('112'); } catch(e){}
-
-    // ===== Marcar checkboxes =====
-    // Usamos el mapeo T (1-75) directamente porque en CCRR los nombres son '1','2',...
+    // ===== PASO 1: marcar checkboxes via AcroForm =====
     const toMark = new Set();
     [...this.CCRR_FIJOS_TR, ...this.CCRR_FIJOS_PREP, ...this.CCRR_FIJOS_ESTADO,
      ...this.CCRR_FIJOS_ATM, ...this.CCRR_FIJOS_EPIS_P1, ...this.CCRR_FIJOS_EPIS_P2].forEach(t => toMark.add(t));
@@ -4024,48 +3881,79 @@ const Pdf = {
       if(v && this.CCRR_SENAL_BTNS[k]) toMark.add(this.CCRR_SENAL_BTNS[k]);
     });
 
-    // Buscar checkboxes por nombre T
     toMark.forEach(t => {
-      try {
-        const fld = form.getCheckBox(String(t));
-        if(fld) fld.check();
-      } catch(e){
-        // Si no se encuentra por nombre, intentar por coordenada
-        const c = this.CCRR_T_CENTERS[t];
-        if(!c) return;
-        const [cx, cy] = c;
-        for(const field of allFields){
-          try {
-            const w = field.acroField;
-            if(!w || w.constructor.name !== 'PDFAcroCheckBox') continue;
-            const widget = w.getWidgets()[0];
-            if(!widget) continue;
-            const r = widget.getRectangle();
-            const fcx = r.x + r.width / 2;
-            const fcy = r.y + r.height / 2;
-            if(Math.abs(fcx - cx) < 6 && Math.abs(fcy - cy) < 6){
-              if(field.check) field.check();
-              break;
-            }
-          } catch(e){}
-        }
-      }
+      const target = this.CCRR_T_CENTERS[t];
+      if(!target) return;
+      const [tcx, tcy] = target;
+      allFields.forEach(field => {
+        try {
+          const acroField = field.acroField;
+          if(!acroField || acroField.constructor.name !== 'PDFAcroCheckBox') return;
+          const widget = acroField.getWidgets()[0];
+          if(!widget) return;
+          const r = widget.getRectangle();
+          const cx = r.x + r.width / 2;
+          const cy = r.y + r.height / 2;
+          if(Math.abs(cx - tcx) < 3 && Math.abs(cy - tcy) < 3){
+            if(field.check) field.check();
+          }
+        } catch(e){}
+      });
     });
 
-    // Aplanar formulario
-    try { form.flatten(); } catch(e){ console.warn('Flatten ccrr falló:', e); }
-
-    // Cierre pág 2
-    const page2 = pdfDoc.getPage(1);
-    const { rgb } = window.PDFLib;
-    const black = rgb(0, 0, 0);
-    // Como aplanamos, ahora dibujamos los textos del cierre directamente
-    // (no son AcroForm en el PDF original)
-    const drawTxt = (page, x, y, val, sz=9) => {
+    // ===== PASO 2: dibujar textos como overlay =====
+    const txt1 = (x, y, sz, val) => {
       if(!val) return;
-      // Necesitamos una fuente. Embebemos solo si no la habíamos cargado
-      // Como ya hicimos flatten, podemos usar drawText sin preocuparnos
+      page1.drawText(this._sanitize(String(val)), { x, y, size: sz, font: helvetica, color: black });
     };
+    const txt2 = (x, y, sz, val) => {
+      if(!val) return;
+      page2.drawText(this._sanitize(String(val)), { x, y, size: sz, font: helvetica, color: black });
+    };
+
+    // === PÁGINA 1 ===
+    txt1(94,  718, 9, d.num);
+    txt1(243, 717, 9, d.provincia);
+    txt1(398, 717, 9, d.poblacion);
+    txt1(89,  707, 9, d.direccion);
+    txt1(124, 696, 9, d.turno);
+    txt1(407, 695, 9, d.clima);
+    txt1(124, 685, 9, d.trabajo);
+    txt1(130, 663, 9, d.duracion);
+    txt1(235, 663, 9, d.desde);
+    txt1(387, 663, 9, d.hasta);
+    txt1(108, 514, 9, d.tapa);
+
+    // Trabajadores
+    if(workers.length <= 3){
+      workers.forEach((w, i) => {
+        const [xN, y, xC] = this.CCRR_TR_LINES_P1[i];
+        txt1(xN, y, 9, w.nombre);
+        txt1(xC, y, 9, w.categoria || 'Celador');
+      });
+    } else {
+      const [xN0, y0, xC0] = this.CCRR_TR_LINES_P1[0];
+      txt1(xN0, y0, 9, workers[0].nombre);
+      txt1(xC0, y0, 9, workers[0].categoria || 'Celador');
+      const [xN1, y1, xC1] = this.CCRR_TR_LINES_P1[1];
+      txt1(xN1, y1, 9, workers[1].nombre);
+      txt1(xC1, y1, 9, workers[1].categoria || 'Celador');
+      const [xN2, y2, xC2] = this.CCRR_TR_LINES_P1[2];
+      const restNames = workers.slice(2).map(w => w.nombre).join(', ');
+      const sz = restNames.length > 38 ? 8 : 9;
+      txt1(xN2, y2, sz, restNames);
+      txt1(xC2, y2, 9, workers[2].categoria || 'Celador');
+    }
+
+    // === PÁGINA 2 ===
+    txt2(430, 698, 9, '061');
+    txt2(430, 687, 9, '112');
+    txt2(130, 666, 9, d.poblacion);
+    txt2(272, 666, 9, fechaParts.dia);
+    txt2(320, 666, 9, fechaParts.mes);
+    txt2(430, 666, 9, fechaParts.ano);
+    txt2(140, 633, 9, rp.nombre);
+    txt2(140, 622, 9, rp.nif);
 
     // Firma RP
     if(rp.id){
