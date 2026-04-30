@@ -2106,7 +2106,7 @@
    ============================================================= */
 
 const App = {
-  version: '0.7.2',
+  version: '0.7.3',
   step: 7,
 
   /* ===== CONSTANTES FIJAS — nunca cambian ===== */
@@ -3558,22 +3558,40 @@ const Pdf = {
      BUILD POSTES PDF
      ============================================================= */
   async buildPostes(d){
-    const { PDFDocument, StandardFonts, rgb } = window.PDFLib;
+    const { PDFDocument, PDFOperator, PDFName, PDFNumber, PDFString } = window.PDFLib;
     const tplBuffer = await this.loadTemplate('postes');
     const pdfDoc = await PDFDocument.load(tplBuffer);
-    const helvetica = await pdfDoc.embedFont(StandardFonts.Helvetica);
     const page = pdfDoc.getPage(0);
-    const black = rgb(0, 0, 0);
 
-    // Helpers internos
+    // === Detectar fuente Helvetica ya disponible en los recursos del PDF ===
+    // Esto evita que pdf-lib embeba su propia copia, que causa rayas blancas en el render.
+    const fontKey = this._findHelveticaKey(page);
+
+    // === Construir operadores PDF directamente ===
+    const ops = [];
     const txt = (x, y, sz, val) => {
       if(!val) return;
-      page.drawText(this._sanitize(val), { x, y, size: sz, font: helvetica, color: black });
+      const safe = this._pdfEscape(this._sanitize(val));
+      ops.push(PDFOperator.of('q'));
+      ops.push(PDFOperator.of('BT'));
+      ops.push(PDFOperator.of('Tf', [PDFName.of(fontKey), PDFNumber.of(sz)]));
+      ops.push(PDFOperator.of('Td', [PDFNumber.of(x), PDFNumber.of(y)]));
+      ops.push(PDFOperator.of('Tj', [PDFString.of(safe)]));
+      ops.push(PDFOperator.of('ET'));
+      ops.push(PDFOperator.of('Q'));
     };
     const drawX = (cx, cy, size = 4.5) => {
       const s = size / 2;
-      page.drawLine({ start: { x: cx - s, y: cy - s }, end: { x: cx + s, y: cy + s }, thickness: 1, color: black });
-      page.drawLine({ start: { x: cx + s, y: cy - s }, end: { x: cx - s, y: cy + s }, thickness: 1, color: black });
+      ops.push(PDFOperator.of('q'));
+      ops.push(PDFOperator.of('w', [PDFNumber.of(1)]));
+      ops.push(PDFOperator.of('RG', [PDFNumber.of(0), PDFNumber.of(0), PDFNumber.of(0)]));
+      ops.push(PDFOperator.of('m', [PDFNumber.of(cx-s), PDFNumber.of(cy-s)]));
+      ops.push(PDFOperator.of('l', [PDFNumber.of(cx+s), PDFNumber.of(cy+s)]));
+      ops.push(PDFOperator.of('S'));
+      ops.push(PDFOperator.of('m', [PDFNumber.of(cx+s), PDFNumber.of(cy-s)]));
+      ops.push(PDFOperator.of('l', [PDFNumber.of(cx-s), PDFNumber.of(cy+s)]));
+      ops.push(PDFOperator.of('S'));
+      ops.push(PDFOperator.of('Q'));
     };
 
     // === TEXTOS ===
@@ -3675,7 +3693,10 @@ const Pdf = {
       drawX(cx, cy);
     }
 
-    // Firma RP
+    // === Inyectar todos los operadores en la página ===
+    page.pushOperators(...ops);
+
+    // Firma RP (imagen, sí va con la API normal de pdf-lib)
     if(rp.id){
       const sigs = App.load('cg1.signatures', {});
       const sig = sigs[rp.id];
@@ -3696,7 +3717,55 @@ const Pdf = {
     pdfDoc.setAuthor(rp.nombre || 'CG1 DIGI');
     pdfDoc.setCreator('CG1 App');
 
-    return await pdfDoc.save();
+    return await pdfDoc.save({ useObjectStreams: false });
+  },
+
+  // Busca una fuente Helvetica ya disponible en los recursos de la página.
+  // Si no hay, embede una nueva como fallback.
+  _findHelveticaKey(page){
+    const { PDFName } = window.PDFLib;
+    try {
+      const resources = page.node.Resources();
+      if(!resources) return 'F1';
+      const fonts = resources.lookup(PDFName.of('Font'));
+      if(!fonts || !fonts.entries) return 'F1';
+      // Buscar primera fuente cuyo BaseFont contenga "Helvetica" (no Bold/Oblique)
+      for(const [key, value] of fonts.entries()){
+        try {
+          const fontObj = page.doc.context.lookup(value);
+          if(!fontObj || !fontObj.lookup) continue;
+          const baseFont = fontObj.lookup(PDFName.of('BaseFont'));
+          if(!baseFont) continue;
+          const name = baseFont.encodedName || String(baseFont);
+          // Buscar Helvetica regular (sin Bold/Oblique)
+          if(name.includes('Helvetica') &&
+             !name.includes('Bold') &&
+             !name.includes('Oblique') &&
+             !name.includes('Italic')){
+            return key.encodedName.replace(/^\//, '');
+          }
+        } catch(e){}
+      }
+      // Si no encuentra Helvetica regular, devolver cualquier Helvetica
+      for(const [key, value] of fonts.entries()){
+        try {
+          const fontObj = page.doc.context.lookup(value);
+          const baseFont = fontObj.lookup(PDFName.of('BaseFont'));
+          const name = baseFont.encodedName || String(baseFont);
+          if(name.includes('Helvetica')){
+            return key.encodedName.replace(/^\//, '');
+          }
+        } catch(e){}
+      }
+    } catch(e){
+      console.warn('No se pudo detectar fuente:', e);
+    }
+    return 'F1';
+  },
+
+  // Escapa texto para PDFString (paréntesis y backslash)
+  _pdfEscape(s){
+    return s.replace(/\\/g, '\\\\').replace(/\(/g, '\\(').replace(/\)/g, '\\)');
   },
 
   // Asegurar que no se rompa: pdf-lib gestiona la fuente automáticamente al embeberla
@@ -3791,32 +3860,46 @@ const Pdf = {
      BUILD CCRR PDF
      ============================================================= */
   async buildCcrr(d){
-    const { PDFDocument, StandardFonts, rgb } = window.PDFLib;
+    const { PDFDocument, PDFOperator, PDFName, PDFNumber, PDFString } = window.PDFLib;
     const tplBuffer = await this.loadTemplate('ccrr');
     const pdfDoc = await PDFDocument.load(tplBuffer);
-    const helvetica = await pdfDoc.embedFont(StandardFonts.Helvetica);
     const page1 = pdfDoc.getPage(0);
     const page2 = pdfDoc.getPage(1);
-    const black = rgb(0, 0, 0);
 
-    const txt1 = (x, y, sz, val) => {
-      if(!val) return;
-      page1.drawText(this._sanitize(val), { x, y, size: sz, font: helvetica, color: black });
+    const fontKey1 = this._findHelveticaKey(page1);
+    const fontKey2 = this._findHelveticaKey(page2);
+
+    const buildOps = (fontKey) => {
+      const ops = [];
+      const txt = (x, y, sz, val) => {
+        if(!val) return;
+        const safe = this._pdfEscape(this._sanitize(val));
+        ops.push(PDFOperator.of('q'));
+        ops.push(PDFOperator.of('BT'));
+        ops.push(PDFOperator.of('Tf', [PDFName.of(fontKey), PDFNumber.of(sz)]));
+        ops.push(PDFOperator.of('Td', [PDFNumber.of(x), PDFNumber.of(y)]));
+        ops.push(PDFOperator.of('Tj', [PDFString.of(safe)]));
+        ops.push(PDFOperator.of('ET'));
+        ops.push(PDFOperator.of('Q'));
+      };
+      const drawX = (cx, cy, size = 4.5) => {
+        const s = size / 2;
+        ops.push(PDFOperator.of('q'));
+        ops.push(PDFOperator.of('w', [PDFNumber.of(1)]));
+        ops.push(PDFOperator.of('RG', [PDFNumber.of(0), PDFNumber.of(0), PDFNumber.of(0)]));
+        ops.push(PDFOperator.of('m', [PDFNumber.of(cx-s), PDFNumber.of(cy-s)]));
+        ops.push(PDFOperator.of('l', [PDFNumber.of(cx+s), PDFNumber.of(cy+s)]));
+        ops.push(PDFOperator.of('S'));
+        ops.push(PDFOperator.of('m', [PDFNumber.of(cx+s), PDFNumber.of(cy-s)]));
+        ops.push(PDFOperator.of('l', [PDFNumber.of(cx-s), PDFNumber.of(cy+s)]));
+        ops.push(PDFOperator.of('S'));
+        ops.push(PDFOperator.of('Q'));
+      };
+      return { ops, txt, drawX };
     };
-    const txt2 = (x, y, sz, val) => {
-      if(!val) return;
-      page2.drawText(this._sanitize(val), { x, y, size: sz, font: helvetica, color: black });
-    };
-    const drawX1 = (cx, cy, size = 4.5) => {
-      const s = size / 2;
-      page1.drawLine({ start: { x: cx - s, y: cy - s }, end: { x: cx + s, y: cy + s }, thickness: 1, color: black });
-      page1.drawLine({ start: { x: cx + s, y: cy - s }, end: { x: cx - s, y: cy + s }, thickness: 1, color: black });
-    };
-    const drawX2 = (cx, cy, size = 4.5) => {
-      const s = size / 2;
-      page2.drawLine({ start: { x: cx - s, y: cy - s }, end: { x: cx + s, y: cy + s }, thickness: 1, color: black });
-      page2.drawLine({ start: { x: cx + s, y: cy - s }, end: { x: cx - s, y: cy + s }, thickness: 1, color: black });
-    };
+
+    const { ops: ops1, txt: txt1, drawX: drawX1 } = buildOps(fontKey1);
+    const { ops: ops2, txt: txt2, drawX: drawX2 } = buildOps(fontKey2);
 
     // === PÁGINA 1 ===
     const drawTxtP1 = (key, val) => {
@@ -3896,6 +3979,10 @@ const Pdf = {
       if(c) drawX2(c[0], c[1]);
     });
 
+    // Inyectar operadores en cada página
+    page1.pushOperators(...ops1);
+    page2.pushOperators(...ops2);
+
     if(rp.id){
       const sigs = App.load('cg1.signatures', {});
       const sig = sigs[rp.id];
@@ -3915,7 +4002,7 @@ const Pdf = {
     pdfDoc.setAuthor(rp.nombre || 'CG1 DIGI');
     pdfDoc.setCreator('CG1 App');
 
-    return await pdfDoc.save();
+    return await pdfDoc.save({ useObjectStreams: false });
   },
 
   /* =============================================================
