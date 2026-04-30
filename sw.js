@@ -1,9 +1,13 @@
 /* =============================================================
    CG1 PWA — Service Worker
    Cachea index.html + plantillas + iconos para funcionar offline
+
+   IMPORTANTE: cuando subas App.version en index.html, sube también
+   este CACHE_VERSION a la misma versión (con prefijo 'cg1-v').
+   Eso fuerza al SW a invalidar la cache vieja.
    ============================================================= */
 
-const CACHE_VERSION = 'cg1-v0.7.1';
+const CACHE_VERSION = 'cg1-v0.7.2';
 const PRECACHE_URLS = [
   './',
   './index.html',

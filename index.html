@@ -1086,7 +1086,7 @@
       </span>
       <span class="brand-text">
         <span class="t1">Partes Seguridad</span>
-        <span class="t2">DIGI <b>·</b> PE <b>·</b> CG1</span>
+        <span class="t2">DIGI <b>·</b> PE <b>·</b> CG1 <b>·</b> <span id="brand-version">v0.7.2</span></span>
       </span>
     </button>
 
@@ -1497,6 +1497,17 @@
             <button type="button" data-val="si" aria-pressed="true">SÍ</button>
             <button type="button" data-val="no" aria-pressed="false">NO</button>
           </div>
+          <div class="alert-danger hidden" id="p-clima-alert" role="alert" style="margin-top:10px;">
+            <div class="alert-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 2 1 22h22L12 2z"/><path d="M12 9v5"/><circle cx="12" cy="18" r="1.2" fill="currentColor"/>
+              </svg>
+            </div>
+            <div>
+              <h4>NO SE PUEDE TRABAJAR</h4>
+              <p>La climatología no permite realizar el trabajo con seguridad. Detén la actuación y, si fuera imprescindible, cubre el parte a mano.</p>
+            </div>
+          </div>
         </div>
 
         <div class="field" style="margin-top:12px;">
@@ -1901,12 +1912,18 @@
         <span class="sec-title">Trabajadores</span>
       </div>
       <p style="font-size:12.5px;color:var(--text-mute);margin:-6px 0 12px;line-height:1.5;">
-        Lista reutilizable. Cada uno puede tener su firma táctil guardada.
+        Lista reutilizable. Cada uno puede tener su <b style="color:var(--amber)">firma táctil</b> guardada — toca un trabajador para editar sus datos y firmar.
       </p>
       <div class="item-list" id="s-workers-list"></div>
       <button type="button" class="add-item-btn" id="s-worker-add">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
         Añadir trabajador
+      </button>
+      <button type="button" class="btn btn-primary" id="s-my-signature" style="margin-top:10px;justify-content:flex-start;width:100%;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 17.5V21h3.5L17.81 9.69l-3.5-3.5L3 17.5z"/><path d="m14.5 6.5 3 3"/>
+        </svg>
+        Editar mi firma
       </button>
     </section>
 
@@ -1988,7 +2005,7 @@
           Instalar app en este dispositivo
         </button>
         <p style="font-size:11.5px;color:var(--text-mute);margin:6px 0 0;line-height:1.5;">
-          v0.7.1 · Funciona offline tras la primera carga.
+          <span id="s-version-text">v0.7.2</span> · Funciona offline tras la primera carga.
         </p>
       </div>
     </section>
@@ -2089,7 +2106,7 @@
    ============================================================= */
 
 const App = {
-  version: '0.7.1',
+  version: '0.7.2',
   step: 7,
 
   /* ===== CONSTANTES FIJAS — nunca cambian ===== */
@@ -2202,7 +2219,7 @@ const App = {
     { id: 'botas',      label: 'Botas de seguridad',                       def: true  },
     { id: 'cinturon',   label: 'Cinturón de posicionamiento',              def: true  },
     { id: 'lineavida',  label: 'Línea de vida + dispositivo deslizante',   def: true  },
-    { id: 'arnes',      label: 'Arnés de seguridad',                       def: false },
+    { id: 'arnes',      label: 'Arnés de seguridad',                       def: true  },
     { id: 'doblecabo',  label: 'Doble cabo de anclaje',                    def: false },
     { id: 'pertiga',    label: 'Pértiga + línea de vida + disp. deslizante', def: false },
     { id: 'puntomovil', label: 'Punto anclaje móvil (aro cinta / bandola horca)', def: false },
@@ -2294,6 +2311,10 @@ const App = {
 
   /* ===== INIT ===== */
   init(){
+    // Mostrar versión actual en el topbar
+    const vEl = document.getElementById('brand-version');
+    if(vEl) vEl.textContent = 'v' + this.version;
+
     // Bind navegación
     document.querySelectorAll('[data-go]').forEach(el => {
       el.addEventListener('click', () => this.go(el.dataset.go));
@@ -2607,13 +2628,23 @@ const Postes = {
   setClimaOk(val){
     this.state.climaOk = val;
     this.renderClimaOk();
+    this.refreshGenerateButton();
     this.saveDraft();
+    if(val === 'no'){
+      App.toast('⚠ Trabajo bloqueado: climatología no apta');
+    }
   },
 
   renderClimaOk(){
     document.querySelectorAll('#p-clima-ok button').forEach(b => {
       b.setAttribute('aria-pressed', b.dataset.val === this.state.climaOk ? 'true' : 'false');
     });
+    // Mostrar/ocultar cartel de clima si existe
+    const alert = document.getElementById('p-clima-alert');
+    if(alert){
+      if(this.state.climaOk === 'no') alert.classList.remove('hidden');
+      else alert.classList.add('hidden');
+    }
   },
 
   toggleWorker(id){
@@ -2761,7 +2792,7 @@ const Postes = {
     const btn = document.getElementById('p-generate');
     if(!btn) return;
     const d = this.collect();
-    const blocked = this.state.estado === 'malo';
+    const blocked = this.state.estado === 'malo' || this.state.climaOk === 'no';
     const minOk =
       d.central && d.numPoste && d.direccion && d.poblacion &&
       d.fecha && d.hora && d.trabajo && d.medio &&
@@ -2795,7 +2826,11 @@ const Postes = {
   async generate(){
     const data = this.collect();
     if(this.state.estado === 'malo'){
-      App.toast('⚠ Estado MALO: no se puede generar');
+      App.toast('⚠ Estado MALO: cubrir el PDF a mano');
+      return;
+    }
+    if(this.state.climaOk === 'no'){
+      App.toast('⚠ Climatología no apta: cubrir el PDF a mano');
       return;
     }
     // Pasamos también los trabajadores temporales para que el PDF los resuelva
@@ -3439,80 +3474,6 @@ const Pdf = {
       .replace(/\u2013|\u2014/g, '-');
   },
 
-  // Convierte texto a bytes WinAnsi escapados para PDF
-  _pdfString(txt){
-    const s = this._sanitize(txt);
-    let out = '';
-    for(const ch of s){
-      const cp = ch.codePointAt(0);
-      // Escapar paréntesis y backslash
-      if(ch === '(' || ch === ')' || ch === '\\'){
-        out += '\\' + ch;
-      } else if(cp < 128){
-        out += ch;
-      } else {
-        // Codificar en WinAnsi (CP1252) como octal
-        const winansi = this._toWinAnsi(cp);
-        if(winansi !== null){
-          out += '\\' + winansi.toString(8).padStart(3, '0');
-        } else {
-          out += '?';
-        }
-      }
-    }
-    return out;
-  },
-
-  // Mapeo Unicode → WinAnsi (cubre acentos y eñe españolas)
-  _toWinAnsi(cp){
-    // Caracteres que coinciden en valor de byte:
-    if(cp >= 0xA0 && cp <= 0xFF) return cp;
-    // Casos especiales WinAnsi:
-    const map = {
-      0x152: 0x8C, 0x153: 0x9C, 0x160: 0x8A, 0x161: 0x9A,
-      0x178: 0x9F, 0x17D: 0x8E, 0x17E: 0x9E, 0x192: 0x83,
-      0x2C6: 0x88, 0x2DC: 0x98, 0x2013: 0x96, 0x2014: 0x97,
-      0x2018: 0x91, 0x2019: 0x92, 0x201A: 0x82, 0x201C: 0x93,
-      0x201D: 0x94, 0x201E: 0x84, 0x2020: 0x86, 0x2021: 0x87,
-      0x2022: 0x95, 0x2026: 0x85, 0x2030: 0x89, 0x2039: 0x8B,
-      0x203A: 0x9B, 0x20AC: 0x80, 0x2122: 0x99
-    };
-    if(map[cp] !== undefined) return map[cp];
-    if(cp < 128) return cp;
-    return null;
-  },
-
-  // Aplica un overlay PostScript al final de la página, con CTM neutro
-  // ops: array de strings con operadores PDF (ya en coordenadas de página normales)
-  async _appendOverlay(pdfDoc, page, ops){
-    const { PDFContentStream, PDFName, PDFArray, PDFRawStream, decodePDFRawStream } = window.PDFLib;
-    // Construir stream limpio: "q 1 0 0 1 0 0 cm <ops> Q"
-    // Usamos pushOperators de pdf-lib que acepta operadores ya formateados
-    const opsStr = '\nq\n1 0 0 1 0 0 cm\n' + ops.join('\n') + '\nQ\n';
-    // pdf-lib expone pushOperators para añadir operadores al content stream
-    const PDFOps = window.PDFLib.PDFOperator;
-    // Truco simple: añadir un nuevo content stream al final del array de Contents
-    const ctx = pdfDoc.context;
-    const stream = ctx.flateStream(opsStr);
-    const ref = ctx.register(stream);
-    // Página
-    const pageDict = page.node;
-    let contents = pageDict.get(PDFName.of('Contents'));
-    if(!contents){
-      pageDict.set(PDFName.of('Contents'), PDFArray.withContext(ctx));
-      contents = pageDict.get(PDFName.of('Contents'));
-    }
-    if(contents instanceof PDFArray){
-      contents.push(ref);
-    } else {
-      // Era un único stream, lo convertimos a array
-      const arr = PDFArray.withContext(ctx);
-      arr.push(contents);
-      arr.push(ref);
-      pageDict.set(PDFName.of('Contents'), arr);
-    }
-  },
-
   // Convierte fecha ISO YYYY-MM-DD a DD/MM/YYYY
   _dateES(iso){
     if(!iso) return '';
@@ -3597,29 +3558,22 @@ const Pdf = {
      BUILD POSTES PDF
      ============================================================= */
   async buildPostes(d){
-    const { PDFDocument, StandardFonts } = window.PDFLib;
+    const { PDFDocument, StandardFonts, rgb } = window.PDFLib;
     const tplBuffer = await this.loadTemplate('postes');
     const pdfDoc = await PDFDocument.load(tplBuffer);
-    // Embeber Helvetica para que la podamos usar en nuestro stream
     const helvetica = await pdfDoc.embedFont(StandardFonts.Helvetica);
     const page = pdfDoc.getPage(0);
+    const black = rgb(0, 0, 0);
 
-    // Asegurar que la fuente está disponible en los recursos de la página
-    // pdf-lib la añadirá automáticamente al embeber, pero la referencia /F1 hay que crearla
-    const fontName = await this._ensureFont(pdfDoc, page, helvetica);
-
-    // === Construir lista de operadores PDF ===
-    const ops = [];
+    // Helpers internos
     const txt = (x, y, sz, val) => {
       if(!val) return;
-      ops.push(`BT /${fontName} ${sz} Tf ${x} ${y} Td (${this._pdfString(val)}) Tj ET`);
+      page.drawText(this._sanitize(val), { x, y, size: sz, font: helvetica, color: black });
     };
     const drawX = (cx, cy, size = 4.5) => {
       const s = size / 2;
-      ops.push(`q 1 w 0 0 0 RG`);
-      ops.push(`${(cx-s).toFixed(2)} ${(cy-s).toFixed(2)} m ${(cx+s).toFixed(2)} ${(cy+s).toFixed(2)} l S`);
-      ops.push(`${(cx+s).toFixed(2)} ${(cy-s).toFixed(2)} m ${(cx-s).toFixed(2)} ${(cy+s).toFixed(2)} l S`);
-      ops.push(`Q`);
+      page.drawLine({ start: { x: cx - s, y: cy - s }, end: { x: cx + s, y: cy + s }, thickness: 1, color: black });
+      page.drawLine({ start: { x: cx + s, y: cy - s }, end: { x: cx - s, y: cy + s }, thickness: 1, color: black });
     };
 
     // === TEXTOS ===
@@ -3653,7 +3607,6 @@ const Pdf = {
     drawTxt('rp_nombre', rp.nombre);
     drawTxt('rp_nif',    rp.nif);
 
-    // Teléfono emergencias
     txt(480, 92, 9, '061 / 112');
 
     // === TRABAJADORES ===
@@ -3722,10 +3675,7 @@ const Pdf = {
       drawX(cx, cy);
     }
 
-    // Aplicar overlay
-    await this._appendOverlay(pdfDoc, page, ops);
-
-    // Firma RP (imagen, esto sí va con la API normal de pdf-lib)
+    // Firma RP
     if(rp.id){
       const sigs = App.load('cg1.signatures', {});
       const sig = sigs[rp.id];
@@ -3738,7 +3688,7 @@ const Pdf = {
       }
     }
 
-    // Metadatos: título personalizado
+    // Metadatos
     const fechaTxt = this._dateES(d.fecha) || '';
     const titulo = `Parte de Poste${d.numLinea ? ' ' + d.numLinea : ''}${d.numPoste ? ' Nº ' + d.numPoste : ''}${fechaTxt ? ' ' + fechaTxt : ''}`;
     pdfDoc.setTitle(titulo);
@@ -3749,26 +3699,9 @@ const Pdf = {
     return await pdfDoc.save();
   },
 
-  // Asegurar que la fuente está disponible en los recursos de la página, devolver su nombre
-  async _ensureFont(pdfDoc, page, font){
-    const { PDFName, PDFDict } = window.PDFLib;
-    const ctx = pdfDoc.context;
-    const pageNode = page.node;
-    let resources = pageNode.get(PDFName.of('Resources'));
-    if(!resources){
-      resources = PDFDict.fromMapWithContext(new Map(), ctx);
-      pageNode.set(PDFName.of('Resources'), resources);
-    }
-    let fonts = resources.get(PDFName.of('Font'));
-    if(!fonts){
-      fonts = PDFDict.fromMapWithContext(new Map(), ctx);
-      resources.set(PDFName.of('Font'), fonts);
-    }
-    // Buscar nombre libre
-    const fontName = 'F_CG1';
-    fonts.set(PDFName.of(fontName), font.ref);
-    return fontName;
-  },
+  // Asegurar que no se rompa: pdf-lib gestiona la fuente automáticamente al embeberla
+  // Devolvemos directamente el font para que se use en drawText
+  _font: null,
 
   /* =============================================================
      === MAPEO DE COORDENADAS CCRR ===
@@ -3858,41 +3791,34 @@ const Pdf = {
      BUILD CCRR PDF
      ============================================================= */
   async buildCcrr(d){
-    const { PDFDocument, StandardFonts } = window.PDFLib;
+    const { PDFDocument, StandardFonts, rgb } = window.PDFLib;
     const tplBuffer = await this.loadTemplate('ccrr');
     const pdfDoc = await PDFDocument.load(tplBuffer);
     const helvetica = await pdfDoc.embedFont(StandardFonts.Helvetica);
     const page1 = pdfDoc.getPage(0);
     const page2 = pdfDoc.getPage(1);
+    const black = rgb(0, 0, 0);
 
-    const fontName1 = await this._ensureFont(pdfDoc, page1, helvetica);
-    const fontName2 = await this._ensureFont(pdfDoc, page2, helvetica);
-
-    const ops1 = [], ops2 = [];
     const txt1 = (x, y, sz, val) => {
       if(!val) return;
-      ops1.push(`BT /${fontName1} ${sz} Tf ${x} ${y} Td (${this._pdfString(val)}) Tj ET`);
+      page1.drawText(this._sanitize(val), { x, y, size: sz, font: helvetica, color: black });
     };
     const txt2 = (x, y, sz, val) => {
       if(!val) return;
-      ops2.push(`BT /${fontName2} ${sz} Tf ${x} ${y} Td (${this._pdfString(val)}) Tj ET`);
+      page2.drawText(this._sanitize(val), { x, y, size: sz, font: helvetica, color: black });
     };
     const drawX1 = (cx, cy, size = 4.5) => {
       const s = size / 2;
-      ops1.push(`q 1 w 0 0 0 RG`);
-      ops1.push(`${(cx-s).toFixed(2)} ${(cy-s).toFixed(2)} m ${(cx+s).toFixed(2)} ${(cy+s).toFixed(2)} l S`);
-      ops1.push(`${(cx+s).toFixed(2)} ${(cy-s).toFixed(2)} m ${(cx-s).toFixed(2)} ${(cy+s).toFixed(2)} l S`);
-      ops1.push(`Q`);
+      page1.drawLine({ start: { x: cx - s, y: cy - s }, end: { x: cx + s, y: cy + s }, thickness: 1, color: black });
+      page1.drawLine({ start: { x: cx + s, y: cy - s }, end: { x: cx - s, y: cy + s }, thickness: 1, color: black });
     };
     const drawX2 = (cx, cy, size = 4.5) => {
       const s = size / 2;
-      ops2.push(`q 1 w 0 0 0 RG`);
-      ops2.push(`${(cx-s).toFixed(2)} ${(cy-s).toFixed(2)} m ${(cx+s).toFixed(2)} ${(cy+s).toFixed(2)} l S`);
-      ops2.push(`${(cx+s).toFixed(2)} ${(cy-s).toFixed(2)} m ${(cx-s).toFixed(2)} ${(cy+s).toFixed(2)} l S`);
-      ops2.push(`Q`);
+      page2.drawLine({ start: { x: cx - s, y: cy - s }, end: { x: cx + s, y: cy + s }, thickness: 1, color: black });
+      page2.drawLine({ start: { x: cx + s, y: cy - s }, end: { x: cx - s, y: cy + s }, thickness: 1, color: black });
     };
 
-    // === PÁGINA 1: Textos ===
+    // === PÁGINA 1 ===
     const drawTxtP1 = (key, val) => {
       const pos = this.CCRR_TEXT_POS_P1[key];
       if(!pos || !val) return;
@@ -3910,7 +3836,6 @@ const Pdf = {
     drawTxtP1('hasta',     d.hasta);
     drawTxtP1('tapa',      d.tapa);
 
-    // Trabajadores
     const workers = this._resolveWorkers(d.workersSelected, d.tempWorkers);
     if(workers.length <= 3){
       workers.forEach((w, i) => {
@@ -3932,7 +3857,6 @@ const Pdf = {
       txt1(xC2, y2, 9, workers[2].categoria || 'Celador');
     }
 
-    // Marcas pág 1
     const toMark = new Set();
     [...this.CCRR_FIJOS_TR, ...this.CCRR_FIJOS_PREP, ...this.CCRR_FIJOS_ESTADO,
      ...this.CCRR_FIJOS_ATM, ...this.CCRR_FIJOS_EPIS_P1].forEach(t => toMark.add(t));
@@ -3948,8 +3872,6 @@ const Pdf = {
         if(c) drawX1(c[0], c[1]);
       }
     });
-
-    await this._appendOverlay(pdfDoc, page1, ops1);
 
     // === PÁGINA 2 ===
     txt2(430, 698, 9, '061');
@@ -3974,9 +3896,6 @@ const Pdf = {
       if(c) drawX2(c[0], c[1]);
     });
 
-    await this._appendOverlay(pdfDoc, page2, ops2);
-
-    // Firma RP
     if(rp.id){
       const sigs = App.load('cg1.signatures', {});
       const sig = sigs[rp.id];
@@ -3989,7 +3908,6 @@ const Pdf = {
       }
     }
 
-    // Metadatos
     const fechaTxt = this._dateES(d.fecha) || '';
     const titulo = `Parte CCRR${d.num ? ' ' + d.num : ''}${d.poblacion ? ' ' + d.poblacion : ''}${fechaTxt ? ' ' + fechaTxt : ''}`;
     pdfDoc.setTitle(titulo);
@@ -4225,6 +4143,14 @@ const Settings = {
 
   init(){
     document.getElementById('s-worker-add').addEventListener('click', () => this.openWorker(null));
+    const myFirmaBtn = document.getElementById('s-my-signature');
+    if(myFirmaBtn){
+      myFirmaBtn.addEventListener('click', () => {
+        // Abrir modal del usuario por defecto (RP)
+        const rpId = App.load('cg1.rpDefault', 'w_braulio');
+        this.openWorker(rpId);
+      });
+    }
     document.querySelectorAll('#modal-worker [data-close-mw]').forEach(b => {
       b.addEventListener('click', () => this.closeWorker());
     });
@@ -4248,6 +4174,9 @@ const Settings = {
     });
 
     document.getElementById('s-export').addEventListener('click', () => this.exportData());
+    // Mostrar versión actual también en Ajustes
+    const vTxt = document.getElementById('s-version-text');
+    if(vTxt) vTxt.textContent = 'v' + App.version;
     document.getElementById('s-import').addEventListener('click', () => document.getElementById('s-import-file').click());
     document.getElementById('s-import-file').addEventListener('change', (e) => this.importData(e));
     const installBtn = document.getElementById('s-install-btn');
