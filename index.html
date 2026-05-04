@@ -2106,7 +2106,7 @@
    ============================================================= */
 
 const App = {
-  version: '0.7.5',
+  version: '0.7.6',
   step: 7,
 
   /* ===== CONSTANTES FIJAS — nunca cambian ===== */
@@ -3555,14 +3555,12 @@ const Pdf = {
   POSTES_EPIS_FIJOS: [114, 109, 117, 118, 119, 112, 113, 111],
 
   /* =============================================================
-     BUILD POSTES PDF — AcroForm checks + texto overlay
+     BUILD POSTES PDF — overlay puro (la plantilla ya no tiene AcroForm)
      ============================================================= */
   async buildPostes(d){
     const { PDFDocument, StandardFonts, rgb } = window.PDFLib;
     const tplBuffer = await this.loadTemplate('postes');
     const pdfDoc = await PDFDocument.load(tplBuffer);
-    const form = pdfDoc.getForm();
-    const allFields = form.getFields();
     const helvetica = await pdfDoc.embedFont(StandardFonts.Helvetica);
     const page = pdfDoc.getPage(0);
     const black = rgb(0, 0, 0);
@@ -3571,65 +3569,20 @@ const Pdf = {
     const rp = workers.find(w => w.id === d.rpId) || workers[0] || {};
     const fechaParts = this._splitFecha(d.fecha);
 
-    // ===== PASO 1: marcar checkboxes via AcroForm =====
-    // Los checks que queremos marcar (idx en mi calibración por coordenadas)
-    const toMark = new Set();
-    if(d.tipo === 'Madera') toMark.add(1);
-    else if(d.tipo === 'Hormigón') toMark.add(3);
-    else toMark.add(4);
-    toMark.add(d.climaOk === 'si' ? 7 : 8);
-    toMark.add(9);  toMark.add(13);
-    if(workers.length >= 2){ toMark.add(10); toMark.add(14); }
-    if(workers.length >= 1 && workers[0].id === d.rpId) toMark.add(19);
-    if(workers.length >= 2 && workers[1].id === d.rpId) toMark.add(20);
-    if(d.tipo === 'Madera'){
-      [21, 147, 25, 28, 27, 29].forEach(b => toMark.add(b));
-      toMark.add(150);
-    }
-    const medio = d.medio || '';
-    const medioBtns = this.POSTES_SUBIR_BTNS[d.tipo] || {};
-    if(medioBtns[medio]) toMark.add(medioBtns[medio]);
-    const usaEscalera = (medio === 'Escalera' || medio === 'Escalera con patas extensibles');
-    if(usaEscalera){
-      [78, 79, 80, 81, 86, 88, 90].forEach(b => toMark.add(b));
-      toMark.add(102);
-    }
-    this.POSTES_EPIS_FIJOS.forEach(b => toMark.add(b));
-    [121, 123, 124].forEach(b => toMark.add(b));
-
-    // Para cada idx, marcar el campo Y todos los superpuestos en la misma coordenada
-    // (porque algunos checkboxes están duplicados en el PDF)
-    toMark.forEach(idx => {
-      const target = this.POSTES_CHECK_CENTERS[idx];
-      if(!target) return;
-      const [tcx, tcy] = target;
-      // Buscar todos los Btn cuyo centro coincida (tolerancia 2pt)
-      allFields.forEach(field => {
-        try {
-          const acroField = field.acroField;
-          if(!acroField || acroField.constructor.name !== 'PDFAcroCheckBox') return;
-          const widget = acroField.getWidgets()[0];
-          if(!widget) return;
-          const r = widget.getRectangle();
-          const cx = r.x + r.width / 2;
-          const cy = r.y + r.height / 2;
-          if(Math.abs(cx - tcx) < 3 && Math.abs(cy - tcy) < 3){
-            if(field.check) field.check();
-          }
-        } catch(e){}
-      });
-    });
-
-    // ===== PASO 2: dibujar los textos como overlay =====
-    // Esto evita el bug del flatten (que pinta rects negros).
-    // Como NO aplanamos, los textos del formulario quedan vacíos pero los nuestros se ven encima.
+    // Helpers
     const txt = (x, y, sz, val) => {
       if(!val) return;
       page.drawText(this._sanitize(String(val)), {
         x, y, size: sz, font: helvetica, color: black
       });
     };
+    const drawX = (cx, cy, size = 4.5) => {
+      const s = size / 2;
+      page.drawLine({ start: { x: cx-s, y: cy-s }, end: { x: cx+s, y: cy+s }, thickness: 1, color: black });
+      page.drawLine({ start: { x: cx+s, y: cy-s }, end: { x: cx-s, y: cy+s }, thickness: 1, color: black });
+    };
 
+    // === TEXTOS DE CABECERA ===
     txt(440, 753, 9, d.numPoste);
     txt(515, 753, 9, d.numLinea);
     txt(95,  743, 9, d.direccion);
@@ -3643,7 +3596,7 @@ const Pdf = {
     txt(411, 725, 9, d.central);
     txt(160, 716, 9, d.trabajo);
 
-    // Cierre
+    // === CIERRE ===
     txt(63,  67,  9, d.poblacion);
     txt(155, 67,  9, fechaParts.dia);
     txt(185, 67,  9, fechaParts.mes);
@@ -3651,10 +3604,10 @@ const Pdf = {
     txt(124, 56,  9, rp.nombre);
     txt(107, 46,  9, rp.nif);
 
-    // Teléfono emergencias
+    // === Teléfono emergencias ===
     txt(480, 92,  9, '061 / 112');
 
-    // Trabajadores
+    // === TRABAJADORES ===
     if(workers.length <= 2){
       workers.forEach((w, i) => {
         const y = 670 - i * 10;
@@ -3680,19 +3633,61 @@ const Pdf = {
       txt(296, 660, 9, workers[half].categoria || 'Celador');
     }
 
-    // Estado del poste (BUENO/MALO) — son rects manuales, no AcroForm
-    const drawX = (cx, cy, size = 4.5) => {
-      const s = size / 2;
-      page.drawLine({ start: { x: cx-s, y: cy-s }, end: { x: cx+s, y: cy+s }, thickness: 1.4, color: black });
-      page.drawLine({ start: { x: cx+s, y: cy-s }, end: { x: cx-s, y: cy+s }, thickness: 1.4, color: black });
-    };
+    // === MARCAS DE CHECKBOX (X dibujadas encima de los cuadritos) ===
+    const toMark = new Set();
+
+    // Tipo de poste
+    if(d.tipo === 'Madera') toMark.add(1);
+    else if(d.tipo === 'Hormigón') toMark.add(3);
+    else toMark.add(4);
+
+    // Climatología
+    toMark.add(d.climaOk === 'si' ? 7 : 8);
+
+    // Trabajadores SI
+    toMark.add(9);  toMark.add(13);
+    if(workers.length >= 2){ toMark.add(10); toMark.add(14); }
+    if(workers.length >= 1 && workers[0].id === d.rpId) toMark.add(19);
+    if(workers.length >= 2 && workers[1].id === d.rpId) toMark.add(20);
+
+    // Madera checks 1-6 SI + cambian condiciones NO
+    if(d.tipo === 'Madera'){
+      [21, 147, 25, 28, 27, 29].forEach(b => toMark.add(b));
+      toMark.add(150);
+    }
+
+    // Medio de subida
+    const medio = d.medio || '';
+    const medioBtns = this.POSTES_SUBIR_BTNS[d.tipo] || {};
+    if(medioBtns[medio]) toMark.add(medioBtns[medio]);
+
+    // Escalera → marcar apt 7 SI todo + se puede usar SI
+    const usaEscalera = (medio === 'Escalera' || medio === 'Escalera con patas extensibles');
+    if(usaEscalera){
+      [78, 79, 80, 81, 86, 88, 90].forEach(b => toMark.add(b));
+      toMark.add(102);
+    }
+
+    // EPIs siempre fijos
+    this.POSTES_EPIS_FIJOS.forEach(b => toMark.add(b));
+
+    // Observaciones SI
+    [121, 123, 124].forEach(b => toMark.add(b));
+
+    // Pintar todas las X
+    toMark.forEach(idx => {
+      const c = this.POSTES_CHECK_CENTERS[idx];
+      if(c) drawX(c[0], c[1]);
+    });
+
+    // Estado del poste (BUENO/MALO)
     const estadoMap = d.estado === 'bueno' ? this.POSTES_ESTADO_BUENO : this.POSTES_ESTADO_MALO;
     if(estadoMap[d.tipo]){
       const [cx, cy] = estadoMap[d.tipo];
       drawX(cx, cy);
     }
 
-    // Firma RP
+    // === FIRMA RP ===
     if(rp.id){
       const sigs = App.load('cg1.signatures', {});
       const sig = sigs[rp.id];
@@ -3705,7 +3700,7 @@ const Pdf = {
       }
     }
 
-    // Metadatos
+    // === METADATOS ===
     const fechaTxt = this._dateES(d.fecha) || '';
     const titulo = `Parte de Poste${d.numLinea ? ' ' + d.numLinea : ''}${d.numPoste ? ' Nº ' + d.numPoste : ''}${fechaTxt ? ' ' + fechaTxt : ''}`;
     pdfDoc.setTitle(titulo);
@@ -3853,14 +3848,12 @@ const Pdf = {
   },
 
   /* =============================================================
-     BUILD CCRR PDF — AcroForm checks + texto overlay
+     BUILD CCRR PDF — overlay puro (la plantilla ya no tiene AcroForm)
      ============================================================= */
   async buildCcrr(d){
     const { PDFDocument, StandardFonts, rgb } = window.PDFLib;
     const tplBuffer = await this.loadTemplate('ccrr');
     const pdfDoc = await PDFDocument.load(tplBuffer);
-    const form = pdfDoc.getForm();
-    const allFields = form.getFields();
     const helvetica = await pdfDoc.embedFont(StandardFonts.Helvetica);
     const page1 = pdfDoc.getPage(0);
     const page2 = pdfDoc.getPage(1);
@@ -3870,38 +3863,7 @@ const Pdf = {
     const rp = workers.find(w => w.id === d.rpId) || workers[0] || {};
     const fechaParts = this._splitFecha(d.fecha);
 
-    // ===== PASO 1: marcar checkboxes via AcroForm =====
-    const toMark = new Set();
-    [...this.CCRR_FIJOS_TR, ...this.CCRR_FIJOS_PREP, ...this.CCRR_FIJOS_ESTADO,
-     ...this.CCRR_FIJOS_ATM, ...this.CCRR_FIJOS_EPIS_P1, ...this.CCRR_FIJOS_EPIS_P2].forEach(t => toMark.add(t));
-    Object.entries(d.ubic || {}).forEach(([k, v]) => {
-      if(v && this.CCRR_UBIC_BTNS[k]) toMark.add(this.CCRR_UBIC_BTNS[k]);
-    });
-    Object.entries(d.senal || {}).forEach(([k, v]) => {
-      if(v && this.CCRR_SENAL_BTNS[k]) toMark.add(this.CCRR_SENAL_BTNS[k]);
-    });
-
-    toMark.forEach(t => {
-      const target = this.CCRR_T_CENTERS[t];
-      if(!target) return;
-      const [tcx, tcy] = target;
-      allFields.forEach(field => {
-        try {
-          const acroField = field.acroField;
-          if(!acroField || acroField.constructor.name !== 'PDFAcroCheckBox') return;
-          const widget = acroField.getWidgets()[0];
-          if(!widget) return;
-          const r = widget.getRectangle();
-          const cx = r.x + r.width / 2;
-          const cy = r.y + r.height / 2;
-          if(Math.abs(cx - tcx) < 3 && Math.abs(cy - tcy) < 3){
-            if(field.check) field.check();
-          }
-        } catch(e){}
-      });
-    });
-
-    // ===== PASO 2: dibujar textos como overlay =====
+    // Helpers
     const txt1 = (x, y, sz, val) => {
       if(!val) return;
       page1.drawText(this._sanitize(String(val)), { x, y, size: sz, font: helvetica, color: black });
@@ -3910,8 +3872,18 @@ const Pdf = {
       if(!val) return;
       page2.drawText(this._sanitize(String(val)), { x, y, size: sz, font: helvetica, color: black });
     };
+    const drawX1 = (cx, cy, size = 4.5) => {
+      const s = size / 2;
+      page1.drawLine({ start: { x: cx-s, y: cy-s }, end: { x: cx+s, y: cy+s }, thickness: 1, color: black });
+      page1.drawLine({ start: { x: cx+s, y: cy-s }, end: { x: cx-s, y: cy+s }, thickness: 1, color: black });
+    };
+    const drawX2 = (cx, cy, size = 4.5) => {
+      const s = size / 2;
+      page2.drawLine({ start: { x: cx-s, y: cy-s }, end: { x: cx+s, y: cy+s }, thickness: 1, color: black });
+      page2.drawLine({ start: { x: cx+s, y: cy-s }, end: { x: cx-s, y: cy+s }, thickness: 1, color: black });
+    };
 
-    // === PÁGINA 1 ===
+    // === PÁGINA 1: textos ===
     txt1(94,  718, 9, d.num);
     txt1(243, 717, 9, d.provincia);
     txt1(398, 717, 9, d.poblacion);
@@ -3945,6 +3917,23 @@ const Pdf = {
       txt1(xC2, y2, 9, workers[2].categoria || 'Celador');
     }
 
+    // === PÁGINA 1: marcas ===
+    const toMark = new Set();
+    [...this.CCRR_FIJOS_TR, ...this.CCRR_FIJOS_PREP, ...this.CCRR_FIJOS_ESTADO,
+     ...this.CCRR_FIJOS_ATM, ...this.CCRR_FIJOS_EPIS_P1].forEach(t => toMark.add(t));
+    Object.entries(d.ubic || {}).forEach(([k, v]) => {
+      if(v && this.CCRR_UBIC_BTNS[k]) toMark.add(this.CCRR_UBIC_BTNS[k]);
+    });
+    Object.entries(d.senal || {}).forEach(([k, v]) => {
+      if(v && this.CCRR_SENAL_BTNS[k]) toMark.add(this.CCRR_SENAL_BTNS[k]);
+    });
+    toMark.forEach(t => {
+      if(this._ccrrPage(t) === 1){
+        const c = this.CCRR_T_CENTERS[t];
+        if(c) drawX1(c[0], c[1]);
+      }
+    });
+
     // === PÁGINA 2 ===
     txt2(430, 698, 9, '061');
     txt2(430, 687, 9, '112');
@@ -3954,6 +3943,11 @@ const Pdf = {
     txt2(430, 666, 9, fechaParts.ano);
     txt2(140, 633, 9, rp.nombre);
     txt2(140, 622, 9, rp.nif);
+
+    this.CCRR_FIJOS_EPIS_P2.forEach(t => {
+      const c = this.CCRR_T_CENTERS[t];
+      if(c) drawX2(c[0], c[1]);
+    });
 
     // Firma RP
     if(rp.id){
@@ -3968,6 +3962,7 @@ const Pdf = {
       }
     }
 
+    // Metadatos
     const fechaTxt = this._dateES(d.fecha) || '';
     const titulo = `Parte CCRR${d.num ? ' ' + d.num : ''}${d.poblacion ? ' ' + d.poblacion : ''}${fechaTxt ? ' ' + fechaTxt : ''}`;
     pdfDoc.setTitle(titulo);
