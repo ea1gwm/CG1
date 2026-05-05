@@ -2106,7 +2106,7 @@
    ============================================================= */
 
 const App = {
-  version: '0.7.6',
+  version: '0.7.8',
   step: 7,
 
   /* ===== CONSTANTES FIJAS — nunca cambian ===== */
@@ -3490,72 +3490,108 @@ const Pdf = {
   },
 
   /* =============================================================
-     === MAPEO DE COORDENADAS POSTES ===
+     === MAPEO DE COORDENADAS POSTES (plantilla nueva — Rev. Octubre 2019) ===
      ============================================================= */
   POSTES_TEXT_POS: {
+    // Cabecera (calibradas para plantilla nueva)
     'numPoste':     [440, 753, 9],
     'numLinea':     [515, 753, 9],
-    'direccion':    [95, 743, 9],
-    'provincia':    [340, 743, 9],
-    'poblacion':    [470, 743, 9],
-    'empresa':      [90, 734, 9],
-    'unidad':       [412, 734, 9],
-    'numActuacion': [515, 734, 9],
-    'fecha':        [78, 725, 9],
-    'hora':         [175, 725, 9],
-    'central':      [411, 725, 9],
-    'trabajo':      [160, 716, 9],
-    'cierre_pob':   [63, 67, 9],
-    'cierre_dia':   [155, 67, 9],
-    'cierre_mes':   [185, 67, 9],
-    'cierre_ano':   [273, 67, 9],
-    'rp_nombre':    [124, 56, 9],
-    'rp_nif':       [107, 46, 9],
+    'direccion':    [95,  738, 9],
+    'provincia':    [340, 738, 9],
+    'poblacion':    [470, 738, 9],
+    'empresa':      [90,  727, 9],
+    'unidad':       [412, 727, 9],
+    'numActuacion': [515, 727, 9],
+    'fecha':        [78,  716, 9],
+    'hora':         [175, 716, 9],
+    'central':      [411, 716, 9],
+    'trabajo':      [160, 705, 9],
+    // Cierre (firma RP)
+    'cierre_pob':   [50,  68, 9],
+    'cierre_dia':   [165, 68, 9],
+    'cierre_mes':   [215, 68, 9],
+    'cierre_ano':   [320, 68, 9],
+    'rp_nombre':    [82,  53, 9],
+    'rp_nif':       [78,  41, 9],
+    // Tlf emergencias (Y aprox 100, X 430)
+    'tlf':          [430, 100, 9],
   },
 
+  // Coordenadas (cx, cy) de los checkboxes, indexados por nombre semántico
+  // Detectados con análisis de píxeles sobre la plantilla limpia v2
   POSTES_CHECK_CENTERS: {
-    1: [110.6, 754.3], 3: [199.7, 754.3], 4: [299.8, 754.3],
-    7: [324.8, 726.2], 8: [347.0, 725.6],
-    9: [422.9, 673.3], 11: [449.0, 673.5], 13: [483.9, 673.4],
-    15: [525.3, 674.1], 17: [525.6, 673.6], 19: [549.4, 673.9],
-    10: [422.9, 664.1], 12: [449.0, 664.1], 14: [483.9, 664.1],
-    18: [525.6, 664.0], 20: [549.4, 664.4],
-    21: [504.4, 628.4],
-    147: [117.0, 609.7], 148: [141.0, 609.7],
-    22: [470.3, 600.1], 24: [470.6, 600.3], 25: [446.1, 600.1],
-    28: [136.1, 582.5], 26: [249.9, 582.6],
-    27: [190.6, 564.9], 32: [390.5, 564.9],
-    29: [196.6, 545.4], 34: [481.3, 546.2],
-    149: [66.1, 497.5], 150: [88.2, 497.5],
-    41: [157.8, 484.1], 40: [307.4, 484.5], 38: [387.9, 483.8], 62: [467.5, 483.1],
-    56: [460.7, 441.4],
-    72: [157.6, 441.7], 70: [313.1, 441.9], 48: [391.2, 441.5],
-    49: [450.2, 413.5],
-    42: [157.8, 398.7], 43: [309.2, 399.2], 47: [389.5, 398.7], 50: [552.4, 389.9],
-    78: [514.3, 318.5], 79: [515.2, 307.9], 80: [514.6, 297.7], 81: [514.3, 287.5],
-    86: [514.8, 277.4], 88: [515.0, 267.1], 90: [514.8, 257.1],
-    102: [457.9, 214.4], 99: [489.0, 214.6],
-    114: [51.0, 187.0], 109: [219.8, 187.0], 103: [374.3, 186.6],
-    117: [50.7, 177.4], 111: [220.1, 177.4], 106: [374.5, 178.3],
-    118: [51.4, 167.9], 112: [220.1, 167.7], 107: [374.7, 168.7],
-    119: [51.1, 159.4], 113: [220.2, 159.1], 108: [374.6, 159.0],
-    121: [301.8, 133.9], 123: [314.5, 126.6], 124: [310.5, 118.3],
+    // Tipo de poste (Y 753.1)
+    'tipo_madera':   [110.5, 753.1],
+    'tipo_hormigon': [199.4, 753.1],
+    'tipo_fibra':    [299.9, 753.1],
+    // Climatología
+    'clima_si': [324.7, 724.6],
+    'clima_no': [347.4, 724.6],
+    // 4 filas de trabajadores (Y descendiente)
+    'tr1_sf': [422.6, 672.4], 'tr1_nf': [449.3, 672.4],
+    'tr1_sc': [484.2, 672.4], 'tr1_nc': [525.6, 672.4], 'tr1_rp': [549.4, 672.4],
+    'tr2_sf': [422.6, 662.7], 'tr2_nf': [449.3, 662.7],
+    'tr2_sc': [484.2, 662.7], 'tr2_nc': [525.6, 662.7], 'tr2_rp': [549.4, 662.7],
+    'tr3_sf': [422.6, 653.4], 'tr3_nf': [449.3, 653.4],
+    'tr3_sc': [484.2, 653.4], 'tr3_nc': [525.6, 653.4], 'tr3_rp': [549.4, 653.4],
+    'tr4_sf': [422.6, 643.6], 'tr4_nf': [449.3, 643.6],
+    'tr4_sc': [484.2, 643.6], 'tr4_nc': [525.6, 643.6], 'tr4_rp': [549.4, 643.6],
+    // Madera apartado 3 (puntos 1, 2, 4, 5, 6) — solo si tipo=Madera
+    'm1_si': [446.0, 597.9], 'm1_no': [472.3, 597.9],   // Inspección visual
+    'm2_si': [121.3, 578.1], 'm2_no': [147.6, 578.1],   // Longitud enterrada
+    'm4_buen': [141.8, 549.3], 'm4_def': [263.5, 549.3], // Empujar
+    'm5_buen': [199.8, 530.6], 'm5_def': [413.6, 530.6], // Sonido
+    'm6_buen': [207.0, 510.8], 'm6_def': [511.2, 510.8], // Resistencia
+    // Subir madera
+    'sm_esc':    [181.1, 447.6], 'sm_escpat': [299.2, 447.6],
+    'sm_pemp':   [337.3, 447.6], 'sm_trep':   [406.1, 447.6], 'sm_otro': [471.2, 447.6],
+    // Subir hormigón
+    'sh_esc':    [180.4, 405.0], 'sh_escpat': [298.4, 405.0],
+    'sh_pemp':   [336.6, 405.0], 'sh_estr':   [391.5, 405.0], 'sh_otro': [456.8, 405.0],
+    // Subir fibra
+    'sf_esc':    [180.4, 362.1], 'sf_escpat': [298.4, 362.1],
+    'sf_pemp':   [336.6, 362.1], 'sf_herr':   [448.9, 362.1], 'sf_otro': [514.2, 362.1],
+    // Check escalera a-g (3 columnas SI/NO/N/A)
+    'esc_a_si': [514.4, 324.7], 'esc_a_no': [532.4, 324.7], 'esc_a_na': [550.8, 324.7],
+    'esc_b_si': [514.4, 314.6], 'esc_b_no': [532.4, 314.6], 'esc_b_na': [550.8, 314.6],
+    'esc_c_si': [514.4, 304.4], 'esc_c_no': [532.4, 304.4], 'esc_c_na': [550.8, 304.4],
+    'esc_d_si': [514.4, 294.2], 'esc_d_no': [532.4, 294.2], 'esc_d_na': [550.8, 294.2],
+    'esc_e_si': [514.4, 284.0], 'esc_e_no': [532.4, 284.0], 'esc_e_na': [550.8, 284.0],
+    'esc_f_si': [514.4, 273.9], 'esc_f_no': [532.4, 273.9], 'esc_f_na': [550.8, 273.9],
+    'esc_g_si': [514.4, 263.8], 'esc_g_no': [532.2, 263.8], 'esc_g_na': [550.8, 263.8],
+    // ¿Se puede usar escalera SI/NO?
+    'puede_esc_si': [490, 240], 'puede_esc_no': [522, 240],
+    // EPIs (4 filas x 3 col)
+    'epi_casco':     [28, 224],  'epi_chaleco':  [225, 224], 'epi_doblecabo':  [372, 224],
+    'epi_guantes':   [28, 214],  'epi_arnes':    [225, 214], 'epi_pertiga':    [372, 214],
+    'epi_gafas':     [28, 204],  'epi_cinturon': [225, 204], 'epi_ptoanclaje': [372, 204],
+    'epi_botas':     [28, 194],  'epi_lineavida':[225, 194], 'epi_otros':      [372, 194],
+    // Observaciones SI/NO (apartado 8 — ahora solo 2 filas)
+    'obs1_si': [258, 166], 'obs1_no': [298, 166],
+    'obs2_si': [258, 157], 'obs2_no': [298, 157],
   },
 
-  POSTES_ESTADO_BUENO: { 'Madera': [339.6, 518], 'Hormigón': [339.6, 462], 'Fibra': [339.6, 433] },
-  POSTES_ESTADO_MALO:  { 'Madera': [525.8, 518], 'Hormigón': [525.8, 462], 'Fibra': [525.8, 433] },
+  // Estado del poste (BUENO/MALO) por tipo
+  POSTES_ESTADO_BUENO: { 'Madera': [437, 478], 'Hormigón': [450, 425], 'Fibra': [450, 382] },
+  POSTES_ESTADO_MALO:  { 'Madera': [540, 478], 'Hormigón': [538, 425], 'Fibra': [538, 382] },
 
-  POSTES_SUBIR_BTNS: {
-    'Madera':   { 'PEMP': 41, 'Escalera con patas extensibles': 40, 'Escalera': 38, 'Trepadores': 62 },
-    'Hormigón': { 'PEMP': 72, 'Escalera con patas extensibles': 70, 'Escalera': 48 },
-    'Fibra':    { 'PEMP': 42, 'Escalera con patas extensibles': 43, 'Escalera': 47, 'Herramienta especial': 50 },
+  // Mapeo medio de subida → checkbox según tipo
+  POSTES_SUBIR_KEYS: {
+    'Madera':   { 'Escalera':'sm_esc', 'Escalera con patas extensibles':'sm_escpat',
+                  'PEMP':'sm_pemp', 'Trepadores':'sm_trep', 'Otro':'sm_otro' },
+    'Hormigón': { 'Escalera':'sh_esc', 'Escalera con patas extensibles':'sh_escpat',
+                  'PEMP':'sh_pemp', 'Estribos':'sh_estr', 'Otro':'sh_otro' },
+    'Fibra':    { 'Escalera':'sf_esc', 'Escalera con patas extensibles':'sf_escpat',
+                  'PEMP':'sf_pemp', 'Herramienta especial':'sf_herr', 'Otro':'sf_otro' },
   },
 
-  // EPIs siempre marcados (postes)
-  POSTES_EPIS_FIJOS: [114, 109, 117, 118, 119, 112, 113, 111],
+  // EPIs siempre marcados (cambia: ya no es Arnés Anticaídas, ahora Arnés de Seguridad)
+  POSTES_EPIS_FIJOS: ['epi_casco', 'epi_chaleco', 'epi_guantes', 'epi_arnes',
+                      'epi_gafas', 'epi_cinturon', 'epi_botas', 'epi_lineavida'],
+
 
   /* =============================================================
-     BUILD POSTES PDF — overlay puro (la plantilla ya no tiene AcroForm)
+     BUILD POSTES PDF — overlay puro (plantilla nueva v2)
      ============================================================= */
   async buildPostes(d){
     const { PDFDocument, StandardFonts, rgb } = window.PDFLib;
@@ -3581,111 +3617,98 @@ const Pdf = {
       page.drawLine({ start: { x: cx-s, y: cy-s }, end: { x: cx+s, y: cy+s }, thickness: 1, color: black });
       page.drawLine({ start: { x: cx+s, y: cy-s }, end: { x: cx-s, y: cy+s }, thickness: 1, color: black });
     };
+    const mark = (key) => {
+      const c = this.POSTES_CHECK_CENTERS[key];
+      if(c) drawX(c[0], c[1]);
+    };
 
     // === TEXTOS DE CABECERA ===
-    txt(440, 753, 9, d.numPoste);
-    txt(515, 753, 9, d.numLinea);
-    txt(95,  743, 9, d.direccion);
-    txt(340, 743, 9, d.provincia);
-    txt(470, 743, 9, d.poblacion);
-    txt(90,  734, 9, App.FIXED.empresa);
-    txt(412, 734, 9, App.FIXED.unidad);
-    txt(515, 734, 9, d.numActuacion);
-    txt(78,  725, 9, this._dateES(d.fecha));
-    txt(175, 725, 9, d.hora);
-    txt(411, 725, 9, d.central);
-    txt(160, 716, 9, d.trabajo);
-
-    // === CIERRE ===
-    txt(63,  67,  9, d.poblacion);
-    txt(155, 67,  9, fechaParts.dia);
-    txt(185, 67,  9, fechaParts.mes);
-    txt(273, 67,  9, fechaParts.ano);
-    txt(124, 56,  9, rp.nombre);
-    txt(107, 46,  9, rp.nif);
-
-    // === Teléfono emergencias ===
-    txt(480, 92,  9, '061 / 112');
-
-    // === TRABAJADORES ===
-    if(workers.length <= 2){
-      workers.forEach((w, i) => {
-        const y = 670 - i * 10;
-        txt(49, y, 9, w.nombre);
-        txt(296, y, 9, w.categoria || 'Celador');
-      });
-    } else if(workers.length === 3){
-      txt(49, 670, 9, workers[0].nombre);
-      txt(296, 670, 9, workers[0].categoria || 'Celador');
-      const line2 = workers[1].nombre + ', ' + workers[2].nombre;
-      const sz2 = line2.length > 50 ? 8 : 9;
-      txt(49, 660, sz2, line2);
-      txt(296, 660, 9, workers[1].categoria || 'Celador');
-    } else {
-      const half = Math.ceil(workers.length / 2);
-      const line1 = workers.slice(0, half).map(w => w.nombre).join(', ');
-      const line2 = workers.slice(half).map(w => w.nombre).join(', ');
-      const sz1 = line1.length > 50 ? 8 : 9;
-      const sz2 = line2.length > 50 ? 8 : 9;
-      txt(49, 670, sz1, line1);
-      txt(296, 670, 9, workers[0].categoria || 'Celador');
-      txt(49, 660, sz2, line2);
-      txt(296, 660, 9, workers[half].categoria || 'Celador');
-    }
-
-    // === MARCAS DE CHECKBOX (X dibujadas encima de los cuadritos) ===
-    const toMark = new Set();
-
-    // Tipo de poste
-    if(d.tipo === 'Madera') toMark.add(1);
-    else if(d.tipo === 'Hormigón') toMark.add(3);
-    else toMark.add(4);
-
-    // Climatología
-    toMark.add(d.climaOk === 'si' ? 7 : 8);
-
-    // Trabajadores SI
-    toMark.add(9);  toMark.add(13);
-    if(workers.length >= 2){ toMark.add(10); toMark.add(14); }
-    if(workers.length >= 1 && workers[0].id === d.rpId) toMark.add(19);
-    if(workers.length >= 2 && workers[1].id === d.rpId) toMark.add(20);
-
-    // Madera checks 1-6 SI + cambian condiciones NO
-    if(d.tipo === 'Madera'){
-      [21, 147, 25, 28, 27, 29].forEach(b => toMark.add(b));
-      toMark.add(150);
-    }
-
-    // Medio de subida
-    const medio = d.medio || '';
-    const medioBtns = this.POSTES_SUBIR_BTNS[d.tipo] || {};
-    if(medioBtns[medio]) toMark.add(medioBtns[medio]);
-
-    // Escalera → marcar apt 7 SI todo + se puede usar SI
-    const usaEscalera = (medio === 'Escalera' || medio === 'Escalera con patas extensibles');
-    if(usaEscalera){
-      [78, 79, 80, 81, 86, 88, 90].forEach(b => toMark.add(b));
-      toMark.add(102);
-    }
-
-    // EPIs siempre fijos
-    this.POSTES_EPIS_FIJOS.forEach(b => toMark.add(b));
-
-    // Observaciones SI
-    [121, 123, 124].forEach(b => toMark.add(b));
-
-    // Pintar todas las X
-    toMark.forEach(idx => {
-      const c = this.POSTES_CHECK_CENTERS[idx];
-      if(c) drawX(c[0], c[1]);
+    Object.entries(this.POSTES_TEXT_POS).forEach(([key, [x, y, sz]]) => {
+      let val = '';
+      switch(key){
+        case 'numPoste':     val = d.numPoste; break;
+        case 'numLinea':     val = d.numLinea; break;
+        case 'direccion':    val = d.direccion; break;
+        case 'provincia':    val = d.provincia; break;
+        case 'poblacion':    val = d.poblacion; break;
+        case 'empresa':      val = App.FIXED.empresa; break;
+        case 'unidad':       val = App.FIXED.unidad; break;
+        case 'numActuacion': val = d.numActuacion; break;
+        case 'fecha':        val = this._dateES(d.fecha); break;
+        case 'hora':         val = d.hora; break;
+        case 'central':      val = d.central; break;
+        case 'trabajo':      val = d.trabajo; break;
+        case 'cierre_pob':   val = d.poblacion; break;
+        case 'cierre_dia':   val = fechaParts.dia; break;
+        case 'cierre_mes':   val = fechaParts.mes; break;
+        case 'cierre_ano':   val = fechaParts.ano; break;
+        case 'rp_nombre':    val = rp.nombre; break;
+        case 'rp_nif':       val = rp.nif; break;
+        case 'tlf':          val = '061 / 112'; break;
+      }
+      if(val) txt(x, y, sz, val);
     });
 
-    // Estado del poste (BUENO/MALO)
+    // === TRABAJADORES (1 por fila, máximo 4, RP siempre primero) ===
+    // El RP va en la fila 1; el resto detrás
+    const restWorkers = workers.filter(w => w.id !== rp.id);
+    const ordered = rp.id ? [rp, ...restWorkers] : workers;
+    const trList = ordered.slice(0, 4);  // máximo 4 (las que tiene la plantilla)
+
+    const TR_Y = [672.4, 662.7, 653.4, 643.6];  // Y de cada fila (centro del recuadro)
+    trList.forEach((w, i) => {
+      // Texto ligeramente bajo el centro
+      txt(49, TR_Y[i] - 2.5, 9, w.nombre);
+      txt(296, TR_Y[i] - 2.5, 9, w.categoria || 'Celador');
+    });
+
+    // === MARCAS DE CHECKBOX ===
+
+    // Tipo de poste
+    if(d.tipo === 'Madera')        mark('tipo_madera');
+    else if(d.tipo === 'Hormigón') mark('tipo_hormigon');
+    else                            mark('tipo_fibra');
+
+    // Climatología
+    mark(d.climaOk === 'si' ? 'clima_si' : 'clima_no');
+
+    // Trabajadores: SI formación + SI conocen + RP en su fila
+    trList.forEach((w, i) => {
+      const idx = i + 1;
+      mark(`tr${idx}_sf`);  // SI formación
+      mark(`tr${idx}_sc`);  // SI conocen
+      if(w.id === rp.id) mark(`tr${idx}_rp`);  // RP en su fila (siempre fila 1)
+    });
+
+    // Madera apartado 3: marcar SI/buen en puntos 1, 2, 4, 5, 6 (solo si tipo=Madera)
+    if(d.tipo === 'Madera'){
+      ['m1_si', 'm2_si', 'm4_buen', 'm5_buen', 'm6_buen'].forEach(mark);
+    }
+
+    // Estado del poste (BUENO/MALO) por tipo
     const estadoMap = d.estado === 'bueno' ? this.POSTES_ESTADO_BUENO : this.POSTES_ESTADO_MALO;
     if(estadoMap[d.tipo]){
       const [cx, cy] = estadoMap[d.tipo];
       drawX(cx, cy);
     }
+
+    // Medio de subida (según tipo)
+    const medioKeys = this.POSTES_SUBIR_KEYS[d.tipo] || {};
+    if(medioKeys[d.medio]) mark(medioKeys[d.medio]);
+
+    // Si usa escalera → marcar todos los SI del check escalera + ¿se puede usar? SI
+    const usaEscalera = (d.medio === 'Escalera' || d.medio === 'Escalera con patas extensibles');
+    if(usaEscalera){
+      ['esc_a_si', 'esc_b_si', 'esc_c_si', 'esc_d_si', 'esc_e_si', 'esc_f_si', 'esc_g_si'].forEach(mark);
+      mark('puede_esc_si');
+    }
+
+    // EPIs siempre fijos
+    this.POSTES_EPIS_FIJOS.forEach(mark);
+
+    // Observaciones SI (apartado 8 — solo 2 filas en plantilla nueva)
+    mark('obs1_si');
+    mark('obs2_si');
 
     // === FIRMA RP ===
     if(rp.id){
