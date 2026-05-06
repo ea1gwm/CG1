@@ -2155,7 +2155,7 @@
    ============================================================= */
 
 const App = {
-  version: '0.7.10',
+  version: '0.7.11',
   step: 7,
 
   /* ===== CONSTANTES FIJAS — nunca cambian ===== */
@@ -3569,9 +3569,9 @@ const Pdf = {
     'cierre_pob':   [75,  67, 9],
     'cierre_dia':   [203, 67, 9],
     'cierre_mes':   [275, 67, 9],
-    'cierre_ano':   [358, 67, 9],
-    'rp_nombre':    [82,  47, 9],
-    'rp_nif':       [78,  35, 9],
+    'cierre_ano':   [352, 67, 9],
+    'rp_nombre':    [115, 56, 9],
+    'rp_nif':       [95,  42, 9],
     // Tlf emergencias
     'tlf':          [460, 94, 9],
   },
@@ -3617,21 +3617,21 @@ const Pdf = {
     'esc_e_si': [514.4, 284.0], 'esc_e_no': [532.4, 284.0], 'esc_e_na': [550.8, 284.0],
     'esc_f_si': [514.4, 273.9], 'esc_f_no': [532.4, 273.9], 'esc_f_na': [550.8, 273.9],
     'esc_g_si': [514.4, 263.8], 'esc_g_no': [532.2, 263.8], 'esc_g_na': [550.8, 263.8],
-    // ¿Se puede usar escalera? — Y=255
-    'puede_esc_si': [519, 255], 'puede_esc_no': [549, 255],
-    // EPIs (4 filas x 3 col) — col3 X=370
-    'epi_casco':     [30, 185], 'epi_chaleco':   [217, 185], 'epi_doblecabo':  [370, 185],
-    'epi_guantes':   [30, 175], 'epi_arnes':     [217, 175], 'epi_pertiga':    [370, 175],
-    'epi_gafas':     [30, 165], 'epi_cinturon':  [217, 165], 'epi_ptoanclaje': [370, 165],
-    'epi_botas':     [30, 155], 'epi_lineavida': [217, 155], 'epi_otros':      [370, 155],
+    // ¿Se puede usar escalera? — Y=215 (bloque azul derecho)
+    'puede_esc_si': [490, 215], 'puede_esc_no': [522, 215],
+    // EPIs (4 filas x 3 col) — col1=55, col2=224, col3=378
+    'epi_casco':     [55, 185], 'epi_chaleco':   [224, 185], 'epi_doblecabo':  [378, 185],
+    'epi_guantes':   [55, 175], 'epi_arnes':     [224, 175], 'epi_pertiga':    [378, 175],
+    'epi_gafas':     [55, 165], 'epi_cinturon':  [224, 165], 'epi_ptoanclaje': [378, 165],
+    'epi_botas':     [55, 155], 'epi_lineavida': [224, 155], 'epi_otros':      [378, 155],
     // Observaciones SI/NO (apartado 8) — X corregidas
-    'obs1_si': [320, 131], 'obs1_no': [338, 131],
-    'obs2_si': [308, 121], 'obs2_no': [326, 121],
+    'obs1_si': [300, 131], 'obs1_no': [332, 131],
+    'obs2_si': [315, 121], 'obs2_no': [343, 121],
   },
 
   // Estado del poste (BUENO/MALO) por tipo
-  POSTES_ESTADO_BUENO: { 'Madera': [437, 478], 'Hormigón': [450, 425], 'Fibra': [450, 382] },
-  POSTES_ESTADO_MALO:  { 'Madera': [540, 478], 'Hormigón': [538, 425], 'Fibra': [538, 382] },
+  POSTES_ESTADO_BUENO: { 'Madera': [407, 478], 'Hormigón': [420, 419], 'Fibra': [412, 376] },
+  POSTES_ESTADO_MALO:  { 'Madera': [528, 478], 'Hormigón': [532, 419], 'Fibra': [528, 376] },
 
   // Mapeo medio de subida → checkbox según tipo
   POSTES_SUBIR_KEYS: {
