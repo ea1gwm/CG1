@@ -1505,7 +1505,15 @@
           </div>
           <div class="field">
             <span class="field-label">Hora</span>
-            <input class="input" type="time" id="p-hora">
+            <div class="input-gps">
+              <input class="input" type="time" id="p-hora">
+              <button type="button" class="gps-btn" id="p-hora-now" aria-label="Hora actual">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+                </svg>
+                Ahora
+              </button>
+            </div>
           </div>
         </div>
 
@@ -2147,7 +2155,7 @@
    ============================================================= */
 
 const App = {
-  version: '0.7.9',
+  version: '0.7.10',
   step: 7,
 
   /* ===== CONSTANTES FIJAS — nunca cambian ===== */
@@ -2477,6 +2485,13 @@ const Postes = {
     // GPS
     document.getElementById('p-gps-btn').addEventListener('click', () => this.requestGPS());
 
+    // Botón "Ahora" para hora actual
+    document.getElementById('p-hora-now').addEventListener('click', () => {
+      document.getElementById('p-hora').value = App.nowHHMM();
+      this.saveDraft();
+      App.toast('🕐 Hora actualizada');
+    });
+
     // Botones de acción
     document.getElementById('p-clear').addEventListener('click', () => this.clearForm());
     document.getElementById('p-generate').addEventListener('click', () => this.generate());
@@ -2746,20 +2761,14 @@ const Postes = {
 
       if(result.address){
         const a = result.address;
-        const filled = [];
-        // Solo rellenamos campos vacíos (o forzamos si dir tiene formato "Lat ..., Lon ...")
-        const dirIsCoords = /^Lat\s/i.test(dir.value);
-        if((!dir.value || dirIsCoords) && a.direccion){ dir.value = a.direccion; filled.push('dirección'); }
-        if(!pob.value && a.poblacion){ pob.value = a.poblacion; filled.push('población'); }
-        if(!pro.value && a.provincia){ pro.value = a.provincia; filled.push('provincia'); }
-        App.toast(filled.length
-          ? `📍 ${a.direccion || a.poblacion || 'GPS'}`
-          : `📍 GPS detectado, campos ya rellenos`);
+        // GPS siempre sobrescribe: el usuario quiere los valores actualizados
+        if(a.direccion){ dir.value = a.direccion; }
+        if(a.poblacion){ pob.value = a.poblacion; }
+        if(a.provincia){ pro.value = a.provincia; }
+        App.toast(`📍 ${a.direccion || a.poblacion || 'GPS detectado'}`);
       } else {
         // Sin red o sin resultado → fallback a coordenadas
-        if(!dir.value){
-          dir.value = `Lat ${result.lat.toFixed(5)}, Lon ${result.lon.toFixed(5)}`;
-        }
+        dir.value = `Lat ${result.lat.toFixed(5)}, Lon ${result.lon.toFixed(5)}`;
         App.toast(result.lookupError ? `Sin red: ${result.lookupError}` : 'Coordenadas guardadas');
       }
       this.saveDraft();
@@ -3145,18 +3154,13 @@ const Ccrr = {
 
       if(result.address){
         const a = result.address;
-        const filled = [];
-        const dirIsCoords = /^Lat\s/i.test(dir.value);
-        if((!dir.value || dirIsCoords) && a.direccion){ dir.value = a.direccion; filled.push('dirección'); }
-        if(!pob.value && a.poblacion){ pob.value = a.poblacion; filled.push('población'); }
-        if(!pro.value && a.provincia){ pro.value = a.provincia; filled.push('provincia'); }
-        App.toast(filled.length
-          ? `📍 ${a.direccion || a.poblacion || 'GPS'}`
-          : `📍 GPS detectado, campos ya rellenos`);
+        // GPS siempre sobrescribe
+        if(a.direccion){ dir.value = a.direccion; }
+        if(a.poblacion){ pob.value = a.poblacion; }
+        if(a.provincia){ pro.value = a.provincia; }
+        App.toast(`📍 ${a.direccion || a.poblacion || 'GPS detectado'}`);
       } else {
-        if(!dir.value){
-          dir.value = `Lat ${result.lat.toFixed(5)}, Lon ${result.lon.toFixed(5)}`;
-        }
+        dir.value = `Lat ${result.lat.toFixed(5)}, Lon ${result.lon.toFixed(5)}`;
         App.toast(result.lookupError ? `Sin red: ${result.lookupError}` : 'Coordenadas guardadas');
       }
       this.saveDraft();
