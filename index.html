@@ -709,6 +709,36 @@
   }
   .alert-danger p{ margin: 0; font-size: 13px; line-height: 1.45; color: rgba(254,202,202,.85); }
 
+  .alert-warning{
+    margin-top: 14px;
+    background: linear-gradient(135deg, rgba(202,138,4,.20), rgba(133,77,14,.08));
+    border: 1px solid rgba(250,204,21,.4);
+    border-left: 4px solid #facc15;
+    color: #fef3c7;
+    padding: 14px 14px;
+    border-radius: 12px;
+    display:flex; gap: 12px; align-items:flex-start;
+    animation: dangerPulse .35s cubic-bezier(.22,.8,.36,1);
+  }
+  .alert-warning.hidden{ display:none; }
+  .alert-warning .alert-icon{
+    width: 32px; height: 32px; flex-shrink:0;
+    border-radius: 8px;
+    background: #ca8a04;
+    display:grid; place-items:center;
+    color: #fff;
+  }
+  .alert-warning .alert-icon svg{ width: 18px; height: 18px; }
+  .alert-warning h4{
+    margin: 0 0 4px;
+    font-family: 'Bricolage Grotesque', serif;
+    font-size: 16px; font-weight: 800;
+    color: #fef3c7;
+    letter-spacing: -.005em;
+  }
+  .alert-warning p{ margin: 0; font-size: 13px; line-height: 1.45; color: rgba(254,243,199,.85); }
+
+
   /* Acción flotante inferior */
   .action-bar{
     position: fixed;
@@ -1508,6 +1538,17 @@
               <p>La climatología no permite realizar el trabajo con seguridad. Detén la actuación y, si fuera imprescindible, cubre el parte a mano.</p>
             </div>
           </div>
+          <div class="alert-warning hidden" id="p-clima-warning" role="alert" style="margin-top:10px;">
+            <div class="alert-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 2 1 22h22L12 2z"/><path d="M12 9v5"/><circle cx="12" cy="18" r="1.2" fill="currentColor"/>
+              </svg>
+            </div>
+            <div>
+              <h4>PRECAUCIÓN: condiciones climáticas adversas</h4>
+              <p>Lo primero es la seguridad. Valora si puedes trabajar con seguridad antes de continuar. Si tienes dudas, consulta con tu responsable.</p>
+            </div>
+          </div>
         </div>
 
         <div class="field" style="margin-top:12px;">
@@ -2106,7 +2147,7 @@
    ============================================================= */
 
 const App = {
-  version: '0.7.8',
+  version: '0.7.9',
   step: 7,
 
   /* ===== CONSTANTES FIJAS — nunca cambian ===== */
@@ -2411,10 +2452,10 @@ const Postes = {
     document.querySelectorAll('#p-clima-ok button').forEach(btn => {
       btn.addEventListener('click', () => this.setClimaOk(btn.dataset.val));
     });
-    // Cambio de tipo de clima → sugiere SI/NO automáticamente (pero editable)
+    // Cambio de tipo de clima → muestra/oculta aviso de precaución (NO bloquea)
     document.getElementById('p-clima').addEventListener('change', (e) => {
-      const adversos = ['Lluvia','Niebla','Nieve','Viento fuerte'];
-      this.setClimaOk(adversos.includes(e.target.value) ? 'no' : 'si');
+      this.renderClimaWarning();
+      this.saveDraft();
     });
     // Medio "Otro"
     document.getElementById('p-medio').addEventListener('change', (e)=> {
@@ -2501,6 +2542,7 @@ const Postes = {
     this.renderTipo();
     this.renderEstado();
     this.renderClimaOk();
+    this.renderClimaWarning();
     this.renderWorkers();
     this.populateRPSelect();
     this.applyDraft();
@@ -2639,12 +2681,22 @@ const Postes = {
     document.querySelectorAll('#p-clima-ok button').forEach(b => {
       b.setAttribute('aria-pressed', b.dataset.val === this.state.climaOk ? 'true' : 'false');
     });
-    // Mostrar/ocultar cartel de clima si existe
+    // Mostrar/ocultar cartel ROJO de bloqueo (solo cuando el usuario marca NO manualmente)
     const alert = document.getElementById('p-clima-alert');
     if(alert){
       if(this.state.climaOk === 'no') alert.classList.remove('hidden');
       else alert.classList.add('hidden');
     }
+  },
+
+  // Aviso AMARILLO de precaución (no bloqueante) cuando hay clima adverso
+  renderClimaWarning(){
+    const adversos = ['Lluvia','Niebla','Nieve','Viento fuerte'];
+    const clima = document.getElementById('p-clima').value;
+    const warn = document.getElementById('p-clima-warning');
+    if(!warn) return;
+    if(adversos.includes(clima)) warn.classList.remove('hidden');
+    else warn.classList.add('hidden');
   },
 
   toggleWorker(id){
@@ -2757,6 +2809,9 @@ const Postes = {
     // mostrar campo "Otro" si aplica
     document.getElementById('p-medio-otro-wrap').style.display =
       (document.getElementById('p-medio').value === 'Otro') ? '' : 'none';
+
+    // refrescar aviso de clima por si el borrador trae uno adverso
+    this.renderClimaWarning();
   },
 
   collect(){
@@ -3493,41 +3548,40 @@ const Pdf = {
      === MAPEO DE COORDENADAS POSTES (plantilla nueva — Rev. Octubre 2019) ===
      ============================================================= */
   POSTES_TEXT_POS: {
-    // Cabecera (calibradas para plantilla nueva)
-    'numPoste':     [440, 753, 9],
-    'numLinea':     [515, 753, 9],
-    'direccion':    [95,  738, 9],
-    'provincia':    [340, 738, 9],
-    'poblacion':    [470, 738, 9],
-    'empresa':      [90,  727, 9],
-    'unidad':       [412, 727, 9],
-    'numActuacion': [515, 727, 9],
-    'fecha':        [78,  716, 9],
-    'hora':         [175, 716, 9],
-    'central':      [411, 716, 9],
-    'trabajo':      [160, 705, 9],
-    // Cierre (firma RP)
-    'cierre_pob':   [50,  68, 9],
-    'cierre_dia':   [165, 68, 9],
-    'cierre_mes':   [215, 68, 9],
-    'cierre_ano':   [320, 68, 9],
-    'rp_nombre':    [82,  53, 9],
-    'rp_nif':       [78,  41, 9],
-    // Tlf emergencias (Y aprox 100, X 430)
-    'tlf':          [430, 100, 9],
+    // Cabecera
+    'numPoste':     [440, 750, 9],
+    'numLinea':     [515, 750, 9],
+    'direccion':    [95,  741, 9],
+    'provincia':    [340, 741, 9],
+    'poblacion':    [470, 741, 9],
+    'empresa':      [90,  732, 9],
+    'unidad':       [412, 732, 9],
+    'numActuacion': [515, 732, 9],
+    'fecha':        [78,  722, 9],
+    'hora':         [175, 722, 9],
+    'central':      [411, 722, 9],
+    'trabajo':      [160, 713, 9],
+    // Cierre — X y Y ajustadas
+    'cierre_pob':   [75,  67, 9],
+    'cierre_dia':   [203, 67, 9],
+    'cierre_mes':   [275, 67, 9],
+    'cierre_ano':   [358, 67, 9],
+    'rp_nombre':    [82,  47, 9],
+    'rp_nif':       [78,  35, 9],
+    // Tlf emergencias
+    'tlf':          [460, 94, 9],
   },
 
-  // Coordenadas (cx, cy) de los checkboxes, indexados por nombre semántico
-  // Detectados con análisis de píxeles sobre la plantilla limpia v2
+  // Coordenadas (cx, cy) de los checkboxes
   POSTES_CHECK_CENTERS: {
-    // Tipo de poste (Y 753.1)
+    // Tipo de poste
     'tipo_madera':   [110.5, 753.1],
     'tipo_hormigon': [199.4, 753.1],
     'tipo_fibra':    [299.9, 753.1],
     // Climatología
     'clima_si': [324.7, 724.6],
     'clima_no': [347.4, 724.6],
-    // 4 filas de trabajadores (Y descendiente)
+    // 4 filas de trabajadores
     'tr1_sf': [422.6, 672.4], 'tr1_nf': [449.3, 672.4],
     'tr1_sc': [484.2, 672.4], 'tr1_nc': [525.6, 672.4], 'tr1_rp': [549.4, 672.4],
     'tr2_sf': [422.6, 662.7], 'tr2_nf': [449.3, 662.7],
@@ -3536,22 +3590,22 @@ const Pdf = {
     'tr3_sc': [484.2, 653.4], 'tr3_nc': [525.6, 653.4], 'tr3_rp': [549.4, 653.4],
     'tr4_sf': [422.6, 643.6], 'tr4_nf': [449.3, 643.6],
     'tr4_sc': [484.2, 643.6], 'tr4_nc': [525.6, 643.6], 'tr4_rp': [549.4, 643.6],
-    // Madera apartado 3 (puntos 1, 2, 4, 5, 6) — solo si tipo=Madera
-    'm1_si': [446.0, 597.9], 'm1_no': [472.3, 597.9],   // Inspección visual
-    'm2_si': [121.3, 578.1], 'm2_no': [147.6, 578.1],   // Longitud enterrada
-    'm4_buen': [141.8, 549.3], 'm4_def': [263.5, 549.3], // Empujar
-    'm5_buen': [199.8, 530.6], 'm5_def': [413.6, 530.6], // Sonido
-    'm6_buen': [207.0, 510.8], 'm6_def': [511.2, 510.8], // Resistencia
+    // Madera puntos 1, 2, 4, 5, 6
+    'm1_si': [446.0, 597.9], 'm1_no': [472.3, 597.9],
+    'm2_si': [121.3, 578.1], 'm2_no': [147.6, 578.1],
+    'm4_buen': [141.8, 549.3], 'm4_def': [263.5, 549.3],
+    'm5_buen': [199.8, 530.6], 'm5_def': [413.6, 530.6],
+    'm6_buen': [207.0, 510.8], 'm6_def': [511.2, 510.8],
     // Subir madera
-    'sm_esc':    [181.1, 447.6], 'sm_escpat': [299.2, 447.6],
-    'sm_pemp':   [337.3, 447.6], 'sm_trep':   [406.1, 447.6], 'sm_otro': [471.2, 447.6],
+    'sm_esc': [181.1, 447.6], 'sm_escpat': [299.2, 447.6],
+    'sm_pemp': [337.3, 447.6], 'sm_trep': [406.1, 447.6], 'sm_otro': [471.2, 447.6],
     // Subir hormigón
-    'sh_esc':    [180.4, 405.0], 'sh_escpat': [298.4, 405.0],
-    'sh_pemp':   [336.6, 405.0], 'sh_estr':   [391.5, 405.0], 'sh_otro': [456.8, 405.0],
+    'sh_esc': [180.4, 405.0], 'sh_escpat': [298.4, 405.0],
+    'sh_pemp': [336.6, 405.0], 'sh_estr': [391.5, 405.0], 'sh_otro': [456.8, 405.0],
     // Subir fibra
-    'sf_esc':    [180.4, 362.1], 'sf_escpat': [298.4, 362.1],
-    'sf_pemp':   [336.6, 362.1], 'sf_herr':   [448.9, 362.1], 'sf_otro': [514.2, 362.1],
-    // Check escalera a-g (3 columnas SI/NO/N/A)
+    'sf_esc': [180.4, 362.1], 'sf_escpat': [298.4, 362.1],
+    'sf_pemp': [336.6, 362.1], 'sf_herr': [448.9, 362.1], 'sf_otro': [514.2, 362.1],
+    // Check escalera a-g
     'esc_a_si': [514.4, 324.7], 'esc_a_no': [532.4, 324.7], 'esc_a_na': [550.8, 324.7],
     'esc_b_si': [514.4, 314.6], 'esc_b_no': [532.4, 314.6], 'esc_b_na': [550.8, 314.6],
     'esc_c_si': [514.4, 304.4], 'esc_c_no': [532.4, 304.4], 'esc_c_na': [550.8, 304.4],
@@ -3559,16 +3613,16 @@ const Pdf = {
     'esc_e_si': [514.4, 284.0], 'esc_e_no': [532.4, 284.0], 'esc_e_na': [550.8, 284.0],
     'esc_f_si': [514.4, 273.9], 'esc_f_no': [532.4, 273.9], 'esc_f_na': [550.8, 273.9],
     'esc_g_si': [514.4, 263.8], 'esc_g_no': [532.2, 263.8], 'esc_g_na': [550.8, 263.8],
-    // ¿Se puede usar escalera SI/NO?
-    'puede_esc_si': [490, 240], 'puede_esc_no': [522, 240],
-    // EPIs (4 filas x 3 col)
-    'epi_casco':     [28, 224],  'epi_chaleco':  [225, 224], 'epi_doblecabo':  [372, 224],
-    'epi_guantes':   [28, 214],  'epi_arnes':    [225, 214], 'epi_pertiga':    [372, 214],
-    'epi_gafas':     [28, 204],  'epi_cinturon': [225, 204], 'epi_ptoanclaje': [372, 204],
-    'epi_botas':     [28, 194],  'epi_lineavida':[225, 194], 'epi_otros':      [372, 194],
-    // Observaciones SI/NO (apartado 8 — ahora solo 2 filas)
-    'obs1_si': [258, 166], 'obs1_no': [298, 166],
-    'obs2_si': [258, 157], 'obs2_no': [298, 157],
+    // ¿Se puede usar escalera? — Y=255
+    'puede_esc_si': [519, 255], 'puede_esc_no': [549, 255],
+    // EPIs (4 filas x 3 col) — col3 X=370
+    'epi_casco':     [30, 185], 'epi_chaleco':   [217, 185], 'epi_doblecabo':  [370, 185],
+    'epi_guantes':   [30, 175], 'epi_arnes':     [217, 175], 'epi_pertiga':    [370, 175],
+    'epi_gafas':     [30, 165], 'epi_cinturon':  [217, 165], 'epi_ptoanclaje': [370, 165],
+    'epi_botas':     [30, 155], 'epi_lineavida': [217, 155], 'epi_otros':      [370, 155],
+    // Observaciones SI/NO (apartado 8) — X corregidas
+    'obs1_si': [320, 131], 'obs1_no': [338, 131],
+    'obs2_si': [308, 121], 'obs2_no': [326, 121],
   },
 
   // Estado del poste (BUENO/MALO) por tipo
@@ -3585,7 +3639,7 @@ const Pdf = {
                   'PEMP':'sf_pemp', 'Herramienta especial':'sf_herr', 'Otro':'sf_otro' },
   },
 
-  // EPIs siempre marcados (cambia: ya no es Arnés Anticaídas, ahora Arnés de Seguridad)
+  // EPIs siempre marcados
   POSTES_EPIS_FIJOS: ['epi_casco', 'epi_chaleco', 'epi_guantes', 'epi_arnes',
                       'epi_gafas', 'epi_cinturon', 'epi_botas', 'epi_lineavida'],
 
