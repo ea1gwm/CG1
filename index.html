@@ -2198,6 +2198,45 @@
     </div>
   </div>
 
+  <!-- Modal: PDF listo (se muestra al generar/exportar) -->
+  <div class="modal-backdrop" id="modal-pdf-ready" role="dialog" aria-modal="true" aria-labelledby="mpr-title">
+    <div class="modal">
+      <div class="modal-head">
+        <h3 id="mpr-title">PDF listo</h3>
+        <button class="modal-close" type="button" id="mpr-close" aria-label="Cerrar">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></svg>
+        </button>
+      </div>
+      <p style="margin:0 0 14px;font-size:13.5px;color:var(--text-dim);line-height:1.5;">
+        El parte se ha generado y guardado en <b style="color:var(--text)">Historial</b>. ¿Qué quieres hacer ahora?
+      </p>
+      <div id="mpr-filename" style="font-family:'JetBrains Mono', monospace; font-size:12px; color: var(--text-mute); padding: 10px 12px; background: var(--surface); border-radius: 10px; word-break: break-all; margin-bottom: 16px;"></div>
+      <div style="display:flex; flex-direction:column; gap: 10px;">
+        <button type="button" class="btn btn-primary" id="mpr-share" style="justify-content:flex-start; padding: 16px 18px;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;">
+            <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/>
+          </svg>
+          <span style="text-align:left;flex:1;">
+            <span style="display:block;font-weight:700;">Compartir / Enviar</span>
+            <span style="display:block;font-size:11.5px;font-weight:400;opacity:.75;margin-top:2px;">WhatsApp, correo, AirDrop…</span>
+          </span>
+        </button>
+        <button type="button" class="btn btn-ghost" id="mpr-download" style="justify-content:flex-start; padding: 16px 18px;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+          <span style="text-align:left;flex:1;">
+            <span style="display:block;font-weight:700;" id="mpr-download-label">Guardar en este dispositivo</span>
+            <span style="display:block;font-size:11.5px;font-weight:400;opacity:.75;margin-top:2px;" id="mpr-download-sub">Descarga el archivo</span>
+          </span>
+        </button>
+      </div>
+      <button type="button" class="btn btn-ghost" id="mpr-later" style="margin-top:14px; width:100%;">
+        Cerrar (consultar luego en Historial)
+      </button>
+    </div>
+  </div>
+
   <!-- ========= VISTA: HISTORIAL ========= -->
   <main class="view" id="view-history">
     <button class="back-btn" data-go="home" type="button">
@@ -2237,7 +2276,7 @@
    ============================================================= */
 
 const App = {
-  version: '0.7.14',
+  version: '0.7.15',
   step: 7,
 
   /* ===== CONSTANTES FIJAS — nunca cambian ===== */
@@ -3034,9 +3073,8 @@ const Postes = {
     data.tempWorkers = this.state.tempWorkers;
     try {
       App.toast('Generando PDF…');
-      const entry = await Pdf.saveAndDownload('postes', data);
-      App.toast('✓ PDF generado y guardado');
-      // saveAndDownload ya hace share/download adaptativo según plataforma
+      await Pdf.saveAndDownload('postes', data);
+      // saveAndDownload abre el modal "PDF listo" con opciones Compartir/Descargar
     } catch(e){
       console.error(e);
       App.toast('Error al generar el PDF');
@@ -3486,9 +3524,8 @@ const Ccrr = {
     data.tempWorkers = this.state.tempWorkers;
     try {
       App.toast('Generando PDF…');
-      const entry = await Pdf.saveAndDownload('ccrr', data);
-      App.toast('✓ PDF generado y guardado');
-      // saveAndDownload ya hace share/download adaptativo según plataforma
+      await Pdf.saveAndDownload('ccrr', data);
+      // saveAndDownload abre el modal "PDF listo" con opciones Compartir/Descargar
     } catch(e){
       console.error(e);
       App.toast('Error al generar el PDF');
@@ -4165,14 +4202,23 @@ const Pdf = {
   ],
 
   CCRR_TEXT_POS_P2: {
-    'tlf_ambulancias': [430, 698, 9],
-    'tlf_medico':      [430, 687, 9],
-    'cierre_pob':  [130, 666, 9],
-    'cierre_dia':  [272, 666, 9],
-    'cierre_mes':  [320, 666, 9],
-    'cierre_ano':  [430, 666, 9],
-    'rp_nombre':   [140, 633, 9],
-    'rp_nif':      [140, 622, 9],
+    // Servicios emergencia (baseline real Y=696.20 y Y=685.28)
+    'tlf_ambulancias': [395, 696.2, 9],
+    'tlf_medico':      [395, 685.3, 9],
+    // Cierre: línea "En  ……  a  …… de ……………….. de 20… " (baseline Y=669.98)
+    // Posiciones X dentro de los huecos de la línea:
+    //   "En " acaba en x≈59  →  pob va en X=70 (después)
+    //   "a " acaba en x≈153  →  día va en X=158
+    //   "de1 " acaba en x≈186 → mes va en X=200
+    //   "de 20" acaba en x≈258 → año va en X=265
+    'cierre_pob':  [70,  670, 9],
+    'cierre_dia':  [158, 670, 9],
+    'cierre_mes':  [200, 670, 9],
+    'cierre_ano':  [265, 670, 9],
+    // Bloque firma (baselines reales: Firma=642.58, Nombre=631.76, NIF=620.84)
+    // Etiquetas labels acaban aprox en x=145 → valores empiezan en x≈170
+    'rp_nombre':   [170, 631.8, 9],
+    'rp_nif':      [170, 620.8, 9],
   },
 
   // Datos fijos CCRR
@@ -4299,7 +4345,8 @@ const Pdf = {
       if(c) drawX2(c[0], c[1]);
     });
 
-    // Firma RP
+    // Firma RP — colocada a la derecha del bloque labels, alineada con la línea de "Firma Recurso Preventivo:"
+    // sin tapar los textos Nombre/NIF (que están en X≤170).
     if(rp.id){
       const sigs = App.load('cg1.signatures', {});
       const sig = sigs[rp.id];
@@ -4307,7 +4354,7 @@ const Pdf = {
         try {
           const pngBytes = this._dataURLtoUint8(sig);
           const pngImage = await pdfDoc.embedPng(pngBytes);
-          page2.drawImage(pngImage, { x: 240, y: 615, width: 130, height: 35 });
+          page2.drawImage(pngImage, { x: 320, y: 615, width: 150, height: 38 });
         } catch(e){ console.warn('No se pudo embeber firma', e); }
       }
     }
@@ -4380,54 +4427,105 @@ const Pdf = {
     return entry;
   },
 
-  // Entrega un blob al usuario de la mejor forma posible según plataforma.
+  // Entrega un blob al usuario mostrando un modal "PDF listo" con opciones independientes:
+  // Compartir (navigator.share) y Descargar/Guardar en este dispositivo.
+  // El usuario decide qué hacer en lugar de un flujo automático.
   async _deliverBlob(blob, filename, title){
-    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
-                  (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1); // iPadOS 13+
-    const file = new File([blob], filename, { type: 'application/pdf' });
+    return new Promise((resolve) => {
+      this._showPdfReadyModal(blob, filename, title, resolve);
+    });
+  },
 
-    // Preferir share API en iOS y siempre que esté disponible para files
-    if(navigator.canShare && navigator.canShare({ files: [file] })){
+  _showPdfReadyModal(blob, filename, title, onDone){
+    const modal = document.getElementById('modal-pdf-ready');
+    const fnEl  = document.getElementById('mpr-filename');
+    const dlBtn = document.getElementById('mpr-download');
+    const dlLabel = document.getElementById('mpr-download-label');
+    const dlSub   = document.getElementById('mpr-download-sub');
+    const shBtn = document.getElementById('mpr-share');
+    const closeBtn = document.getElementById('mpr-close');
+    const laterBtn = document.getElementById('mpr-later');
+
+    // Detectar plataforma para ajustar etiquetas del botón "descargar"
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+                  (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
+    fnEl.textContent = filename;
+
+    if(isIOS){
+      // En iOS no se puede forzar descarga directa. Abrimos el PDF en pestaña.
+      dlLabel.textContent = 'Abrir el PDF en Safari';
+      dlSub.textContent   = 'Pulsa el botón Compartir → Guardar en Archivos';
+    } else {
+      dlLabel.textContent = 'Guardar en este dispositivo';
+      dlSub.textContent   = 'Descarga directa a la carpeta de descargas';
+    }
+
+    // Si el navegador no soporta share con files, ocultar botón compartir
+    const file = new File([blob], filename, { type: 'application/pdf' });
+    const canShareFiles = !!(navigator.canShare && navigator.canShare({ files: [file] }));
+    shBtn.style.display = canShareFiles ? '' : 'none';
+
+    // Limpiar handlers anteriores
+    const cleanup = () => {
+      modal.classList.remove('show');
+      shBtn.onclick = null;
+      dlBtn.onclick = null;
+      closeBtn.onclick = null;
+      laterBtn.onclick = null;
+      modal.onclick = null;
+    };
+
+    shBtn.onclick = async () => {
       try {
         await navigator.share({ files: [file], title: title || filename });
-        return 'shared';
+        cleanup();
+        onDone('shared');
       } catch(e){
-        // El usuario canceló el menú compartir. Solo en iOS damos fallback útil.
-        if(e.name === 'AbortError'){
-          if(isIOS){
-            // Abrir en pestaña nueva: el usuario puede usar el botón de Safari "Compartir" / "Guardar en Archivos"
-            this._openBlobInNewTab(blob);
-            App.toast('PDF abierto. Usa Compartir → Guardar en Archivos');
-            return 'opened';
-          }
-          return 'cancelled';
+        if(e.name !== 'AbortError'){
+          console.warn('share failed', e);
+          App.toast('No se pudo compartir');
         }
-        // Si share falla por otra razón (ej. file too large), seguimos al fallback
-        console.warn('share failed:', e);
+        // No cerramos el modal — el usuario puede elegir Descargar
       }
-    }
+    };
 
-    // En iOS sin share: abrir en pestaña (el download <a> no funciona aquí)
-    if(isIOS){
-      this._openBlobInNewTab(blob);
-      App.toast('PDF abierto. Usa Compartir → Guardar en Archivos');
-      return 'opened';
-    }
+    dlBtn.onclick = () => {
+      if(isIOS){
+        this._openBlobInNewTab(blob);
+        App.toast('PDF abierto en Safari');
+      } else {
+        this._downloadBlob(blob, filename);
+        App.toast('Descargando…');
+      }
+      cleanup();
+      onDone('downloaded');
+    };
 
-    // Android / desktop: descarga directa
-    this._downloadBlob(blob, filename);
-    return 'downloaded';
+    closeBtn.onclick = laterBtn.onclick = () => {
+      cleanup();
+      onDone('later');
+    };
+
+    // Cerrar tocando el fondo
+    modal.onclick = (e) => {
+      if(e.target === modal){
+        cleanup();
+        onDone('later');
+      }
+    };
+
+    modal.classList.add('show');
   },
 
   _openBlobInNewTab(blob){
     const url = URL.createObjectURL(blob);
     // En iOS no se puede usar window.open dentro de async (puede ser bloqueado).
-    // El botón se pulsó con interacción de usuario en generate(), pero entre tanto await
-    // se pierde el "user gesture" en algunos casos. Usamos location.href como último recurso.
+    // Como el modal se abre por interacción de usuario y los handlers están dentro de un onclick
+    // sincrónico, este window.open SÍ está dentro del user gesture y debería funcionar.
     const win = window.open(url, '_blank');
     if(!win){
       // Bloqueado por popup blocker: navegar a la URL en la misma pestaña
-      // (no es ideal, pero garantiza que el PDF se muestre)
       location.href = url;
     }
     setTimeout(() => URL.revokeObjectURL(url), 60000);
