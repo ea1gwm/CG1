@@ -1560,8 +1560,8 @@
         </div>
 
         <div class="field" style="margin-top:12px;">
-          <span class="field-label">Trabajo a realizar</span>
-          <textarea class="textarea" id="p-trabajo" rows="2" placeholder="Describe brevemente la actuación…"></textarea>
+          <span class="field-label">Trabajo a realizar <span class="hint">(obligatorio)</span></span>
+          <textarea class="textarea" id="p-trabajo" rows="2" placeholder="Obligatorio. Describe brevemente la actuación…" required></textarea>
         </div>
       </section>
 
@@ -1795,8 +1795,8 @@
           </select>
         </div>
         <div class="field" style="margin-top:12px;">
-          <span class="field-label">Trabajo a realizar</span>
-          <textarea class="textarea" id="c-trabajo" rows="2" placeholder="Ej. Tendido de Malla y 48Fo…"></textarea>
+          <span class="field-label">Trabajo a realizar <span class="hint">(obligatorio)</span></span>
+          <textarea class="textarea" id="c-trabajo" rows="2" placeholder="Obligatorio. Ej. Tendido de Malla y 48Fo…" required></textarea>
         </div>
       </section>
 
@@ -2155,7 +2155,7 @@
    ============================================================= */
 
 const App = {
-  version: '0.7.11',
+  version: '0.7.13',
   step: 7,
 
   /* ===== CONSTANTES FIJAS — nunca cambian ===== */
@@ -2995,7 +2995,7 @@ const Ccrr = {
 
   onEnter(){
     this.renderTurno();
-    this.renderCheckList('c-ubic-list',  App.CCRR_UBICACIONES,  this.state.ubic,  'ubic');
+    this.renderCheckList('c-ubic-list',  App.CCRR_UBICACIONES,  this.state.ubic,  'ubic',  true);
     this.renderCheckList('c-senal-list', App.CCRR_SENALIZACION, this.state.senal, 'senal');
     this.renderWorkers();
     this.populateRPSelect();
@@ -3010,7 +3010,7 @@ const Ccrr = {
       b.setAttribute('aria-pressed', b.dataset.val === this.state.turno ? 'true' : 'false'));
   },
 
-  renderCheckList(containerId, list, stateMap, stateKey){
+  renderCheckList(containerId, list, stateMap, stateKey, single = false){
     const wrap = document.getElementById(containerId);
     if(!wrap) return;
     wrap.innerHTML = list.map(item => `
@@ -3024,7 +3024,15 @@ const Ccrr = {
     `).join('');
     wrap.querySelectorAll('input[type="checkbox"]').forEach(cb => {
       cb.addEventListener('change', () => {
-        this.state[stateKey][cb.dataset.id] = cb.checked;
+        if(single && cb.checked){
+          // Desmarcar todos los demás del mismo grupo
+          for(const k of Object.keys(this.state[stateKey])) this.state[stateKey][k] = false;
+          this.state[stateKey][cb.dataset.id] = true;
+          // Repintar UI para reflejar el cambio
+          this.renderCheckList(containerId, list, this.state[stateKey], stateKey, single);
+        } else {
+          this.state[stateKey][cb.dataset.id] = cb.checked;
+        }
         this.saveDraft();
         this.refreshGenerateButton();
       });
@@ -3350,6 +3358,13 @@ const Geo = {
     // Limpieza: "Provincia de A Coruña" → "Coruña"
     provincia = provincia.replace(/^provincia\s+de\s+/i, '').replace(/^a\s+coru[ñn]a$/i, 'Coruña').trim();
 
+    // Si la provincia coincide con la población (caso típico Ferrol → comarca Ferrolterra
+    // que Nominatim devuelve a veces en a.county igual al nombre del municipio), descartarla
+    // para que el usuario mantenga la provincia que tuviera o la rellene manualmente.
+    if(provincia && poblacion && provincia.toLowerCase() === poblacion.toLowerCase()){
+      provincia = '';
+    }
+
     return { direccion, poblacion, provincia, raw: data };
   },
 
@@ -3569,9 +3584,9 @@ const Pdf = {
     'cierre_pob':   [75,  67, 9],
     'cierre_dia':   [203, 67, 9],
     'cierre_mes':   [275, 67, 9],
-    'cierre_ano':   [352, 67, 9],
-    'rp_nombre':    [115, 56, 9],
-    'rp_nif':       [95,  42, 9],
+    'cierre_ano':   [350, 67, 9],
+    'rp_nombre':    [145, 56, 9],
+    'rp_nif':       [145, 42, 9],
     // Tlf emergencias
     'tlf':          [460, 94, 9],
   },
@@ -3601,13 +3616,13 @@ const Pdf = {
     'm5_buen': [199.8, 530.6], 'm5_def': [413.6, 530.6],
     'm6_buen': [207.0, 510.8], 'm6_def': [511.2, 510.8],
     // Subir madera
-    'sm_esc': [181.1, 447.6], 'sm_escpat': [299.2, 447.6],
+    'sm_esc': [181.1, 447.6], 'sm_escpat': [296, 447.6],
     'sm_pemp': [337.3, 447.6], 'sm_trep': [406.1, 447.6], 'sm_otro': [471.2, 447.6],
     // Subir hormigón
-    'sh_esc': [180.4, 405.0], 'sh_escpat': [298.4, 405.0],
+    'sh_esc': [180.4, 405.0], 'sh_escpat': [296, 405.0],
     'sh_pemp': [336.6, 405.0], 'sh_estr': [391.5, 405.0], 'sh_otro': [456.8, 405.0],
     // Subir fibra
-    'sf_esc': [180.4, 362.1], 'sf_escpat': [298.4, 362.1],
+    'sf_esc': [180.4, 362.1], 'sf_escpat': [296, 362.1],
     'sf_pemp': [336.6, 362.1], 'sf_herr': [448.9, 362.1], 'sf_otro': [514.2, 362.1],
     // Check escalera a-g
     'esc_a_si': [514.4, 324.7], 'esc_a_no': [532.4, 324.7], 'esc_a_na': [550.8, 324.7],
@@ -3618,20 +3633,20 @@ const Pdf = {
     'esc_f_si': [514.4, 273.9], 'esc_f_no': [532.4, 273.9], 'esc_f_na': [550.8, 273.9],
     'esc_g_si': [514.4, 263.8], 'esc_g_no': [532.2, 263.8], 'esc_g_na': [550.8, 263.8],
     // ¿Se puede usar escalera? — Y=215 (bloque azul derecho)
-    'puede_esc_si': [490, 215], 'puede_esc_no': [522, 215],
-    // EPIs (4 filas x 3 col) — col1=55, col2=224, col3=378
-    'epi_casco':     [55, 185], 'epi_chaleco':   [224, 185], 'epi_doblecabo':  [378, 185],
-    'epi_guantes':   [55, 175], 'epi_arnes':     [224, 175], 'epi_pertiga':    [378, 175],
-    'epi_gafas':     [55, 165], 'epi_cinturon':  [224, 165], 'epi_ptoanclaje': [378, 165],
-    'epi_botas':     [55, 155], 'epi_lineavida': [224, 155], 'epi_otros':      [378, 155],
+    'puede_esc_si': [454, 215], 'puede_esc_no': [488, 215],
+    // EPIs (4 filas x 3 col) — col1=50, col2=219, col3=374
+    'epi_casco':     [50, 185], 'epi_chaleco':   [219, 185], 'epi_doblecabo':  [374, 185],
+    'epi_guantes':   [50, 175], 'epi_arnes':     [219, 175], 'epi_pertiga':    [374, 175],
+    'epi_gafas':     [50, 165], 'epi_cinturon':  [219, 165], 'epi_ptoanclaje': [374, 165],
+    'epi_botas':     [50, 155], 'epi_lineavida': [219, 155], 'epi_otros':      [374, 155],
     // Observaciones SI/NO (apartado 8) — X corregidas
-    'obs1_si': [300, 131], 'obs1_no': [332, 131],
-    'obs2_si': [315, 121], 'obs2_no': [343, 121],
+    'obs1_si': [303, 131], 'obs1_no': [325, 131],
+    'obs2_si': [309, 121], 'obs2_no': [332, 121],
   },
 
   // Estado del poste (BUENO/MALO) por tipo
-  POSTES_ESTADO_BUENO: { 'Madera': [407, 478], 'Hormigón': [420, 419], 'Fibra': [412, 376] },
-  POSTES_ESTADO_MALO:  { 'Madera': [528, 478], 'Hormigón': [532, 419], 'Fibra': [528, 376] },
+  POSTES_ESTADO_BUENO: { 'Madera': [339, 478], 'Hormigón': [405, 419], 'Fibra': [404, 376] },
+  POSTES_ESTADO_MALO:  { 'Madera': [483, 478], 'Hormigón': [500, 419], 'Fibra': [499, 376] },
 
   // Mapeo medio de subida → checkbox según tipo
   POSTES_SUBIR_KEYS: {
@@ -4068,7 +4083,7 @@ const Pdf = {
         fileName = title.replace(/\//g, '-') + '.pdf';
       } else {
         pdfBytes = await this.buildCcrr(data);
-        title = `Parte CCRR${data.num ? ' ' + data.num : ''}${data.poblacion ? ' ' + data.poblacion : ''}${fechaTxt ? ' ' + fechaTxt : ''}`;
+        title = `Parte de${data.num ? ' ' + data.num : ' Cámara'}${fechaTxt ? ' ' + fechaTxt : ''}`;
         fileName = title.replace(/\//g, '-') + '.pdf';
       }
     } catch(e){

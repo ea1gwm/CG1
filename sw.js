@@ -7,7 +7,7 @@
    Eso fuerza al SW a invalidar la cache vieja.
    ============================================================= */
 
-const CACHE_VERSION = 'cg1-v0.7.11';
+const CACHE_VERSION = 'cg1-v0.7.13';
 const PRECACHE_URLS = [
   './',
   './index.html',
