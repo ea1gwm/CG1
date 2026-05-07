@@ -665,6 +665,72 @@
   }
   .chip-add:hover{ border-color: var(--amber); color: var(--amber); }
 
+  /* === Tarjetas selección RP (un solo toque) === */
+  .rp-grid{
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(165px, 1fr));
+    gap: 8px;
+  }
+  .rp-card{
+    appearance: none;
+    text-align: left;
+    background: #0c1220;
+    border: 1px solid var(--line-2);
+    border-radius: 12px;
+    padding: 12px 12px 10px;
+    cursor: pointer;
+    color: var(--text-dim);
+    font: inherit;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    transition: all .15s ease;
+    position: relative;
+    min-height: 78px;
+  }
+  .rp-card:active{ transform: scale(.98); }
+  .rp-card[aria-pressed="true"]{
+    background: rgba(251,191,36,.10);
+    border-color: var(--amber);
+    color: var(--text);
+    box-shadow: 0 0 0 1px var(--amber) inset;
+  }
+  .rp-card .rp-name{
+    font-weight: 600;
+    font-size: 13.5px;
+    line-height: 1.25;
+    color: var(--text);
+  }
+  .rp-card .rp-nif{
+    font-size: 11.5px;
+    color: var(--text-mute);
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: .2px;
+  }
+  .rp-card .rp-sig{
+    margin-top: auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    font-weight: 500;
+  }
+  .rp-card .rp-sig.has{ color: #4ade80; }
+  .rp-card .rp-sig.no{ color: #f87171; }
+  .rp-card .rp-sig svg{ width: 11px; height: 11px; }
+  .rp-card .rp-check{
+    position: absolute;
+    top: 8px; right: 8px;
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    background: var(--amber);
+    color: #0a0e1a;
+    display: none;
+    align-items: center; justify-content: center;
+  }
+  .rp-card[aria-pressed="true"] .rp-check{ display: flex; }
+  .rp-card .rp-check svg{ width: 11px; height: 11px; stroke-width: 3; }
+
   .empty-list{
     padding: 14px; border-radius: 12px;
     background: rgba(251,191,36,.05);
@@ -785,6 +851,20 @@
   }
   .btn-ghost:hover{ border-color: var(--amber); }
   .btn svg{ width: 18px; height: 18px; }
+
+  /* Botón solo icono (compacto, p.ej. Limpiar en action-bar de 3 botones) */
+  .btn-icon{
+    padding: 14px;
+    flex: 0 0 auto;
+  }
+  .btn-icon svg{ width: 18px; height: 18px; }
+  /* Botón "Nuevo" (ghost compacto) */
+  #p-new, #c-new{
+    flex: 0 0 auto;
+    padding: 14px 14px;
+    font-size: 14px;
+  }
+  #p-new svg, #c-new svg{ width: 16px; height: 16px; }
 
   /* Modal genérico */
   .modal-backdrop{
@@ -1632,15 +1712,13 @@
           <span class="sec-num">07</span>
           <span class="sec-title">Recurso preventivo</span>
         </div>
-        <div class="field">
-          <span class="field-label">Trabajador designado</span>
-          <select class="select" id="p-rp-select">
-            <option value="">— Selecciona de la lista —</option>
-          </select>
-        </div>
-        <div class="field-row">
+        <p style="font-size:12.5px;color:var(--text-mute);margin:-6px 0 12px;">
+          Toca una tarjeta para designarlo. La firma guardada se insertará automáticamente en el PDF.
+        </p>
+        <div class="rp-grid" id="p-rp-cards"></div>
+        <div class="field-row" style="margin-top:14px;">
           <div class="field">
-            <span class="field-label">Nombre <span class="hint">(editable)</span></span>
+            <span class="field-label">Nombre <span class="hint">(editable si hace falta)</span></span>
             <input class="input" type="text" id="p-rp-nombre" placeholder="Auto-rellenado">
           </div>
           <div class="field">
@@ -1648,9 +1726,7 @@
             <input class="input" type="text" id="p-rp-nif" placeholder="Auto-rellenado">
           </div>
         </div>
-        <p style="font-size:12.5px;color:var(--text-mute);margin:14px 0 0;">
-          ✎ Si el trabajador tiene firma guardada en <b style="color:var(--amber)">Ajustes</b>, se insertará automáticamente en el PDF.
-        </p>
+        <input type="hidden" id="p-rp-select">
       </section>
 
       <!-- ===== 7b. EPIs ===== -->
@@ -1679,12 +1755,17 @@
     <!-- Barra de acción flotante -->
     <div class="action-bar">
       <div class="inner">
-        <button type="button" class="btn btn-ghost" id="p-clear">
+        <button type="button" class="btn btn-ghost btn-icon" id="p-clear" title="Limpiar todo el formulario" aria-label="Limpiar todo el formulario">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
             <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/>
           </svg>
-          Limpiar
+        </button>
+        <button type="button" class="btn btn-ghost" id="p-new" title="Otro poste en la misma calle (mantiene central, dirección, RP)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+          </svg>
+          Nuevo
         </button>
         <button type="button" class="btn btn-primary" id="p-generate" disabled>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
@@ -1869,15 +1950,13 @@
       <!-- 08. Recurso preventivo -->
       <section class="form-section">
         <div class="sec-head"><span class="sec-num">08</span><span class="sec-title">Recurso preventivo</span></div>
-        <div class="field">
-          <span class="field-label">Trabajador designado</span>
-          <select class="select" id="c-rp-select">
-            <option value="">— Selecciona de la lista —</option>
-          </select>
-        </div>
-        <div class="field-row">
+        <p style="font-size:12.5px;color:var(--text-mute);margin:-6px 0 12px;">
+          Toca una tarjeta para designarlo. La firma guardada se insertará automáticamente en el PDF.
+        </p>
+        <div class="rp-grid" id="c-rp-cards"></div>
+        <div class="field-row" style="margin-top:14px;">
           <div class="field">
-            <span class="field-label">Nombre <span class="hint">(editable)</span></span>
+            <span class="field-label">Nombre <span class="hint">(editable si hace falta)</span></span>
             <input class="input" type="text" id="c-rp-nombre" placeholder="Auto-rellenado">
           </div>
           <div class="field">
@@ -1885,9 +1964,7 @@
             <input class="input" type="text" id="c-rp-nif" placeholder="Auto-rellenado">
           </div>
         </div>
-        <p style="font-size:12.5px;color:var(--text-mute);margin:14px 0 0;">
-          ✎ Si el trabajador tiene firma guardada en <b style="color:var(--amber)">Ajustes</b>, se insertará automáticamente en el PDF.
-        </p>
+        <input type="hidden" id="c-rp-select">
       </section>
 
       <!-- 09. Observaciones -->
@@ -1901,12 +1978,17 @@
     <!-- Acción flotante -->
     <div class="action-bar">
       <div class="inner">
-        <button type="button" class="btn btn-ghost" id="c-clear">
+        <button type="button" class="btn btn-ghost btn-icon" id="c-clear" title="Limpiar todo el formulario" aria-label="Limpiar todo el formulario">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
             <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/>
           </svg>
-          Limpiar
+        </button>
+        <button type="button" class="btn btn-ghost" id="c-new" title="Otra cámara en la misma zona (mantiene dirección, RP, climatología)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+          </svg>
+          Nueva
         </button>
         <button type="button" class="btn btn-primary" id="c-generate" disabled>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
@@ -2155,7 +2237,7 @@
    ============================================================= */
 
 const App = {
-  version: '0.7.13',
+  version: '0.7.14',
   step: 7,
 
   /* ===== CONSTANTES FIJAS — nunca cambian ===== */
@@ -2471,16 +2553,7 @@ const Postes = {
       document.getElementById('p-medio-otro-wrap').style.display = otro ? '' : 'none';
       this.saveDraft();
     });
-    // Recurso preventivo: al cambiar selector, autorrellenar nombre/NIF
-    document.getElementById('p-rp-select').addEventListener('change', (e)=>{
-      const id = e.target.value;
-      const w = this.allWorkers().find(x => x.id === id);
-      if(w){
-        document.getElementById('p-rp-nombre').value = w.nombre || '';
-        document.getElementById('p-rp-nif').value = w.nif || '';
-      }
-      this.saveDraft();
-    });
+    // Recurso preventivo: el cambio se gestiona vía selectRP() (toque en tarjeta)
 
     // GPS
     document.getElementById('p-gps-btn').addEventListener('click', () => this.requestGPS());
@@ -2494,6 +2567,7 @@ const Postes = {
 
     // Botones de acción
     document.getElementById('p-clear').addEventListener('click', () => this.clearForm());
+    document.getElementById('p-new').addEventListener('click', () => this.newPole());
     document.getElementById('p-generate').addEventListener('click', () => this.generate());
 
     // Trabajador temporal
@@ -2568,22 +2642,14 @@ const Postes = {
 
   // Si no hay RP seleccionado y existe defaultRPId en settings, lo aplica
   autoSelectDefaultRP(){
-    const sel = document.getElementById('p-rp-select');
-    if(sel.value) return;
+    const hidden = document.getElementById('p-rp-select');
+    if(hidden.value) return;
     const settings = App.load(App.KEYS.settings, {});
     const id = settings.defaultRPId;
     if(!id) return;
-    if([...sel.options].some(o => o.value === id)){
-      sel.value = id;
-      const w = this.allWorkers().find(x => x.id === id);
-      if(w){
-        const nameEl = document.getElementById('p-rp-nombre');
-        const nifEl  = document.getElementById('p-rp-nif');
-        if(!nameEl.value) nameEl.value = w.nombre || '';
-        if(!nifEl.value)  nifEl.value  = w.nif || '';
-      }
-      this.saveDraft();
-    }
+    const exists = this.allWorkers().some(w => w.id === id);
+    if(!exists) return;
+    this.selectRP(id);
   },
 
   /* ----- DATA ----- */
@@ -2615,12 +2681,60 @@ const Postes = {
   },
 
   populateRPSelect(){
-    const sel = document.getElementById('p-rp-select');
+    const wrap = document.getElementById('p-rp-cards');
+    const hidden = document.getElementById('p-rp-select');
+    if(!wrap) return;
     const all = this.allWorkers();
-    const current = sel.value;
-    sel.innerHTML = '<option value="">— Selecciona de la lista —</option>' +
-      all.map(w => `<option value="${this.esc(w.id)}">${this.esc(w.nombre)}${w.nif ? ' · '+this.esc(w.nif) : ''}</option>`).join('');
-    if(current) sel.value = current;
+    const sigs = App.load('cg1.signatures', {});
+    let currentId = hidden.value;
+    // Si el RP del draft ya no existe (fue eliminado), limpiarlo
+    if(currentId && !all.some(w => w.id === currentId)){
+      hidden.value = '';
+      currentId = '';
+    }
+
+    if(all.length === 0){
+      wrap.innerHTML = '<div class="empty-list">Aún no hay trabajadores. Añade alguno desde <b>Trabajadores presentes</b> o en <b>Ajustes</b>.</div>';
+      return;
+    }
+
+    wrap.innerHTML = all.map(w => {
+      const hasSig = !!sigs[w.id];
+      const pressed = w.id === currentId ? 'true' : 'false';
+      const nifTxt = w.nif ? this.esc(w.nif) : '<span style="opacity:.5">— sin NIF —</span>';
+      const sigCls = hasSig ? 'has' : 'no';
+      const sigTxt = hasSig ? 'Firma guardada' : 'Sin firma';
+      const sigIcon = hasSig
+        ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>'
+        : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><line x1="8" y1="12" x2="16" y2="12"/></svg>';
+      return `
+        <button type="button" class="rp-card" data-rp-id="${this.esc(w.id)}" aria-pressed="${pressed}">
+          <span class="rp-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+          <span class="rp-name">${this.esc(w.nombre)}</span>
+          <span class="rp-nif">${nifTxt}</span>
+          <span class="rp-sig ${sigCls}">${sigIcon}${sigTxt}</span>
+        </button>`;
+    }).join('');
+
+    // Bind clicks (delegación)
+    wrap.querySelectorAll('.rp-card').forEach(card => {
+      card.addEventListener('click', () => this.selectRP(card.dataset.rpId));
+    });
+  },
+
+  // Selecciona un RP con un solo toque y autorrellena nombre/NIF
+  selectRP(id){
+    const hidden = document.getElementById('p-rp-select');
+    const w = this.allWorkers().find(x => x.id === id);
+    if(!w) return;
+    hidden.value = id;
+    document.getElementById('p-rp-nombre').value = w.nombre || '';
+    document.getElementById('p-rp-nif').value = w.nif || '';
+    // Re-render para reflejar selección
+    document.querySelectorAll('#p-rp-cards .rp-card').forEach(c => {
+      c.setAttribute('aria-pressed', c.dataset.rpId === id ? 'true' : 'false');
+    });
+    this.saveDraft();
   },
 
   /* ----- RENDER ----- */
@@ -2789,6 +2903,8 @@ const Postes = {
 
   applyDraft(){
     const d = App.load(this.DRAFT_KEY, null);
+    const settings = App.load(App.KEYS.settings, {});
+    const lastUsed = settings.lastUsed || {};
 
     // Defaults siempre que falten
     const fechaEl = document.getElementById('p-fecha');
@@ -2796,7 +2912,16 @@ const Postes = {
     if(!fechaEl.value) fechaEl.value = (d && d.fecha) ? d.fecha : App.todayISO();
     if(!horaEl.value)  horaEl.value  = (d && d.hora)  ? d.hora  : App.nowHHMM();
 
-    if(!d) return;
+    // Si no hay draft, intentar prellenar con los últimos valores usados (memoria entre días)
+    if(!d){
+      const setIfEmpty = (id, v) => { const e=document.getElementById(id); if(e && !e.value && v) e.value=v; };
+      setIfEmpty('p-central',    lastUsed.central);
+      setIfEmpty('p-direccion',  lastUsed.direccion);
+      setIfEmpty('p-provincia',  lastUsed.provincia);
+      setIfEmpty('p-poblacion',  lastUsed.poblacion);
+      setIfEmpty('p-clima',      lastUsed.clima);
+      return;
+    }
 
     const setIf = (id, v) => { const e=document.getElementById(id); if(e && v!=null) e.value=v; };
     setIf('p-central', d.central);
@@ -2813,6 +2938,12 @@ const Postes = {
     setIf('p-rp-select', d.rpId);
     setIf('p-rp-nombre', d.rpNombre);
     setIf('p-rp-nif', d.rpNif);
+    // Reflejar selección visual de la tarjeta RP
+    if(d.rpId){
+      document.querySelectorAll('#p-rp-cards .rp-card').forEach(c => {
+        c.setAttribute('aria-pressed', c.dataset.rpId === d.rpId ? 'true' : 'false');
+      });
+    }
     setIf('p-obs', d.observaciones);
 
     // mostrar campo "Otro" si aplica
@@ -2897,20 +3028,57 @@ const Postes = {
       App.toast('⚠ Climatología no apta: cubrir el PDF a mano');
       return;
     }
+    // Guardar "últimos valores usados" para autorrellenar al día siguiente
+    this._saveLastUsed(data);
     // Pasamos también los trabajadores temporales para que el PDF los resuelva
     data.tempWorkers = this.state.tempWorkers;
     try {
       App.toast('Generando PDF…');
       const entry = await Pdf.saveAndDownload('postes', data);
       App.toast('✓ PDF generado y guardado');
-      // Ofrecer compartir si está disponible
-      if(navigator.canShare){
-        setTimeout(() => Pdf.share(entry), 600);
-      }
+      // saveAndDownload ya hace share/download adaptativo según plataforma
     } catch(e){
       console.error(e);
       App.toast('Error al generar el PDF');
     }
+  },
+
+  // Guarda los valores que típicamente se reutilizan entre partes del mismo día/ruta
+  _saveLastUsed(data){
+    const settings = App.load(App.KEYS.settings, {});
+    settings.lastUsed = {
+      ...(settings.lastUsed || {}),
+      central:   data.central   || '',
+      direccion: data.direccion || '',
+      provincia: data.provincia || '',
+      poblacion: data.poblacion || '',
+      clima:     data.clima     || ''
+    };
+    App.save(App.KEYS.settings, settings);
+  },
+
+  // Nuevo parte reutilizando datos repetitivos (central, dirección, RP, clima)
+  // pero limpiando lo específico del poste anterior.
+  newPole(){
+    const d = this.collect();
+    // Limpiar campos específicos del poste anterior
+    const clear = (id) => { const e=document.getElementById(id); if(e) e.value=''; };
+    clear('p-num-poste');
+    clear('p-num-linea');
+    clear('p-num-actuacion');
+    clear('p-trabajo');
+    clear('p-obs');
+    // Actualizar hora
+    document.getElementById('p-hora').value = App.nowHHMM();
+    // Resetear estado a "Bueno" + medidas/EPIs por defecto si fueron tocadas (clima sí se conserva)
+    this.state.estado = 'bueno';
+    this.renderEstado();
+    // Quitar trabajadores temporales para evitar arrastrar (los permanentes se mantienen seleccionados)
+    this.saveDraft();
+    this.refreshGenerateButton();
+    App.toast('Listo para el siguiente poste');
+    // Scroll arriba para que vea los campos a rellenar
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   },
 
   /* ----- HELPERS ----- */
@@ -2941,19 +3109,12 @@ const Ccrr = {
       b.addEventListener('click', () => this.setSeg('turno', b.dataset.val, '#c-turno'));
     });
 
-    document.getElementById('c-rp-select').addEventListener('change', (e) => {
-      const id = e.target.value;
-      const w = this.allWorkers().find(x => x.id === id);
-      if(w){
-        document.getElementById('c-rp-nombre').value = w.nombre || '';
-        document.getElementById('c-rp-nif').value = w.nif || '';
-      }
-      this.saveDraft();
-    });
+    // Recurso preventivo: el cambio se gestiona vía selectRP() (toque en tarjeta)
 
     document.getElementById('c-gps-btn').addEventListener('click', () => this.requestGPS());
 
     document.getElementById('c-clear').addEventListener('click', () => this.clearForm());
+    document.getElementById('c-new').addEventListener('click', () => this.newCamara());
     document.getElementById('c-generate').addEventListener('click', () => this.generate());
 
     // Trabajador temporal
@@ -3075,30 +3236,68 @@ const Ccrr = {
     return [...perm, ...this.state.tempWorkers];
   },
   populateRPSelect(){
-    const sel = document.getElementById('c-rp-select');
+    const wrap = document.getElementById('c-rp-cards');
+    const hidden = document.getElementById('c-rp-select');
+    if(!wrap) return;
     const all = this.allWorkers();
-    const current = sel.value;
-    sel.innerHTML = '<option value="">— Selecciona de la lista —</option>' +
-      all.map(w => `<option value="${this.esc(w.id)}">${this.esc(w.nombre)}${w.nif ? ' · '+this.esc(w.nif) : ''}</option>`).join('');
-    if(current) sel.value = current;
+    const sigs = App.load('cg1.signatures', {});
+    let currentId = hidden.value;
+    if(currentId && !all.some(w => w.id === currentId)){
+      hidden.value = '';
+      currentId = '';
+    }
+
+    if(all.length === 0){
+      wrap.innerHTML = '<div class="empty-list">Aún no hay trabajadores. Añade alguno desde <b>Trabajadores presentes</b> o en <b>Ajustes</b>.</div>';
+      return;
+    }
+
+    wrap.innerHTML = all.map(w => {
+      const hasSig = !!sigs[w.id];
+      const pressed = w.id === currentId ? 'true' : 'false';
+      const nifTxt = w.nif ? this.esc(w.nif) : '<span style="opacity:.5">— sin NIF —</span>';
+      const sigCls = hasSig ? 'has' : 'no';
+      const sigTxt = hasSig ? 'Firma guardada' : 'Sin firma';
+      const sigIcon = hasSig
+        ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>'
+        : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><line x1="8" y1="12" x2="16" y2="12"/></svg>';
+      return `
+        <button type="button" class="rp-card" data-rp-id="${this.esc(w.id)}" aria-pressed="${pressed}">
+          <span class="rp-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+          <span class="rp-name">${this.esc(w.nombre)}</span>
+          <span class="rp-nif">${nifTxt}</span>
+          <span class="rp-sig ${sigCls}">${sigIcon}${sigTxt}</span>
+        </button>`;
+    }).join('');
+
+    wrap.querySelectorAll('.rp-card').forEach(card => {
+      card.addEventListener('click', () => this.selectRP(card.dataset.rpId));
+    });
   },
+
+  // Selecciona un RP con un solo toque y autorrellena nombre/NIF
+  selectRP(id){
+    const hidden = document.getElementById('c-rp-select');
+    const w = this.allWorkers().find(x => x.id === id);
+    if(!w) return;
+    hidden.value = id;
+    document.getElementById('c-rp-nombre').value = w.nombre || '';
+    document.getElementById('c-rp-nif').value = w.nif || '';
+    document.querySelectorAll('#c-rp-cards .rp-card').forEach(c => {
+      c.setAttribute('aria-pressed', c.dataset.rpId === id ? 'true' : 'false');
+    });
+    this.saveDraft();
+  },
+
   autoSelectDefaultRP(){
-    const sel = document.getElementById('c-rp-select');
-    if(sel.value) return;
+    const hidden = document.getElementById('c-rp-select');
+    if(hidden.value) return;
     const settings = App.load(App.KEYS.settings, {});
     const id = settings.defaultRPId;
     if(!id) return;
-    if([...sel.options].some(o => o.value === id)){
-      sel.value = id;
-      const w = this.allWorkers().find(x => x.id === id);
-      if(w){
-        const n = document.getElementById('c-rp-nombre');
-        const f = document.getElementById('c-rp-nif');
-        if(!n.value) n.value = w.nombre || '';
-        if(!f.value) f.value = w.nif || '';
-      }
-      this.saveDraft();
-    }
+    const exists = this.allWorkers().some(w => w.id === id);
+    if(!exists) return;
+    this.selectRP(id);
   },
 
   /* ----- ACTIONS ----- */
@@ -3188,10 +3387,21 @@ const Ccrr = {
 
   applyDraft(){
     const d = App.load(this.DRAFT_KEY, null);
+    const settings = App.load(App.KEYS.settings, {});
+    const lastUsed = settings.lastUsed || {};
+
     const fechaEl = document.getElementById('c-fecha');
     if(!fechaEl.value) fechaEl.value = (d && d.fecha) ? d.fecha : App.todayISO();
 
-    if(!d) return;
+    if(!d){
+      // Sin draft: prellenar con últimos valores usados
+      const setIfEmpty = (id, v) => { const e=document.getElementById(id); if(e && !e.value && v) e.value=v; };
+      setIfEmpty('c-direccion', lastUsed.direccion);
+      setIfEmpty('c-provincia', lastUsed.provincia);
+      setIfEmpty('c-poblacion', lastUsed.poblacion);
+      setIfEmpty('c-clima',     lastUsed.clima);
+      return;
+    }
     const setIf = (id, v) => { const e=document.getElementById(id); if(e && v!=null) e.value=v; };
     setIf('c-num',         d.num);
     setIf('c-provincia',   d.provincia);
@@ -3208,6 +3418,12 @@ const Ccrr = {
     setIf('c-rp-nombre',   d.rpNombre);
     setIf('c-rp-nif',      d.rpNif);
     setIf('c-obs',         d.observaciones);
+    // Reflejar selección visual de la tarjeta RP
+    if(d.rpId){
+      document.querySelectorAll('#c-rp-cards .rp-card').forEach(c => {
+        c.setAttribute('aria-pressed', c.dataset.rpId === d.rpId ? 'true' : 'false');
+      });
+    }
   },
 
   collect(){
@@ -3265,18 +3481,49 @@ const Ccrr = {
 
   async generate(){
     const data = this.collect();
+    // Guardar "últimos valores usados" para autorrellenar al día siguiente
+    this._saveLastUsed(data);
     data.tempWorkers = this.state.tempWorkers;
     try {
       App.toast('Generando PDF…');
       const entry = await Pdf.saveAndDownload('ccrr', data);
       App.toast('✓ PDF generado y guardado');
-      if(navigator.canShare){
-        setTimeout(() => Pdf.share(entry), 600);
-      }
+      // saveAndDownload ya hace share/download adaptativo según plataforma
     } catch(e){
       console.error(e);
       App.toast('Error al generar el PDF');
     }
+  },
+
+  _saveLastUsed(data){
+    const settings = App.load(App.KEYS.settings, {});
+    settings.lastUsed = {
+      ...(settings.lastUsed || {}),
+      direccion: data.direccion || '',
+      provincia: data.provincia || '',
+      poblacion: data.poblacion || '',
+      clima:     data.clima     || ''
+    };
+    App.save(App.KEYS.settings, settings);
+  },
+
+  // Nueva cámara reutilizando datos repetitivos (RP, dirección, clima)
+  // pero limpiando lo específico de la cámara anterior (nº, trabajo, observaciones).
+  newCamara(){
+    const clear = (id) => { const e=document.getElementById(id); if(e) e.value=''; };
+    clear('c-num');
+    clear('c-trabajo');
+    clear('c-estado-desc');
+    clear('c-obs');
+    clear('c-tapa');
+    clear('c-duracion');
+    clear('c-hasta');
+    // Nueva hora desde
+    document.getElementById('c-desde').value = App.nowHHMM();
+    this.saveDraft();
+    this.refreshGenerateButton();
+    App.toast('Lista para la siguiente cámara');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   },
 
   esc(s){
@@ -3593,60 +3840,61 @@ const Pdf = {
 
   // Coordenadas (cx, cy) de los checkboxes
   POSTES_CHECK_CENTERS: {
+    // === Coordenadas extraídas de los rectángulos vectoriales reales del PDF (v0.7.14) ===
     // Tipo de poste
-    'tipo_madera':   [110.5, 753.1],
-    'tipo_hormigon': [199.4, 753.1],
-    'tipo_fibra':    [299.9, 753.1],
+    'tipo_madera':   [110.6, 753.2],
+    'tipo_hormigon': [199.6, 753.2],
+    'tipo_fibra':    [299.8, 753.2],
     // Climatología
-    'clima_si': [324.7, 724.6],
-    'clima_no': [347.4, 724.6],
+    'clima_si': [324.8, 724.5],
+    'clima_no': [347.3, 724.5],
     // 4 filas de trabajadores
-    'tr1_sf': [422.6, 672.4], 'tr1_nf': [449.3, 672.4],
-    'tr1_sc': [484.2, 672.4], 'tr1_nc': [525.6, 672.4], 'tr1_rp': [549.4, 672.4],
-    'tr2_sf': [422.6, 662.7], 'tr2_nf': [449.3, 662.7],
-    'tr2_sc': [484.2, 662.7], 'tr2_nc': [525.6, 662.7], 'tr2_rp': [549.4, 662.7],
-    'tr3_sf': [422.6, 653.4], 'tr3_nf': [449.3, 653.4],
-    'tr3_sc': [484.2, 653.4], 'tr3_nc': [525.6, 653.4], 'tr3_rp': [549.4, 653.4],
-    'tr4_sf': [422.6, 643.6], 'tr4_nf': [449.3, 643.6],
-    'tr4_sc': [484.2, 643.6], 'tr4_nc': [525.6, 643.6], 'tr4_rp': [549.4, 643.6],
+    'tr1_sf': [422.8, 672.3], 'tr1_nf': [449.3, 672.3],
+    'tr1_sc': [484.1, 672.3], 'tr1_nc': [525.5, 672.3], 'tr1_rp': [549.5, 672.3],
+    'tr2_sf': [422.8, 662.8], 'tr2_nf': [449.3, 662.8],
+    'tr2_sc': [484.1, 662.8], 'tr2_nc': [525.5, 662.8], 'tr2_rp': [549.5, 662.8],
+    'tr3_sf': [422.8, 653.2], 'tr3_nf': [449.3, 653.2],
+    'tr3_sc': [484.1, 653.2], 'tr3_nc': [525.5, 653.2], 'tr3_rp': [549.5, 653.2],
+    'tr4_sf': [422.8, 643.8], 'tr4_nf': [449.3, 643.8],
+    'tr4_sc': [484.1, 643.8], 'tr4_nc': [525.5, 643.8], 'tr4_rp': [549.5, 643.8],
     // Madera puntos 1, 2, 4, 5, 6
-    'm1_si': [446.0, 597.9], 'm1_no': [472.3, 597.9],
-    'm2_si': [121.3, 578.1], 'm2_no': [147.6, 578.1],
-    'm4_buen': [141.8, 549.3], 'm4_def': [263.5, 549.3],
-    'm5_buen': [199.8, 530.6], 'm5_def': [413.6, 530.6],
-    'm6_buen': [207.0, 510.8], 'm6_def': [511.2, 510.8],
-    // Subir madera
-    'sm_esc': [181.1, 447.6], 'sm_escpat': [296, 447.6],
-    'sm_pemp': [337.3, 447.6], 'sm_trep': [406.1, 447.6], 'sm_otro': [471.2, 447.6],
-    // Subir hormigón
-    'sh_esc': [180.4, 405.0], 'sh_escpat': [296, 405.0],
-    'sh_pemp': [336.6, 405.0], 'sh_estr': [391.5, 405.0], 'sh_otro': [456.8, 405.0],
-    // Subir fibra
-    'sf_esc': [180.4, 362.1], 'sf_escpat': [296, 362.1],
-    'sf_pemp': [336.6, 362.1], 'sf_herr': [448.9, 362.1], 'sf_otro': [514.2, 362.1],
+    'm1_si': [446.1, 598.0], 'm1_no': [472.3, 598.0],
+    'm2_si': [121.4, 578.2], 'm2_no': [147.5, 578.2],
+    'm4_buen': [141.8, 549.4], 'm4_def': [263.7, 549.4],
+    'm5_buen': [199.9, 530.7], 'm5_def': [413.7, 530.7],
+    'm6_buen': [206.9, 510.7], 'm6_def': [511.3, 510.7],
+    // Subir madera (Y=447.62)  ← escpat corregido +3.1pt
+    'sm_esc': [181.0, 447.6], 'sm_escpat': [299.1, 447.6],
+    'sm_pemp': [337.3, 447.6], 'sm_trep': [406.0, 447.6], 'sm_otro': [471.3, 447.6],
+    // Subir hormigón (Y=404.9) ← escpat corregido +2.4pt
+    'sh_esc': [180.3, 404.9], 'sh_escpat': [298.4, 404.9],
+    'sh_pemp': [336.5, 404.9], 'sh_estr': [391.5, 404.9], 'sh_otro': [456.8, 404.9],
+    // Subir fibra (Y=362.06)  ← escpat corregido +2.4pt
+    'sf_esc': [180.3, 362.1], 'sf_escpat': [298.4, 362.1],
+    'sf_pemp': [336.5, 362.1], 'sf_herr': [449.0, 362.1], 'sf_otro': [514.3, 362.1],
     // Check escalera a-g
-    'esc_a_si': [514.4, 324.7], 'esc_a_no': [532.4, 324.7], 'esc_a_na': [550.8, 324.7],
-    'esc_b_si': [514.4, 314.6], 'esc_b_no': [532.4, 314.6], 'esc_b_na': [550.8, 314.6],
-    'esc_c_si': [514.4, 304.4], 'esc_c_no': [532.4, 304.4], 'esc_c_na': [550.8, 304.4],
-    'esc_d_si': [514.4, 294.2], 'esc_d_no': [532.4, 294.2], 'esc_d_na': [550.8, 294.2],
-    'esc_e_si': [514.4, 284.0], 'esc_e_no': [532.4, 284.0], 'esc_e_na': [550.8, 284.0],
-    'esc_f_si': [514.4, 273.9], 'esc_f_no': [532.4, 273.9], 'esc_f_na': [550.8, 273.9],
-    'esc_g_si': [514.4, 263.8], 'esc_g_no': [532.2, 263.8], 'esc_g_na': [550.8, 263.8],
-    // ¿Se puede usar escalera? — Y=215 (bloque azul derecho)
-    'puede_esc_si': [454, 215], 'puede_esc_no': [488, 215],
-    // EPIs (4 filas x 3 col) — col1=50, col2=219, col3=374
-    'epi_casco':     [50, 185], 'epi_chaleco':   [219, 185], 'epi_doblecabo':  [374, 185],
-    'epi_guantes':   [50, 175], 'epi_arnes':     [219, 175], 'epi_pertiga':    [374, 175],
-    'epi_gafas':     [50, 165], 'epi_cinturon':  [219, 165], 'epi_ptoanclaje': [374, 165],
-    'epi_botas':     [50, 155], 'epi_lineavida': [219, 155], 'epi_otros':      [374, 155],
-    // Observaciones SI/NO (apartado 8) — X corregidas
-    'obs1_si': [303, 131], 'obs1_no': [325, 131],
-    'obs2_si': [309, 121], 'obs2_no': [332, 121],
+    'esc_a_si': [514.5, 324.6], 'esc_a_no': [532.4, 324.6], 'esc_a_na': [550.9, 324.6],
+    'esc_b_si': [514.5, 314.5], 'esc_b_no': [532.4, 314.5], 'esc_b_na': [550.9, 314.5],
+    'esc_c_si': [514.5, 304.3], 'esc_c_no': [532.4, 304.3], 'esc_c_na': [550.9, 304.3],
+    'esc_d_si': [514.5, 294.3], 'esc_d_no': [532.4, 294.3], 'esc_d_na': [550.9, 294.3],
+    'esc_e_si': [514.5, 284.1], 'esc_e_no': [532.4, 284.1], 'esc_e_na': [550.9, 284.1],
+    'esc_f_si': [514.5, 274.0], 'esc_f_no': [532.4, 274.0], 'esc_f_na': [550.9, 274.0],
+    'esc_g_si': [514.5, 263.9], 'esc_g_no': [532.3, 263.9], 'esc_g_na': [550.9, 263.9],
+    // ¿Se puede usar escalera? — Y=213.74 (bloque azul derecho)  ← Y -1.26pt, X corregidas
+    'puede_esc_si': [455.2, 213.7], 'puede_esc_no': [486.5, 213.7],
+    // EPIs (4 filas x 3 col)  ← Y todas corregidas hacia arriba +1 a +3pt según fila
+    'epi_casco':     [50.7, 186.1], 'epi_chaleco':   [220.0, 186.1], 'epi_doblecabo':  [374.7, 186.1],
+    'epi_guantes':   [50.7, 176.9], 'epi_arnes':     [220.0, 176.9], 'epi_pertiga':    [374.7, 177.3],
+    'epi_gafas':     [50.7, 167.3], 'epi_cinturon':  [220.0, 167.3], 'epi_ptoanclaje': [374.7, 167.8],
+    'epi_botas':     [50.7, 158.3], 'epi_lineavida': [220.0, 157.8], 'epi_otros':      [374.7, 158.3],
+    // Observaciones SI/NO (apartado 8)  ← obs2 Y corregido +2.4pt
+    'obs1_si': [302.1, 131.8], 'obs1_no': [324.8, 131.8],
+    'obs2_si': [310.0, 123.4], 'obs2_no': [332.7, 123.4],
   },
 
-  // Estado del poste (BUENO/MALO) por tipo
-  POSTES_ESTADO_BUENO: { 'Madera': [339, 478], 'Hormigón': [405, 419], 'Fibra': [404, 376] },
-  POSTES_ESTADO_MALO:  { 'Madera': [483, 478], 'Hormigón': [500, 419], 'Fibra': [499, 376] },
+  // Estado del poste (BUENO/MALO) por tipo  ← madera Y +2.8pt, hormigón MALO X +2.6, fibra ambas X corregidas
+  POSTES_ESTADO_BUENO: { 'Madera': [339.6, 480.8], 'Hormigón': [405.2, 418.9], 'Fibra': [405.2, 376.2] },
+  POSTES_ESTADO_MALO:  { 'Madera': [483.5, 480.8], 'Hormigón': [502.6, 418.9], 'Fibra': [502.6, 376.2] },
 
   // Mapeo medio de subida → checkbox según tipo
   POSTES_SUBIR_KEYS: {
@@ -3675,7 +3923,10 @@ const Pdf = {
     const black = rgb(0, 0, 0);
 
     const workers = this._resolveWorkers(d.workersSelected, d.tempWorkers);
-    const rp = workers.find(w => w.id === d.rpId) || workers[0] || {};
+    // RP puede ser cualquier trabajador (no solo los seleccionados como participantes):
+    // buscar en TODA la lista (perm + temp). Fix de bug v0.7.14.
+    const allWorkers = [...App.load(App.KEYS.workers, []), ...(d.tempWorkers || [])];
+    const rp = allWorkers.find(w => w.id === d.rpId) || workers[0] || {};
     const fechaParts = this._splitFecha(d.fecha);
 
     // Helpers
@@ -3956,7 +4207,10 @@ const Pdf = {
     const black = rgb(0, 0, 0);
 
     const workers = this._resolveWorkers(d.workersSelected, d.tempWorkers);
-    const rp = workers.find(w => w.id === d.rpId) || workers[0] || {};
+    // RP puede ser cualquier trabajador (no solo los seleccionados como participantes):
+    // buscar en TODA la lista (perm + temp). Fix de bug v0.7.14.
+    const allWorkers = [...App.load(App.KEYS.workers, []), ...(d.tempWorkers || [])];
+    const rp = allWorkers.find(w => w.id === d.rpId) || workers[0] || {};
     const fechaParts = this._splitFecha(d.fecha);
 
     // Helpers
@@ -4117,9 +4371,66 @@ const Pdf = {
     App.save(App.KEYS.reports, reports);
     App.refreshHomeStats();
 
-    // Descargar
-    this._downloadBlob(blob, fileName);
+    // Entrega del PDF al usuario — flujo adaptativo según plataforma:
+    //  - iOS / iPadOS / Safari: navigator.share (menú nativo "Guardar en Archivos / Compartir / etc.")
+    //    El <a download> no funciona en iOS Safari y abriría el PDF como navegación → "enlace".
+    //  - Android / Chrome / Firefox / desktop: descarga directa con <a download>.
+    //  - Si la share falla o el usuario la cancela, ofrecemos abrir en nueva pestaña como fallback.
+    await this._deliverBlob(blob, fileName, title);
     return entry;
+  },
+
+  // Entrega un blob al usuario de la mejor forma posible según plataforma.
+  async _deliverBlob(blob, filename, title){
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+                  (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1); // iPadOS 13+
+    const file = new File([blob], filename, { type: 'application/pdf' });
+
+    // Preferir share API en iOS y siempre que esté disponible para files
+    if(navigator.canShare && navigator.canShare({ files: [file] })){
+      try {
+        await navigator.share({ files: [file], title: title || filename });
+        return 'shared';
+      } catch(e){
+        // El usuario canceló el menú compartir. Solo en iOS damos fallback útil.
+        if(e.name === 'AbortError'){
+          if(isIOS){
+            // Abrir en pestaña nueva: el usuario puede usar el botón de Safari "Compartir" / "Guardar en Archivos"
+            this._openBlobInNewTab(blob);
+            App.toast('PDF abierto. Usa Compartir → Guardar en Archivos');
+            return 'opened';
+          }
+          return 'cancelled';
+        }
+        // Si share falla por otra razón (ej. file too large), seguimos al fallback
+        console.warn('share failed:', e);
+      }
+    }
+
+    // En iOS sin share: abrir en pestaña (el download <a> no funciona aquí)
+    if(isIOS){
+      this._openBlobInNewTab(blob);
+      App.toast('PDF abierto. Usa Compartir → Guardar en Archivos');
+      return 'opened';
+    }
+
+    // Android / desktop: descarga directa
+    this._downloadBlob(blob, filename);
+    return 'downloaded';
+  },
+
+  _openBlobInNewTab(blob){
+    const url = URL.createObjectURL(blob);
+    // En iOS no se puede usar window.open dentro de async (puede ser bloqueado).
+    // El botón se pulsó con interacción de usuario en generate(), pero entre tanto await
+    // se pierde el "user gesture" en algunos casos. Usamos location.href como último recurso.
+    const win = window.open(url, '_blank');
+    if(!win){
+      // Bloqueado por popup blocker: navegar a la URL en la misma pestaña
+      // (no es ideal, pero garantiza que el PDF se muestre)
+      location.href = url;
+    }
+    setTimeout(() => URL.revokeObjectURL(url), 60000);
   },
 
   async share(entry){
@@ -4141,16 +4452,15 @@ const Pdf = {
     }
   },
 
-  download(entry){
+  async download(entry){
     const blob = this._dataURLtoBlob(entry.pdf);
-    this._downloadBlob(blob, entry.fileName);
+    // Mismo flujo que generación: en iOS abre share/pestaña, en resto descarga.
+    await this._deliverBlob(blob, entry.fileName, entry.title);
   },
 
   view(entry){
     const blob = this._dataURLtoBlob(entry.pdf);
-    const url = URL.createObjectURL(blob);
-    window.open(url, '_blank');
-    setTimeout(() => URL.revokeObjectURL(url), 60000);
+    this._openBlobInNewTab(blob);
   },
 
   delete(id){
