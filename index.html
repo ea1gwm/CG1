@@ -2507,7 +2507,7 @@
    ============================================================= */
 
 const App = {
-  version: '0.7.24',
+  version: '0.7.25',
   step: 7,
 
   /* ===== CONSTANTES FIJAS — nunca cambian ===== */
@@ -5572,12 +5572,9 @@ const PWA = {
    El admin gestiona el código desde Ajustes → Control de acceso.
    ===================================================================== */
 const Access = {
-  // Rutas Firebase — Firestore exige número PAR de segmentos (colección/documento/...)
-  // grupos/__sistema__ → documento raíz del sistema (dentro de colección grupos, cubierta por reglas)
-  // /config/acceso     → subcolección config, documento acceso  (4 segmentos = válido)
-  // /solicitudes/{id}  → subcolección solicitudes, documento id (4 segmentos = válido)
-  PATH_CONFIG:      'grupos/__sistema__/config/acceso',
-  PATH_SOLICITUDES: 'grupos/__sistema__/solicitudes',
+  // Rutas Firebase — número PAR de segmentos, sin IDs reservados (__x__)
+  PATH_CONFIG:      'grupos/cg1sistema/config/acceso',
+  PATH_SOLICITUDES: 'grupos/cg1sistema/solicitudes',
 
   // ── Verificar si este dispositivo tiene acceso ────────────────────
   async check() {
