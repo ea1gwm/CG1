@@ -1180,6 +1180,69 @@
 </head>
 
 <body>
+
+<!-- ===== PANTALLA DE BLOQUEO ===== -->
+<!-- Cubre toda la app mientras se verifica el acceso. Se oculta si el acceso es correcto. -->
+<div id="lock-screen" style="
+  position:fixed;inset:0;z-index:9999;
+  background:#050810;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:32px 24px;gap:0;
+">
+  <!-- Logo -->
+  <div style="width:64px;height:64px;background:var(--amber);border-radius:18px;display:flex;align-items:center;justify-content:center;margin-bottom:24px;">
+    <svg viewBox="0 0 24 24" fill="none" stroke="#050810" stroke-width="2.5" stroke-linecap="round" style="width:34px;height:34px;">
+      <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+    </svg>
+  </div>
+  <h1 style="font-size:22px;font-weight:700;color:var(--text);margin:0 0 6px;text-align:center;">Partes Seguridad</h1>
+  <p style="font-size:13px;color:var(--text-mute);margin:0 0 32px;text-align:center;">DIGI · PE · CG1</p>
+
+  <!-- Estado: verificando -->
+  <div id="lock-checking" style="display:flex;flex-direction:column;align-items:center;gap:12px;">
+    <div style="width:28px;height:28px;border:3px solid var(--line-2);border-top-color:var(--amber);border-radius:50%;animation:spin .8s linear infinite;"></div>
+    <p style="font-size:13px;color:var(--text-mute);margin:0;">Verificando acceso…</p>
+  </div>
+
+  <!-- Estado: pedir código -->
+  <div id="lock-form" style="display:none;flex-direction:column;align-items:center;gap:0;width:100%;max-width:320px;">
+    <p style="font-size:14px;color:var(--text-dim);margin:0 0 20px;text-align:center;line-height:1.5;">
+      Esta app es de uso interno.<br>Introduce el <b style="color:var(--text);">código de acceso</b> que te dio el administrador.
+    </p>
+    <input id="lock-code-input" type="tel" inputmode="numeric"
+      placeholder="Código de acceso"
+      style="width:100%;padding:16px;background:#0c1220;border:1.5px solid var(--line-2);border-radius:14px;
+             color:var(--text);font-size:24px;text-align:center;letter-spacing:8px;
+             font-family:'JetBrains Mono',monospace;outline:none;box-sizing:border-box;margin-bottom:12px;">
+    <button id="lock-submit" type="button"
+      style="width:100%;padding:16px;background:var(--amber);border:none;border-radius:14px;
+             color:#050810;font-size:16px;font-weight:700;cursor:pointer;margin-bottom:20px;">
+      Entrar
+    </button>
+    <p id="lock-error" style="font-size:13px;color:#f87171;margin:0 0 16px;display:none;">Código incorrecto. Pide el código al administrador.</p>
+
+    <!-- Solicitar acceso -->
+    <div id="lock-request-wrap" style="width:100%;border-top:1px solid var(--line-2);padding-top:20px;margin-top:4px;">
+      <p style="font-size:12.5px;color:var(--text-mute);margin:0 0 12px;text-align:center;">¿No tienes código? Solicítalo al administrador.</p>
+      <div id="lock-request-form" style="display:flex;flex-direction:column;gap:8px;">
+        <input id="lock-req-nombre" class="input" type="text" placeholder="Tu nombre y apellidos"
+               style="background:#0c1220;border:1.5px solid var(--line-2);border-radius:12px;padding:13px 14px;color:var(--text);font-size:14px;outline:none;box-sizing:border-box;width:100%;">
+        <input id="lock-req-tlf" class="input" type="tel" placeholder="Tu teléfono (opcional)"
+               style="background:#0c1220;border:1.5px solid var(--line-2);border-radius:12px;padding:13px 14px;color:var(--text);font-size:14px;outline:none;box-sizing:border-box;width:100%;">
+        <button id="lock-req-send" type="button"
+          style="width:100%;padding:13px;background:transparent;border:1.5px solid var(--line-2);border-radius:12px;
+                 color:var(--text);font-size:14px;font-weight:600;cursor:pointer;">
+          Enviar solicitud
+        </button>
+      </div>
+      <p id="lock-req-ok" style="display:none;font-size:13px;color:#4ade80;text-align:center;margin:8px 0 0;">
+        ✓ Solicitud enviada. El administrador te contactará.
+      </p>
+    </div>
+  </div>
+</div>
+
+<style>@keyframes spin{to{transform:rotate(360deg);}}</style>
 <div class="app">
 
   <!-- ========= HEADER ========= -->
@@ -2120,9 +2183,87 @@
       </div>
     </section>
 
-    <section class="settings-section" id="s-sync-section">
+    <!-- ===== SECCIÓN: CONTROL DE ACCESO ===== -->
+    <section class="settings-section">
       <div class="sec-head">
         <span class="sec-num">05</span>
+        <span class="sec-title">Control de acceso</span>
+      </div>
+      <p style="font-size:12.5px;color:var(--text-mute);margin:-6px 0 14px;line-height:1.5;">
+        Cuando está activo, cualquier dispositivo nuevo necesita un <b style="color:var(--text);">código</b> para abrir la app. Si alguien se va, cambias el código y ya no puede entrar.
+      </p>
+
+      <!-- Sin control activo -->
+      <div id="s-access-off">
+        <div style="background:var(--surface);border:1px solid var(--line-2);border-radius:12px;padding:14px 16px;margin-bottom:14px;display:flex;align-items:center;gap:12px;">
+          <div style="width:10px;height:10px;border-radius:50%;background:#6b7280;flex-shrink:0;"></div>
+          <span style="font-size:13px;color:var(--text-mute);">Control de acceso <b>desactivado</b> — cualquiera con el enlace puede usar la app</span>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <div class="field">
+            <span class="field-label">Código que usará el equipo (4-8 dígitos)</span>
+            <input class="input" type="tel" inputmode="numeric" id="s-access-new-code"
+                   placeholder="ej. 8472" maxlength="8"
+                   style="letter-spacing:6px;font-size:20px;text-align:center;font-family:'JetBrains Mono',monospace;">
+          </div>
+          <button type="button" class="btn btn-primary" id="s-access-activate">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px;">
+              <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            </svg>
+            Activar control de acceso
+          </button>
+        </div>
+      </div>
+
+      <!-- Con control activo -->
+      <div id="s-access-on" style="display:none;flex-direction:column;gap:12px;">
+        <div style="background:rgba(74,222,128,.08);border:1px solid rgba(74,222,128,.25);border-radius:12px;padding:14px 16px;display:flex;align-items:center;gap:12px;">
+          <div style="width:10px;height:10px;border-radius:50%;background:#4ade80;flex-shrink:0;"></div>
+          <span style="font-size:13px;color:#4ade80;font-weight:600;">Control de acceso <b>activo</b></span>
+        </div>
+        <!-- Display del código -->
+        <div style="background:var(--surface);border:1px solid var(--line-2);border-radius:14px;padding:16px;text-align:center;">
+          <p style="font-size:11px;color:var(--text-mute);margin:0 0 8px;text-transform:uppercase;letter-spacing:.8px;">Código actual</p>
+          <div id="s-access-code-display" style="font-size:36px;font-weight:700;letter-spacing:10px;font-family:'JetBrains Mono',monospace;color:var(--amber);margin:0 0 12px;"></div>
+          <div style="display:flex;gap:8px;justify-content:center;">
+            <button type="button" class="btn btn-ghost" id="s-access-copy" style="padding:10px 16px;font-size:13px;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="width:15px;height:15px;">
+                <rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+              </svg>Copiar
+            </button>
+            <button type="button" class="btn btn-ghost" id="s-access-share-code" style="padding:10px 16px;font-size:13px;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" style="width:15px;height:15px;">
+                <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+                <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+              </svg>Compartir
+            </button>
+          </div>
+        </div>
+        <button type="button" class="btn btn-ghost" id="s-access-change" style="justify-content:center;font-size:13px;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" style="width:15px;height:15px;">
+            <path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/>
+            <path d="M3 22v-6h6"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/>
+          </svg>
+          Cambiar código (bloquear a quien se fue)
+        </button>
+        <button type="button" class="btn btn-ghost" id="s-access-deactivate" style="color:var(--red);border-color:rgba(248,113,113,.3);justify-content:center;font-size:13px;">
+          Desactivar control de acceso
+        </button>
+        <!-- Solicitudes pendientes -->
+        <div id="s-access-requests" style="display:none;flex-direction:column;gap:8px;margin-top:4px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;">
+            <span style="font-size:13px;font-weight:600;color:var(--text);">Solicitudes de acceso</span>
+            <span id="s-access-req-badge" style="background:var(--amber);color:#050810;font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;"></span>
+          </div>
+          <div id="s-access-req-list" style="display:flex;flex-direction:column;gap:6px;"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== SECCIÓN: SINCRONIZACIÓN DEL EQUIPO ===== -->
+    <section class="settings-section" id="s-sync-section">
+      <div class="sec-head">
+        <span class="sec-num">06</span>
         <span class="sec-title">Sincronización del equipo</span>
       </div>
       <p style="font-size:12.5px;color:var(--text-mute);margin:-6px 0 14px;line-height:1.5;">
@@ -2198,6 +2339,12 @@
             Sincronizar
           </button>
         </div>
+        <button type="button" class="btn btn-ghost" id="s-sync-change" style="justify-content:center;font-size:13px;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;">
+            <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+          </svg>
+          Cambiar código (expulsar a alguien)
+        </button>
         <button type="button" class="btn btn-ghost" id="s-sync-leave" style="color:var(--red);border-color:rgba(248,113,113,.3);justify-content:center;font-size:13px;">
           Salir del grupo
         </button>
@@ -2360,7 +2507,7 @@
    ============================================================= */
 
 const App = {
-  version: '0.7.20',
+  version: '0.7.22',
   step: 7,
 
   /* ===== CONSTANTES FIJAS — nunca cambian ===== */
@@ -4852,6 +4999,54 @@ const Settings = {
       PWA.refreshInstallButton();
     }
 
+    // === Control de acceso ===
+    document.getElementById('s-access-activate').addEventListener('click', async () => {
+      const code = document.getElementById('s-access-new-code').value.trim();
+      if(!/^\d{4,8}$/.test(code)){ App.toast('El código debe tener entre 4 y 8 dígitos'); return; }
+      try {
+        App.toast('Activando…');
+        await Access.setCode(code);
+        await this.renderAccess();
+        App.toast('✓ Control de acceso activado');
+      } catch(e){ App.toast('Error: ' + e.message); }
+    });
+
+    document.getElementById('s-access-copy').addEventListener('click', async () => {
+      const cfg = await Access.getConfig();
+      if(!cfg) return;
+      navigator.clipboard?.writeText(cfg.codigo).then(() => App.toast('Código copiado'))
+        .catch(() => App.toast('Código: ' + cfg.codigo));
+    });
+
+    document.getElementById('s-access-share-code').addEventListener('click', async () => {
+      const cfg = await Access.getConfig();
+      if(!cfg) return;
+      const msg = `Código de acceso para la app CG1 Partes Seguridad: ${cfg.codigo}`;
+      if(navigator.share){ await navigator.share({ title: 'Código de acceso CG1', text: msg }); }
+      else { navigator.clipboard?.writeText(msg); App.toast('Copiado'); }
+    });
+
+    document.getElementById('s-access-change').addEventListener('click', async () => {
+      const newCode = prompt('Nuevo código (4-8 dígitos):\n\nEl código actual quedará inválido. Tendrás que mandar el nuevo a tu equipo.');
+      if(!newCode) return;
+      if(!/^\d{4,8}$/.test(newCode.trim())){ App.toast('El código debe tener entre 4 y 8 dígitos'); return; }
+      try {
+        App.toast('Cambiando código…');
+        await Access.setCode(newCode.trim());
+        await this.renderAccess();
+        App.toast('✓ Código cambiado — mándalo a tu equipo');
+      } catch(e){ App.toast('Error: ' + e.message); }
+    });
+
+    document.getElementById('s-access-deactivate').addEventListener('click', async () => {
+      if(!confirm('¿Desactivar el control de acceso?\n\nCualquiera con el enlace podrá usar la app.')) return;
+      try {
+        await Access.disable();
+        await this.renderAccess();
+        App.toast('Control de acceso desactivado');
+      } catch(e){ App.toast('Error: ' + e.message); }
+    });
+
     // === Sincronización del equipo ===
     document.getElementById('s-sync-create').addEventListener('click', async () => {
       try {
@@ -4915,6 +5110,15 @@ const Settings = {
       btn.disabled = false;
     });
 
+    document.getElementById('s-sync-change').addEventListener('click', async () => {
+      if(!confirm('¿Cambiar el código del grupo?\n\nEl código actual dejará de funcionar. Tendrás que mandar el nuevo código a todos los compañeros que siguen en el equipo.\n\nEl que se va no podrá sincronizar con el nuevo código.')) return;
+      try {
+        const newPin = await Sync.changeGroup();
+        this.renderSync();
+        App.toast('✓ Código cambiado — mándalo a tus compañeros');
+      } catch(e){ App.toast('Error: ' + e.message); }
+    });
+
     document.getElementById('s-sync-leave').addEventListener('click', () => {
       if(!confirm('¿Salir del grupo? Los datos que ya tienes en este dispositivo no se borrarán.')) return;
       Sync.leave();
@@ -4928,6 +5132,57 @@ const Settings = {
     this.renderCentrales();
     this.renderDefaultRP();
     this.renderSync();
+    this.renderAccess();
+  },
+
+  async renderAccess(){
+    const offEl = document.getElementById('s-access-off');
+    const onEl  = document.getElementById('s-access-on');
+    let config = null;
+    try { config = await Access.getConfig(); } catch(e) {}
+
+    if(!config || !config.enabled){
+      offEl.style.display = '';
+      onEl.style.display  = 'none';
+      return;
+    }
+
+    offEl.style.display = 'none';
+    onEl.style.display  = 'flex';
+    document.getElementById('s-access-code-display').textContent = config.codigo || '—';
+
+    // Cargar solicitudes pendientes
+    const reqs = await Access.loadRequests();
+    const reqWrap = document.getElementById('s-access-requests');
+    const reqList = document.getElementById('s-access-req-list');
+    const badge   = document.getElementById('s-access-req-badge');
+
+    if(reqs.length === 0){
+      reqWrap.style.display = 'none';
+      return;
+    }
+
+    badge.textContent = reqs.length;
+    reqWrap.style.display = 'flex';
+    reqList.innerHTML = reqs.map(r => `
+      <div style="background:var(--surface);border:1px solid var(--line-2);border-radius:10px;padding:12px 14px;display:flex;justify-content:space-between;align-items:center;gap:10px;">
+        <div>
+          <p style="font-size:13.5px;font-weight:600;color:var(--text);margin:0 0 2px;">${this.esc(r.nombre || '—')}</p>
+          <p style="font-size:12px;color:var(--text-mute);margin:0;">${this.esc(r.tlf || 'Sin teléfono')} · ${r.fecha ? new Date(r.fecha).toLocaleDateString('es-ES') : ''}</p>
+        </div>
+        <button type="button" class="btn btn-ghost" data-req-dismiss="${this.esc(r._id)}"
+          style="padding:8px 12px;font-size:12px;flex-shrink:0;">
+          ✓ Atendido
+        </button>
+      </div>
+    `).join('');
+
+    reqList.querySelectorAll('[data-req-dismiss]').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        await Access.dismissRequest(btn.dataset.reqDismiss);
+        await this.renderAccess();
+      });
+    });
   },
 
   // Actualizar la UI de sincronización según el estado actual
@@ -5312,6 +5567,144 @@ const PWA = {
 };
 
 /* =====================================================================
+   ACCESS — Control de acceso a la app
+   Verifica un código contra Firebase antes de mostrar la app.
+   El admin gestiona el código desde Ajustes → Control de acceso.
+   ===================================================================== */
+const Access = {
+  // Ruta Firebase para el control de acceso
+  PATH_CONFIG:    'acceso/config',
+  PATH_SOLICITUDES: 'acceso/solicitudes',
+
+  // ── Verificar si este dispositivo tiene acceso ────────────────────
+  async check() {
+    const screen = document.getElementById('lock-screen');
+    const checking = document.getElementById('lock-checking');
+    const form = document.getElementById('lock-form');
+
+    // Obtener config de acceso de Firebase
+    let config = null;
+    try { config = await Sync.fbGet(this.PATH_CONFIG); } catch(e) {}
+
+    // Si no hay control activo (o Firebase no responde), abrir directamente
+    if(!config || !config.enabled) {
+      screen.style.display = 'none';
+      Sync.init();
+      return;
+    }
+
+    // Hay control activo — ¿tiene este dispositivo un token válido?
+    const local = App.load('cg1.access.token', null);
+    if(local && local.version === config.version) {
+      screen.style.display = 'none';
+      return;
+    }
+
+    // Mostrar formulario de código
+    checking.style.display = 'none';
+    form.style.display = 'flex';
+
+    // Bind botón entrar
+    const btn = document.getElementById('lock-submit');
+    const input = document.getElementById('lock-code-input');
+    const errEl = document.getElementById('lock-error');
+    input.focus();
+
+    const tryUnlock = async () => {
+      const code = input.value.trim();
+      if(!code) return;
+      btn.disabled = true;
+      btn.textContent = 'Verificando…';
+      errEl.style.display = 'none';
+      try {
+        const ok = await this.activate(code, config);
+        if(ok){
+          screen.style.display = 'none';
+          Sync.init(); // iniciar sync ahora que hay acceso
+        } else {
+          errEl.style.display = 'block';
+          input.value = '';
+          input.focus();
+        }
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Entrar';
+      }
+    };
+
+    btn.addEventListener('click', tryUnlock);
+    input.addEventListener('keydown', e => { if(e.key === 'Enter') tryUnlock(); });
+
+    // Botón enviar solicitud
+    document.getElementById('lock-req-send').addEventListener('click', () => this.sendRequest());
+  },
+
+  // Verificar código introducido
+  async activate(code, config) {
+    if(String(code).trim() !== String(config.codigo).trim()) return false;
+    App.save('cg1.access.token', { version: config.version, at: Date.now() });
+    return true;
+  },
+
+  // Enviar solicitud de acceso
+  async sendRequest() {
+    const nombre = document.getElementById('lock-req-nombre').value.trim();
+    const tlf    = document.getElementById('lock-req-tlf').value.trim();
+    if(!nombre){ App.toast('Indica tu nombre'); return; }
+    const btn = document.getElementById('lock-req-send');
+    btn.disabled = true;
+    try {
+      const id = 'sol_' + Date.now();
+      await Sync.fbSet(`${this.PATH_SOLICITUDES}/${id}`, {
+        nombre, tlf, fecha: new Date().toISOString(), leida: false
+      });
+      document.getElementById('lock-request-form').style.display = 'none';
+      document.getElementById('lock-req-ok').style.display = 'block';
+    } catch(e) {
+      App.toast('No se pudo enviar. Comprueba la conexión.');
+      btn.disabled = false;
+    }
+  },
+
+  // ── Admin: activar/cambiar/desactivar ─────────────────────────────
+
+  async setCode(codigo) {
+    const current = await Sync.fbGet(this.PATH_CONFIG) || { version: 0 };
+    const newVersion = (current.version || 0) + 1;
+    await Sync.fbSet(this.PATH_CONFIG, {
+      enabled: true,
+      codigo: String(codigo),
+      version: newVersion,
+      updatedAt: Date.now()
+    });
+    // El admin siempre tiene acceso
+    App.save('cg1.access.token', { version: newVersion, at: Date.now() });
+  },
+
+  async disable() {
+    await Sync.fbSet(this.PATH_CONFIG, { enabled: false, updatedAt: Date.now() });
+    App.save('cg1.access.token', null);
+  },
+
+  async getConfig() {
+    return Sync.fbGet(this.PATH_CONFIG);
+  },
+
+  // Cargar solicitudes pendientes para mostrar en Ajustes
+  async loadRequests() {
+    try {
+      const docs = await Sync.fbList(this.PATH_SOLICITUDES);
+      return docs.filter(d => !d.leida);
+    } catch(e) { return []; }
+  },
+
+  // Marcar solicitud como atendida
+  async dismissRequest(id) {
+    await Sync.fbSet(`${this.PATH_SOLICITUDES}/${id}`, { leida: true });
+  }
+};
+
+/* =====================================================================
    SYNC — Sincronización del equipo via Firebase Firestore REST API
    Permite compartir trabajadores, centrales y firmas entre dispositivos
    usando un código PIN de 6 dígitos como identificador de grupo.
@@ -5505,6 +5898,22 @@ const Sync = {
     }
   },
 
+  // Cambiar el código del grupo — para cuando alguien se va del equipo.
+  // Genera un PIN nuevo, migra los datos al nuevo grupo y abandona el viejo.
+  async changeGroup() {
+    const oldPin = this.pin;
+    const newPin = String(Math.floor(100000 + Math.random() * 900000));
+    App.toast('Cambiando código…');
+    // Subir los datos actuales al grupo nuevo
+    await this.push(newPin);
+    // Actualizar PIN local
+    this.pin = newPin;
+    App.save('cg1.sync.lastSync', Date.now());
+    // Los datos del grupo viejo quedan en Firebase pero nadie los usará
+    // (el que se fue tiene el código viejo que ya no corresponde a nada activo)
+    return newPin;
+  },
+
   // Salir del grupo (solo borra localmente el PIN)
   leave() {
     this.pin = null;
@@ -5536,7 +5945,12 @@ const Sync = {
 
 document.addEventListener('DOMContentLoaded', () => App.init());
 document.addEventListener('DOMContentLoaded', () => PWA.init());
-document.addEventListener('DOMContentLoaded', () => Sync.init());
+// Access.check muestra la pantalla de bloqueo si es necesario.
+// Sync.init se llama desde Access.check una vez verificado el acceso,
+// o directamente si no hay control de acceso activo.
+document.addEventListener('DOMContentLoaded', async () => {
+  await Access.check();
+});
 </script>
 
 </body>
