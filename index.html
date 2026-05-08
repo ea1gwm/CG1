@@ -1269,11 +1269,15 @@
           <path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l3 2"/>
         </svg>
       </button>
-      <button class="icon-btn" id="btn-settings" aria-label="Ajustes" type="button">
+      <button class="icon-btn" id="btn-settings" aria-label="Ajustes" type="button" style="position:relative;">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="12" cy="12" r="3"/>
           <path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3h0a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5h0a1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8v0a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>
         </svg>
+        <!-- Badge de solicitudes pendientes -->
+        <span id="settings-badge" style="display:none;position:absolute;top:2px;right:2px;
+          width:10px;height:10px;background:#f87171;border-radius:50%;
+          border:2px solid var(--bg-1);"></span>
       </button>
     </div>
   </header>
@@ -2206,6 +2210,13 @@
                    placeholder="ej. 8472" maxlength="8"
                    style="letter-spacing:6px;font-size:20px;text-align:center;font-family:'JetBrains Mono',monospace;">
           </div>
+          <div class="field">
+            <span class="field-label">Tu PIN de administrador (4-8 dígitos, solo tú lo sabes)</span>
+            <input class="input" type="tel" inputmode="numeric" id="s-access-admin-pin"
+                   placeholder="ej. 3791" maxlength="8"
+                   style="letter-spacing:6px;font-size:20px;text-align:center;font-family:'JetBrains Mono',monospace;">
+            <span style="font-size:11.5px;color:var(--text-mute);">Con este PIN puedes cambiar el código y ver quién solicita acceso. <b>Guárdalo bien.</b></span>
+          </div>
           <button type="button" class="btn btn-primary" id="s-access-activate">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px;">
               <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
@@ -2468,6 +2479,27 @@
     </div>
   </div>
 
+  <!-- Modal: PIN de administrador (control de acceso) -->
+  <div class="modal-backdrop" id="modal-admin-pin" role="dialog" aria-modal="true">
+    <div class="modal">
+      <div class="modal-head">
+        <h3>PIN de administrador</h3>
+        <button class="modal-close" type="button" id="map-close" aria-label="Cerrar">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></svg>
+        </button>
+      </div>
+      <p style="font-size:13.5px;color:var(--text-dim);margin:0 0 16px;">Introduce tu PIN de administrador para gestionar el control de acceso.</p>
+      <input class="input" type="tel" inputmode="numeric" id="map-pin-input"
+             placeholder="PIN de administrador" maxlength="8"
+             style="letter-spacing:6px;font-size:22px;text-align:center;font-family:'JetBrains Mono',monospace;margin-bottom:12px;">
+      <p id="map-error" style="color:#f87171;font-size:13px;display:none;margin:0 0 12px;">PIN incorrecto.</p>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-ghost" id="map-cancel">Cancelar</button>
+        <button type="button" class="btn btn-primary" id="map-confirm">Confirmar</button>
+      </div>
+    </div>
+  </div>
+
   <!-- ========= VISTA: HISTORIAL ========= -->
   <main class="view" id="view-history">
     <button class="back-btn" data-go="home" type="button">
@@ -2507,7 +2539,7 @@
    ============================================================= */
 
 const App = {
-  version: '0.7.25',
+  version: '0.7.26',
   step: 7,
 
   /* ===== CONSTANTES FIJAS — nunca cambian ===== */
@@ -5002,10 +5034,12 @@ const Settings = {
     // === Control de acceso ===
     document.getElementById('s-access-activate').addEventListener('click', async () => {
       const code = document.getElementById('s-access-new-code').value.trim();
-      if(!/^\d{4,8}$/.test(code)){ App.toast('El código debe tener entre 4 y 8 dígitos'); return; }
+      const pin  = document.getElementById('s-access-admin-pin').value.trim();
+      if(!/^\d{4,8}$/.test(code)){ App.toast('El código del equipo debe tener entre 4 y 8 dígitos'); return; }
+      if(!/^\d{4,8}$/.test(pin)){  App.toast('El PIN de administrador debe tener entre 4 y 8 dígitos'); return; }
       try {
         App.toast('Activando…');
-        await Access.setCode(code);
+        await Access.setCode(code, pin);
         await this.renderAccess();
         App.toast('✓ Control de acceso activado');
       } catch(e){ App.toast('Error: ' + e.message); }
@@ -5026,25 +5060,28 @@ const Settings = {
       else { navigator.clipboard?.writeText(msg); App.toast('Copiado'); }
     });
 
-    document.getElementById('s-access-change').addEventListener('click', async () => {
-      const newCode = prompt('Nuevo código (4-8 dígitos):\n\nEl código actual quedará inválido. Tendrás que mandar el nuevo a tu equipo.');
-      if(!newCode) return;
-      if(!/^\d{4,8}$/.test(newCode.trim())){ App.toast('El código debe tener entre 4 y 8 dígitos'); return; }
-      try {
-        App.toast('Cambiando código…');
-        await Access.setCode(newCode.trim());
-        await this.renderAccess();
-        App.toast('✓ Código cambiado — mándalo a tu equipo');
-      } catch(e){ App.toast('Error: ' + e.message); }
+    document.getElementById('s-access-change').addEventListener('click', () => {
+      Access.requireAdmin(async () => {
+        const newCode = prompt('Nuevo código del equipo (4-8 dígitos):\n\nEl código actual quedará inválido.');
+        if(!newCode || !/^\d{4,8}$/.test(newCode.trim())){ App.toast('Código inválido'); return; }
+        try {
+          App.toast('Cambiando código…');
+          await Access.changeCode(newCode.trim());
+          await this.renderAccess();
+          App.toast('✓ Código cambiado — mándalo a tu equipo');
+        } catch(e){ App.toast('Error: ' + e.message); }
+      });
     });
 
-    document.getElementById('s-access-deactivate').addEventListener('click', async () => {
-      if(!confirm('¿Desactivar el control de acceso?\n\nCualquiera con el enlace podrá usar la app.')) return;
-      try {
-        await Access.disable();
-        await this.renderAccess();
-        App.toast('Control de acceso desactivado');
-      } catch(e){ App.toast('Error: ' + e.message); }
+    document.getElementById('s-access-deactivate').addEventListener('click', () => {
+      Access.requireAdmin(async () => {
+        if(!confirm('¿Desactivar el control de acceso?\n\nCualquiera con el enlace podrá usar la app.')) return;
+        try {
+          await Access.disable();
+          await this.renderAccess();
+          App.toast('Control de acceso desactivado');
+        } catch(e){ App.toast('Error: ' + e.message); }
+      });
     });
 
     // === Sincronización del equipo ===
@@ -5568,85 +5605,58 @@ const PWA = {
 
 /* =====================================================================
    ACCESS — Control de acceso a la app
-   Verifica un código contra Firebase antes de mostrar la app.
-   El admin gestiona el código desde Ajustes → Control de acceso.
+   Código de equipo: para que los compañeros entren.
+   PIN de admin: solo el administrador puede gestionar (cambiar código, ver solicitudes).
    ===================================================================== */
 const Access = {
-  // Rutas Firebase — número PAR de segmentos, sin IDs reservados (__x__)
   PATH_CONFIG:      'grupos/cg1sistema/config/acceso',
   PATH_SOLICITUDES: 'grupos/cg1sistema/solicitudes',
 
-  // ── Verificar si este dispositivo tiene acceso ────────────────────
   async check() {
-    const screen = document.getElementById('lock-screen');
+    const screen   = document.getElementById('lock-screen');
     const checking = document.getElementById('lock-checking');
-    const form = document.getElementById('lock-form');
-
-    // Obtener config de acceso de Firebase
+    const form     = document.getElementById('lock-form');
     let config = null;
     try { config = await Sync.fbGet(this.PATH_CONFIG); } catch(e) {}
 
-    // Si no hay control activo (o Firebase no responde), abrir directamente
-    if(!config || !config.enabled) {
+    if(!config || !config.enabled){
       screen.style.display = 'none';
       Sync.init();
+      this.checkBadge();
       return;
     }
-
-    // Hay control activo — ¿tiene este dispositivo un token válido?
     const local = App.load('cg1.access.token', null);
-    if(local && local.version === config.version) {
+    if(local && local.version === config.version){
       screen.style.display = 'none';
+      Sync.init();
+      this.checkBadge();
       return;
     }
-
-    // Mostrar formulario de código
     checking.style.display = 'none';
     form.style.display = 'flex';
-
-    // Bind botón entrar
     const btn = document.getElementById('lock-submit');
     const input = document.getElementById('lock-code-input');
     const errEl = document.getElementById('lock-error');
     input.focus();
-
     const tryUnlock = async () => {
       const code = input.value.trim();
       if(!code) return;
-      btn.disabled = true;
-      btn.textContent = 'Verificando…';
-      errEl.style.display = 'none';
+      btn.disabled = true; btn.textContent = 'Verificando…'; errEl.style.display = 'none';
       try {
-        const ok = await this.activate(code, config);
-        if(ok){
+        if(String(code) === String(config.codigo)){
+          App.save('cg1.access.token', { version: config.version, at: Date.now() });
           screen.style.display = 'none';
-          Sync.init(); // iniciar sync ahora que hay acceso
+          Sync.init();
         } else {
-          errEl.style.display = 'block';
-          input.value = '';
-          input.focus();
+          errEl.style.display = 'block'; input.value = ''; input.focus();
         }
-      } finally {
-        btn.disabled = false;
-        btn.textContent = 'Entrar';
-      }
+      } finally { btn.disabled = false; btn.textContent = 'Entrar'; }
     };
-
-    btn.addEventListener('click', tryUnlock);
-    input.addEventListener('keydown', e => { if(e.key === 'Enter') tryUnlock(); });
-
-    // Botón enviar solicitud
-    document.getElementById('lock-req-send').addEventListener('click', () => this.sendRequest());
+    btn.onclick = tryUnlock;
+    input.onkeydown = e => { if(e.key === 'Enter') tryUnlock(); };
+    document.getElementById('lock-req-send').onclick = () => this.sendRequest();
   },
 
-  // Verificar código introducido
-  async activate(code, config) {
-    if(String(code).trim() !== String(config.codigo).trim()) return false;
-    App.save('cg1.access.token', { version: config.version, at: Date.now() });
-    return true;
-  },
-
-  // Enviar solicitud de acceso
   async sendRequest() {
     const nombre = document.getElementById('lock-req-nombre').value.trim();
     const tlf    = document.getElementById('lock-req-tlf').value.trim();
@@ -5654,30 +5664,50 @@ const Access = {
     const btn = document.getElementById('lock-req-send');
     btn.disabled = true;
     try {
-      const id = 'sol_' + Date.now();
-      await Sync.fbSet(`${this.PATH_SOLICITUDES}/${id}`, {
+      await Sync.fbSet(`${this.PATH_SOLICITUDES}/sol${Date.now()}`, {
         nombre, tlf, fecha: new Date().toISOString(), leida: false
       });
       document.getElementById('lock-request-form').style.display = 'none';
       document.getElementById('lock-req-ok').style.display = 'block';
-    } catch(e) {
-      App.toast('No se pudo enviar. Comprueba la conexión.');
-      btn.disabled = false;
-    }
+    } catch(e) { App.toast('No se pudo enviar. Comprueba la conexión.'); btn.disabled = false; }
   },
 
-  // ── Admin: activar/cambiar/desactivar ─────────────────────────────
+  // Pedir PIN admin antes de ejecutar una acción de gestión
+  requireAdmin(onOk) {
+    const modal = document.getElementById('modal-admin-pin');
+    const input = document.getElementById('map-pin-input');
+    const errEl = document.getElementById('map-error');
+    input.value = ''; errEl.style.display = 'none';
+    modal.classList.add('show'); input.focus();
+    const close = () => { modal.classList.remove('show'); };
+    document.getElementById('map-close').onclick  = close;
+    document.getElementById('map-cancel').onclick = close;
+    document.getElementById('map-confirm').onclick = async () => {
+      const pin = input.value.trim();
+      const cfg = await this.getConfig();
+      if(!cfg || String(pin) !== String(cfg.adminPin)){
+        errEl.style.display = 'block'; input.value = ''; input.focus(); return;
+      }
+      close(); onOk();
+    };
+    input.onkeydown = e => { if(e.key === 'Enter') document.getElementById('map-confirm').click(); };
+  },
 
-  async setCode(codigo) {
-    const current = await Sync.fbGet(this.PATH_CONFIG) || { version: 0 };
+  async setCode(codigo, adminPin) {
+    const current = await this.getConfig() || { version: 0 };
     const newVersion = (current.version || 0) + 1;
     await Sync.fbSet(this.PATH_CONFIG, {
-      enabled: true,
-      codigo: String(codigo),
-      version: newVersion,
-      updatedAt: Date.now()
+      enabled: true, codigo: String(codigo), adminPin: String(adminPin),
+      version: newVersion, updatedAt: Date.now()
     });
-    // El admin siempre tiene acceso
+    App.save('cg1.access.token', { version: newVersion, at: Date.now() });
+  },
+
+  async changeCode(newCodigo) {
+    const current = await this.getConfig();
+    if(!current) throw new Error('No hay config');
+    const newVersion = (current.version || 0) + 1;
+    await Sync.fbSet(this.PATH_CONFIG, { ...current, codigo: String(newCodigo), version: newVersion, updatedAt: Date.now() });
     App.save('cg1.access.token', { version: newVersion, at: Date.now() });
   },
 
@@ -5687,20 +5717,26 @@ const Access = {
   },
 
   async getConfig() {
-    return Sync.fbGet(this.PATH_CONFIG);
+    try { return await Sync.fbGet(this.PATH_CONFIG); } catch(e) { return null; }
   },
 
-  // Cargar solicitudes pendientes para mostrar en Ajustes
   async loadRequests() {
-    try {
-      const docs = await Sync.fbList(this.PATH_SOLICITUDES);
-      return docs.filter(d => !d.leida);
-    } catch(e) { return []; }
+    try { return (await Sync.fbList(this.PATH_SOLICITUDES)).filter(d => !d.leida); }
+    catch(e) { return []; }
   },
 
-  // Marcar solicitud como atendida
   async dismissRequest(id) {
-    await Sync.fbSet(`${this.PATH_SOLICITUDES}/${id}`, { leida: true });
+    try { await Sync.fbSet(`${this.PATH_SOLICITUDES}/${id}`, { leida: true }); } catch(e) {}
+  },
+
+  async checkBadge() {
+    try {
+      const config = await this.getConfig();
+      if(!config || !config.enabled) return;
+      const reqs = await this.loadRequests();
+      const badge = document.getElementById('settings-badge');
+      if(badge) badge.style.display = reqs.length > 0 ? 'block' : 'none';
+    } catch(e) {}
   }
 };
 
