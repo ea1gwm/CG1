@@ -2276,7 +2276,7 @@
    ============================================================= */
 
 const App = {
-  version: '0.7.17',
+  version: '0.7.18',
   step: 7,
 
   /* ===== CONSTANTES FIJAS — nunca cambian ===== */
@@ -4352,12 +4352,13 @@ const Pdf = {
     txt2(395, 685.3, 9, '112');
 
     // Cierre del parte: cada palabra dentro de su hueco entre los puntos suspensivos
-    // de la línea original "En  ……  a  …… de ……………….. de 20… " (baseline Y=669.98).
-    // Coordenadas calculadas a partir de las posiciones reales de "En", "a", "de", "de 20".
-    txt2(70,  670, 9, d.poblacion);            // entre "En " y " a"
-    txt2(158, 670, 9, fechaParts.dia);         // entre "a " y " de"
-    txt2(200, 670, 9, fechaParts.mes);         // entre primer "de " y " de 20"
-    txt2(265, 670, 9, fechaParts.ano);         // después de "de 20"
+    // de la línea original "En  ……  a  …… de ……………….. de 20… " (baseline real Y=669.98).
+    // Las palabras se dibujan 2pt por encima del baseline (Y=672) para que queden ENCIMA
+    // de los puntos suspensivos (mismo offset que en postes, donde funciona bien).
+    txt2(70,  672, 9, d.poblacion);            // entre "En " y " a"
+    txt2(158, 672, 9, fechaParts.dia);         // entre "a " y " de"
+    txt2(200, 672, 9, fechaParts.mes);         // entre primer "de " y " de 20"
+    txt2(265, 672, 9, fechaParts.ano);         // después de "de 20"
 
     // Bloque firma (baselines reales: Nombre=631.8, NIF=620.8; labels acaban en X≈145)
     txt2(170, 631.8, 9, rp.nombre);
