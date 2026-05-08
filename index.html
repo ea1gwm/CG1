@@ -2276,7 +2276,7 @@
    ============================================================= */
 
 const App = {
-  version: '0.7.16',
+  version: '0.7.17',
   step: 7,
 
   /* ===== CONSTANTES FIJAS — nunca cambian ===== */
@@ -3877,7 +3877,12 @@ const Pdf = {
     'hora':         [175, 722, 9],
     'central':      [411, 722, 9],
     'trabajo':      [160, 713, 9],
-    // Cierre — se imprime con _buildCierreCcrr() en una sola línea limpia (no usa estas coords)
+    // Cierre — cada palabra dentro de su hueco entre los puntos suspensivos
+    // Línea: "En  …………… a ……… de ……………… de 20… " (baseline real Y=64.88)
+    'cierre_pob':   [75,  67, 9],
+    'cierre_dia':   [203, 67, 9],
+    'cierre_mes':   [275, 67, 9],
+    'cierre_ano':   [350, 67, 9],
     // Bloque firma RP (baselines reales: nombre=53.32, NIF=42.76)
     'rp_nombre':    [145, 53.3, 9],
     'rp_nif':       [145, 42.8, 9],
@@ -4009,24 +4014,16 @@ const Pdf = {
         case 'hora':         val = d.hora; break;
         case 'central':      val = d.central; break;
         case 'trabajo':      val = d.trabajo; break;
+        case 'cierre_pob':   val = d.poblacion; break;
+        case 'cierre_dia':   val = fechaParts.dia; break;
+        case 'cierre_mes':   val = fechaParts.mes; break;
+        case 'cierre_ano':   val = fechaParts.ano; break;
         case 'rp_nombre':    val = rp.nombre; break;
         case 'rp_nif':       val = rp.nif; break;
         case 'tlf':          val = '061 / 112'; break;
-        // cierre_* ya no se imprime aquí — se hace abajo con frase limpia
       }
       if(val) txt(x, y, sz, val);
     });
-
-    // === CIERRE DEL PARTE: "En Ferrol a 7 de mayo de 2026" ===
-    // La plantilla tiene la línea "En  …………… a ……… de ……………… de 20… " (baseline Y=64.88).
-    // La cubrimos con un rectángulo blanco para que no se vean los puntos detrás
-    // y escribimos la frase completa de forma limpia.
-    const white = rgb(1, 1, 1);
-    page.drawRectangle({ x: 48, y: 63, width: 312, height: 14, color: white });
-    const cierreTxt = this._buildCierreCcrr(d); // misma lógica que CCRR
-    if(cierreTxt){
-      page.drawText(this._sanitize(cierreTxt), { x: 49.32, y: 66, size: 9, font: helvetica, color: black });
-    }
 
     // === TRABAJADORES (1 por fila, máximo 4, RP siempre primero) ===
     // El RP va en la fila 1; el resto detrás
@@ -4354,16 +4351,13 @@ const Pdf = {
     txt2(395, 696.2, 9, '061');
     txt2(395, 685.3, 9, '112');
 
-    // Cierre del parte: "En Ferrol a 7 de mayo de 2026"
-    // La plantilla tiene la línea "En  ………  a  …… de ……………….. de 20… " (baseline Y=669.98).
-    // Cubrimos esa línea con un rectángulo blanco y escribimos una frase limpia encima,
-    // así no se ven los puntos suspensivos detrás de las palabras.
-    const white = rgb(1, 1, 1);
-    page2.drawRectangle({ x: 47, y: 668, width: 224, height: 13, color: white });
-    const cierreTxt = this._buildCierreCcrr(d);
-    if(cierreTxt){
-      page2.drawText(this._sanitize(cierreTxt), { x: 49.65, y: 670, size: 9, font: helvetica, color: black });
-    }
+    // Cierre del parte: cada palabra dentro de su hueco entre los puntos suspensivos
+    // de la línea original "En  ……  a  …… de ……………….. de 20… " (baseline Y=669.98).
+    // Coordenadas calculadas a partir de las posiciones reales de "En", "a", "de", "de 20".
+    txt2(70,  670, 9, d.poblacion);            // entre "En " y " a"
+    txt2(158, 670, 9, fechaParts.dia);         // entre "a " y " de"
+    txt2(200, 670, 9, fechaParts.mes);         // entre primer "de " y " de 20"
+    txt2(265, 670, 9, fechaParts.ano);         // después de "de 20"
 
     // Bloque firma (baselines reales: Nombre=631.8, NIF=620.8; labels acaban en X≈145)
     txt2(170, 631.8, 9, rp.nombre);
