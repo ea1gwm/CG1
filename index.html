@@ -2507,7 +2507,7 @@
    ============================================================= */
 
 const App = {
-  version: '0.7.22',
+  version: '0.7.23',
   step: 7,
 
   /* ===== CONSTANTES FIJAS — nunca cambian ===== */
@@ -5572,9 +5572,9 @@ const PWA = {
    El admin gestiona el código desde Ajustes → Control de acceso.
    ===================================================================== */
 const Access = {
-  // Ruta Firebase para el control de acceso
-  PATH_CONFIG:    'acceso/config',
-  PATH_SOLICITUDES: 'acceso/solicitudes',
+  // Ruta Firebase para el control de acceso (dentro de grupos/ que ya está permitido en reglas)
+  PATH_CONFIG:      'grupos/_acceso_/config',
+  PATH_SOLICITUDES: 'grupos/_acceso_/solicitudes',
 
   // ── Verificar si este dispositivo tiene acceso ────────────────────
   async check() {
