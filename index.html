@@ -2276,7 +2276,7 @@
    ============================================================= */
 
 const App = {
-  version: '0.7.15',
+  version: '0.7.16',
   step: 7,
 
   /* ===== CONSTANTES FIJAS — nunca cambian ===== */
@@ -3847,6 +3847,19 @@ const Pdf = {
     return { dia: String(d), mes: meses[m-1] || '', ano: String(y).slice(-2) };
   },
 
+  // Construye la frase de cierre del CCRR — "En Ferrol a 7 de mayo de 2026"
+  // Si falta algún dato, deja la pieza vacía pero con coherencia gramatical.
+  _buildCierreCcrr(d){
+    if(!d.fecha) return '';
+    const meses = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+    const [y, m, dd] = d.fecha.split('-').map(Number);
+    const dia = String(dd);
+    const mes = meses[m-1] || '';
+    const ano = String(y); // año completo, p. ej. "2026"
+    const pob = (d.poblacion || '').trim();
+    return `En ${pob} a ${dia} de ${mes} de ${ano}`;
+  },
+
   /* =============================================================
      === MAPEO DE COORDENADAS POSTES (plantilla nueva — Rev. Octubre 2019) ===
      ============================================================= */
@@ -3864,15 +3877,12 @@ const Pdf = {
     'hora':         [175, 722, 9],
     'central':      [411, 722, 9],
     'trabajo':      [160, 713, 9],
-    // Cierre — X y Y ajustadas
-    'cierre_pob':   [75,  67, 9],
-    'cierre_dia':   [203, 67, 9],
-    'cierre_mes':   [275, 67, 9],
-    'cierre_ano':   [350, 67, 9],
-    'rp_nombre':    [145, 56, 9],
-    'rp_nif':       [145, 42, 9],
-    // Tlf emergencias
-    'tlf':          [460, 94, 9],
+    // Cierre — se imprime con _buildCierreCcrr() en una sola línea limpia (no usa estas coords)
+    // Bloque firma RP (baselines reales: nombre=53.32, NIF=42.76)
+    'rp_nombre':    [145, 53.3, 9],
+    'rp_nif':       [145, 42.8, 9],
+    // Servicios emergencia (baseline 92.2)
+    'tlf':          [460, 92.2, 9],
   },
 
   // Coordenadas (cx, cy) de los checkboxes
@@ -3999,16 +4009,24 @@ const Pdf = {
         case 'hora':         val = d.hora; break;
         case 'central':      val = d.central; break;
         case 'trabajo':      val = d.trabajo; break;
-        case 'cierre_pob':   val = d.poblacion; break;
-        case 'cierre_dia':   val = fechaParts.dia; break;
-        case 'cierre_mes':   val = fechaParts.mes; break;
-        case 'cierre_ano':   val = fechaParts.ano; break;
         case 'rp_nombre':    val = rp.nombre; break;
         case 'rp_nif':       val = rp.nif; break;
         case 'tlf':          val = '061 / 112'; break;
+        // cierre_* ya no se imprime aquí — se hace abajo con frase limpia
       }
       if(val) txt(x, y, sz, val);
     });
+
+    // === CIERRE DEL PARTE: "En Ferrol a 7 de mayo de 2026" ===
+    // La plantilla tiene la línea "En  …………… a ……… de ……………… de 20… " (baseline Y=64.88).
+    // La cubrimos con un rectángulo blanco para que no se vean los puntos detrás
+    // y escribimos la frase completa de forma limpia.
+    const white = rgb(1, 1, 1);
+    page.drawRectangle({ x: 48, y: 63, width: 312, height: 14, color: white });
+    const cierreTxt = this._buildCierreCcrr(d); // misma lógica que CCRR
+    if(cierreTxt){
+      page.drawText(this._sanitize(cierreTxt), { x: 49.32, y: 66, size: 9, font: helvetica, color: black });
+    }
 
     // === TRABAJADORES (1 por fila, máximo 4, RP siempre primero) ===
     // El RP va en la fila 1; el resto detrás
@@ -4331,14 +4349,25 @@ const Pdf = {
     });
 
     // === PÁGINA 2 ===
-    txt2(430, 698, 9, '061');
-    txt2(430, 687, 9, '112');
-    txt2(130, 666, 9, d.poblacion);
-    txt2(272, 666, 9, fechaParts.dia);
-    txt2(320, 666, 9, fechaParts.mes);
-    txt2(430, 666, 9, fechaParts.ano);
-    txt2(140, 633, 9, rp.nombre);
-    txt2(140, 622, 9, rp.nif);
+
+    // Servicios de emergencia (baselines reales: 696.2 y 685.3)
+    txt2(395, 696.2, 9, '061');
+    txt2(395, 685.3, 9, '112');
+
+    // Cierre del parte: "En Ferrol a 7 de mayo de 2026"
+    // La plantilla tiene la línea "En  ………  a  …… de ……………….. de 20… " (baseline Y=669.98).
+    // Cubrimos esa línea con un rectángulo blanco y escribimos una frase limpia encima,
+    // así no se ven los puntos suspensivos detrás de las palabras.
+    const white = rgb(1, 1, 1);
+    page2.drawRectangle({ x: 47, y: 668, width: 224, height: 13, color: white });
+    const cierreTxt = this._buildCierreCcrr(d);
+    if(cierreTxt){
+      page2.drawText(this._sanitize(cierreTxt), { x: 49.65, y: 670, size: 9, font: helvetica, color: black });
+    }
+
+    // Bloque firma (baselines reales: Nombre=631.8, NIF=620.8; labels acaban en X≈145)
+    txt2(170, 631.8, 9, rp.nombre);
+    txt2(170, 620.8, 9, rp.nif);
 
     this.CCRR_FIJOS_EPIS_P2.forEach(t => {
       const c = this.CCRR_T_CENTERS[t];
