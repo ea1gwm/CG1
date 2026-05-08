@@ -2120,9 +2120,90 @@
       </div>
     </section>
 
-    <section class="settings-section">
+    <section class="settings-section" id="s-sync-section">
       <div class="sec-head">
         <span class="sec-num">05</span>
+        <span class="sec-title">Sincronización del equipo</span>
+      </div>
+      <p style="font-size:12.5px;color:var(--text-mute);margin:-6px 0 14px;line-height:1.5;">
+        Comparte trabajadores, categorías y firmas entre los móviles del equipo. Cada dispositivo usa un <b style="color:var(--text)">código de 6 dígitos</b> para unirse al mismo grupo.
+      </p>
+
+      <!-- Estado: sin grupo -->
+      <div id="s-sync-nogroup" style="display:flex;flex-direction:column;gap:10px;">
+        <button type="button" class="btn btn-primary" id="s-sync-create" style="justify-content:flex-start;padding:16px 18px;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;flex-shrink:0;">
+            <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/>
+          </svg>
+          <span style="text-align:left;">
+            <span style="display:block;font-weight:700;">Crear grupo nuevo</span>
+            <span style="display:block;font-size:11.5px;font-weight:400;opacity:.75;margin-top:2px;">Genera un código y compártelo con los compañeros</span>
+          </span>
+        </button>
+        <button type="button" class="btn btn-ghost" id="s-sync-join-btn" style="justify-content:flex-start;padding:16px 18px;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;flex-shrink:0;">
+            <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/>
+          </svg>
+          <span style="text-align:left;">
+            <span style="display:block;font-weight:700;">Unirse con código</span>
+            <span style="display:block;font-size:11.5px;font-weight:400;opacity:.75;margin-top:2px;">Introduce el código que te dio un compañero</span>
+          </span>
+        </button>
+        <!-- Input para introducir PIN -->
+        <div id="s-sync-join-form" style="display:none;margin-top:4px;">
+          <div class="field">
+            <span class="field-label">Código del grupo (6 dígitos)</span>
+            <input class="input" type="tel" inputmode="numeric" maxlength="6" id="s-sync-pin-input"
+                   placeholder="ej. 472831" style="letter-spacing:6px;font-size:22px;text-align:center;font-family:'JetBrains Mono',monospace;">
+          </div>
+          <div style="display:flex;gap:8px;margin-top:8px;">
+            <button type="button" class="btn btn-ghost" id="s-sync-join-cancel" style="flex:1;">Cancelar</button>
+            <button type="button" class="btn btn-primary" id="s-sync-join-confirm" style="flex:2;">Unirse al grupo</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Estado: en grupo -->
+      <div id="s-sync-ingroup" style="display:none;flex-direction:column;gap:12px;">
+        <!-- Display del código -->
+        <div style="background:var(--surface);border:1px solid var(--line-2);border-radius:14px;padding:16px;text-align:center;">
+          <p style="font-size:11px;color:var(--text-mute);margin:0 0 8px;text-transform:uppercase;letter-spacing:.8px;">Código del grupo</p>
+          <div id="s-sync-pin-display" style="font-size:34px;font-weight:700;letter-spacing:10px;font-family:'JetBrains Mono',monospace;color:var(--amber);margin:0 0 12px;"></div>
+          <div style="display:flex;gap:8px;justify-content:center;">
+            <button type="button" class="btn btn-ghost" id="s-sync-copy" style="padding:10px 16px;font-size:13px;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="width:16px;height:16px;">
+                <rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+              </svg>
+              Copiar
+            </button>
+            <button type="button" class="btn btn-ghost" id="s-sync-whatsapp" style="padding:10px 16px;font-size:13px;color:#25d366;border-color:rgba(37,211,102,.3);">
+              <svg viewBox="0 0 24 24" fill="currentColor" style="width:16px;height:16px;"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/></svg>
+              WhatsApp
+            </button>
+          </div>
+        </div>
+        <!-- Estado sync -->
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:var(--surface);border:1px solid var(--line-2);border-radius:10px;">
+          <div>
+            <p style="font-size:12.5px;font-weight:600;margin:0 0 3px;color:var(--text);">Última sincronización</p>
+            <p id="s-sync-last" style="font-size:11.5px;color:var(--text-mute);margin:0;">Calculando…</p>
+          </div>
+          <button type="button" class="btn btn-ghost" id="s-sync-now" style="padding:10px 14px;font-size:13px;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" style="width:16px;height:16px;">
+              <polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+            </svg>
+            Sincronizar
+          </button>
+        </div>
+        <button type="button" class="btn btn-ghost" id="s-sync-leave" style="color:var(--red);border-color:rgba(248,113,113,.3);justify-content:center;font-size:13px;">
+          Salir del grupo
+        </button>
+      </div>
+    </section>
+
+    <section class="settings-section">
+      <div class="sec-head">
+        <span class="sec-num">06</span>
         <span class="sec-title">Aplicación</span>
       </div>
       <p style="font-size:12.5px;color:var(--text-mute);margin:-6px 0 12px;line-height:1.5;">
@@ -2276,7 +2357,7 @@
    ============================================================= */
 
 const App = {
-  version: '0.7.18',
+  version: '0.7.19',
   step: 7,
 
   /* ===== CONSTANTES FIJAS — nunca cambian ===== */
@@ -4765,15 +4846,95 @@ const Settings = {
     const installBtn = document.getElementById('s-install-btn');
     if(installBtn){
       installBtn.addEventListener('click', () => PWA.install());
-      // Refrescar estado al entrar en ajustes
       PWA.refreshInstallButton();
     }
+
+    // === Sincronización del equipo ===
+    document.getElementById('s-sync-create').addEventListener('click', async () => {
+      try {
+        const pin = await Sync.createGroup();
+        this.renderSync();
+      } catch(e){ App.toast('Error: ' + e.message); }
+    });
+
+    // Mostrar/ocultar form de PIN para unirse
+    document.getElementById('s-sync-join-btn').addEventListener('click', () => {
+      document.getElementById('s-sync-join-form').style.display = '';
+      document.getElementById('s-sync-pin-input').focus();
+    });
+    document.getElementById('s-sync-join-cancel').addEventListener('click', () => {
+      document.getElementById('s-sync-join-form').style.display = 'none';
+      document.getElementById('s-sync-pin-input').value = '';
+    });
+    document.getElementById('s-sync-join-confirm').addEventListener('click', async () => {
+      const pin = document.getElementById('s-sync-pin-input').value.trim();
+      try {
+        await Sync.joinGroup(pin);
+        this.renderSync();
+        this.renderWorkers();
+        this.renderCentrales();
+      } catch(e){ App.toast('Error: ' + e.message); }
+    });
+    // Permitir confirmar con Enter en el campo del PIN
+    document.getElementById('s-sync-pin-input').addEventListener('keydown', (e) => {
+      if(e.key === 'Enter') document.getElementById('s-sync-join-confirm').click();
+    });
+
+    document.getElementById('s-sync-copy').addEventListener('click', () => {
+      const pin = Sync.pin;
+      if(!pin) return;
+      navigator.clipboard?.writeText(pin).then(() => App.toast('Código copiado'))
+        .catch(() => App.toast('Código: ' + pin));
+    });
+
+    document.getElementById('s-sync-whatsapp').addEventListener('click', () => {
+      const pin = Sync.pin;
+      if(!pin) return;
+      const msg = encodeURIComponent(`Hola, únete a nuestro grupo de partes CG1 Digi con el código: ${pin}\nÁbrelo en Ajustes → Sincronización del equipo → Unirse con código.`);
+      window.open(`https://wa.me/?text=${msg}`, '_blank');
+    });
+
+    document.getElementById('s-sync-now').addEventListener('click', async () => {
+      const btn = document.getElementById('s-sync-now');
+      btn.disabled = true;
+      await Sync.syncAll();
+      this.renderSync();
+      this.renderWorkers();
+      this.renderCentrales();
+      btn.disabled = false;
+    });
+
+    document.getElementById('s-sync-leave').addEventListener('click', () => {
+      if(!confirm('¿Salir del grupo? Los datos que ya tienes en este dispositivo no se borrarán.')) return;
+      Sync.leave();
+      this.renderSync();
+      App.toast('Has salido del grupo');
+    });
   },
 
   onEnter(){
     this.renderWorkers();
     this.renderCentrales();
     this.renderDefaultRP();
+    this.renderSync();
+  },
+
+  // Actualizar la UI de sincronización según el estado actual
+  renderSync(){
+    const pin = Sync.pin;
+    const noGroup = document.getElementById('s-sync-nogroup');
+    const inGroup = document.getElementById('s-sync-ingroup');
+    if(!pin){
+      noGroup.style.display = 'flex';
+      inGroup.style.display = 'none';
+      document.getElementById('s-sync-join-form').style.display = 'none';
+      document.getElementById('s-sync-pin-input').value = '';
+    } else {
+      noGroup.style.display = 'none';
+      inGroup.style.display = 'flex';
+      document.getElementById('s-sync-pin-display').textContent = pin;
+      document.getElementById('s-sync-last').textContent = Sync.lastSyncText();
+    }
   },
 
   /* === TRABAJADORES === */
@@ -4887,16 +5048,17 @@ const Settings = {
 
     const workers = App.load(App.KEYS.workers, []);
     const sigs = App.load('cg1.signatures', {});
+    const now = Date.now();
 
     if(this.state.editingId){
       const idx = workers.findIndex(w => w.id === this.state.editingId);
       if(idx >= 0){
-        workers[idx] = { ...workers[idx], nombre, categoria, nif };
+        workers[idx] = { ...workers[idx], nombre, categoria, nif, updatedAt: now };
         if(this.state.sigData) sigs[this.state.editingId] = this.state.sigData;
         else delete sigs[this.state.editingId];
       }
     } else {
-      const newW = { id: App.uid(), nombre, categoria, nif };
+      const newW = { id: App.uid(), nombre, categoria, nif, updatedAt: now };
       workers.push(newW);
       if(this.state.sigData) sigs[newW.id] = this.state.sigData;
     }
@@ -4909,6 +5071,8 @@ const Settings = {
     App.refreshHomeStats();
     this.closeWorker();
     App.toast('Trabajador guardado');
+    // Sincronizar en background si hay grupo activo
+    Sync.pushAfterWorkerChange();
   },
 
   deleteWorker(){
@@ -5136,8 +5300,232 @@ const PWA = {
   }
 };
 
+/* =====================================================================
+   SYNC — Sincronización del equipo via Firebase Firestore REST API
+   Permite compartir trabajadores, centrales y firmas entre dispositivos
+   usando un código PIN de 6 dígitos como identificador de grupo.
+   ===================================================================== */
+const Sync = {
+  // Configuración Firebase (proyecto cg1-partes)
+  API_KEY:  'AIzaSyCCWBdksF6EDp8AYJBd0SilnJeD0oL0zxw',
+  PROJECT:  'cg1-partes',
+  BASE:     'https://firestore.googleapis.com/v1/projects/cg1-partes/databases/(default)/documents',
+
+  // PIN del grupo activo (guardado en localStorage)
+  get pin()  { return App.load('cg1.sync.pin',  null); },
+  set pin(v) { App.save('cg1.sync.pin',  v); },
+
+  // ── FIREBASE REST ─────────────────────────────────────────────────
+
+  url(path) { return `${this.BASE}/${path}?key=${this.API_KEY}`; },
+
+  async fbGet(path) {
+    try {
+      const r = await fetch(this.url(path));
+      if(r.status === 404) return null;
+      if(!r.ok) throw new Error(r.status);
+      return this.fromFDoc(await r.json());
+    } catch(e) { console.warn('[Sync] GET', path, e); return null; }
+  },
+
+  async fbSet(path, data) {
+    const r = await fetch(this.url(path), {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ fields: this.toFF(data) })
+    });
+    if(!r.ok){ const t = await r.text(); throw new Error(`${r.status} ${t}`); }
+    return r.json();
+  },
+
+  async fbList(collPath) {
+    try {
+      const r = await fetch(`${this.BASE}/${collPath}?key=${this.API_KEY}`);
+      if(!r.ok) return [];
+      const j = await r.json();
+      return (j.documents || []).map(d => ({
+        _id: d.name.split('/').pop(), ...this.fromFDoc(d)
+      }));
+    } catch(e) { console.warn('[Sync] LIST', collPath, e); return []; }
+  },
+
+  // ── CONVERSIÓN JS ↔ FIRESTORE ─────────────────────────────────────
+
+  toFF(obj) {
+    const f = {};
+    for(const [k, v] of Object.entries(obj)) f[k] = this.toFV(v);
+    return f;
+  },
+  toFV(v) {
+    if(v === null || v === undefined) return { nullValue: null };
+    if(typeof v === 'boolean')  return { booleanValue: v };
+    if(typeof v === 'number')   return Number.isInteger(v) ? { integerValue: String(v) } : { doubleValue: v };
+    if(typeof v === 'string')   return { stringValue: v };
+    if(Array.isArray(v))        return { arrayValue: { values: v.map(x => this.toFV(x)) } };
+    if(typeof v === 'object')   return { mapValue: { fields: this.toFF(v) } };
+    return { stringValue: String(v) };
+  },
+  fromFDoc(doc) {
+    if(!doc || !doc.fields) return null;
+    return this.fromFV({ mapValue: doc });
+  },
+  fromFV(fv) {
+    if(!fv) return null;
+    if('nullValue'    in fv) return null;
+    if('booleanValue' in fv) return fv.booleanValue;
+    if('integerValue' in fv) return parseInt(fv.integerValue);
+    if('doubleValue'  in fv) return fv.doubleValue;
+    if('stringValue'  in fv) return fv.stringValue;
+    if('arrayValue'   in fv) return (fv.arrayValue.values || []).map(x => this.fromFV(x));
+    if('mapValue'     in fv) {
+      const res = {};
+      for(const [k, v] of Object.entries(fv.mapValue.fields || {})) res[k] = this.fromFV(v);
+      return res;
+    }
+    return null;
+  },
+
+  // ── LÓGICA DE GRUPO ───────────────────────────────────────────────
+
+  // Crear grupo nuevo → devuelve PIN
+  async createGroup() {
+    const pin = String(Math.floor(100000 + Math.random() * 900000));
+    App.toast('Creando grupo…');
+    await this.push(pin);
+    this.pin = pin;
+    App.save('cg1.sync.lastSync', Date.now());
+    App.toast('✓ Grupo creado');
+    return pin;
+  },
+
+  // Unirse a grupo existente
+  async joinGroup(pin) {
+    pin = pin.trim();
+    if(!/^\d{6}$/.test(pin)) throw new Error('El código debe tener exactamente 6 dígitos');
+    App.toast('Conectando al grupo…');
+    // Primero pull (recibir los datos del grupo existente)
+    await this.pull(pin);
+    // Luego push (subir los datos propios al grupo)
+    await this.push(pin);
+    this.pin = pin;
+    App.save('cg1.sync.lastSync', Date.now());
+    App.toast('✓ Unido al grupo');
+  },
+
+  // Subir datos locales → Firebase
+  async push(pin = this.pin) {
+    if(!pin) return;
+    const workers   = App.load(App.KEYS.workers,   []);
+    const centrales = App.load(App.KEYS.centrales,  []);
+    const sigs      = App.load('cg1.signatures',    {});
+
+    await this.fbSet(`grupos/${pin}/data/workers`,   { workers,   updatedAt: Date.now() });
+    await this.fbSet(`grupos/${pin}/data/centrales`, { centrales, updatedAt: Date.now() });
+
+    // Cada firma en su propio documento (evitar superar 1 MB por doc)
+    for(const [id, data] of Object.entries(sigs)){
+      if(!data) continue;
+      await this.fbSet(`grupos/${pin}/firmas/${id}`, { data, updatedAt: Date.now() });
+    }
+
+    await this.fbSet(`grupos/${pin}/meta/info`, {
+      updatedAt: Date.now(), version: App.version || '0.7.19'
+    });
+  },
+
+  // Descargar datos de Firebase y fusionar con los locales
+  async pull(pin = this.pin) {
+    if(!pin) return;
+
+    // Workers — merge por ID (gana el más reciente)
+    const remW = await this.fbGet(`grupos/${pin}/data/workers`);
+    if(remW && Array.isArray(remW.workers)){
+      const local   = App.load(App.KEYS.workers, []);
+      const merged  = this._mergeWorkers(local, remW.workers);
+      App.save(App.KEYS.workers, merged);
+    }
+
+    // Centrales — unión de listas, sin duplicados
+    const remC = await this.fbGet(`grupos/${pin}/data/centrales`);
+    if(remC && Array.isArray(remC.centrales)){
+      const local  = App.load(App.KEYS.centrales, []);
+      const merged = [...new Set([...local, ...remC.centrales])].filter(Boolean).sort();
+      App.save(App.KEYS.centrales, merged);
+    }
+
+    // Firmas — añadir las que no tenemos (sin sobreescribir las propias)
+    const remoteSigs = await this.fbList(`grupos/${pin}/firmas`);
+    if(remoteSigs.length > 0){
+      const sigs = App.load('cg1.signatures', {});
+      let changed = false;
+      for(const sig of remoteSigs){
+        if(!sigs[sig._id] && sig.data){ sigs[sig._id] = sig.data; changed = true; }
+      }
+      if(changed) App.save('cg1.signatures', sigs);
+    }
+  },
+
+  // Merge inteligente de listas de workers por ID
+  _mergeWorkers(local, remote) {
+    const map = new Map();
+    for(const w of local)  map.set(w.id, w);
+    for(const w of remote){
+      const loc = map.get(w.id);
+      if(!loc || (w.updatedAt || 0) > (loc.updatedAt || 0)) map.set(w.id, w);
+    }
+    return [...map.values()];
+  },
+
+  // Sincronización completa (push + pull)
+  async syncAll(silent = false) {
+    if(!this.pin) return false;
+    if(!navigator.onLine){ if(!silent) App.toast('Sin conexión — datos locales'); return false; }
+    if(!silent) App.toast('Sincronizando…');
+    try {
+      await this.pull();
+      await this.push();
+      App.save('cg1.sync.lastSync', Date.now());
+      if(!silent) App.toast('✓ Sincronizado');
+      return true;
+    } catch(e){
+      console.error('[Sync]', e);
+      if(!silent) App.toast('Error de sincronización');
+      return false;
+    }
+  },
+
+  // Salir del grupo (solo borra localmente el PIN)
+  leave() {
+    this.pin = null;
+    App.save('cg1.sync.lastSync', null);
+  },
+
+  // Texto descriptivo del último sync para la UI
+  lastSyncText() {
+    const ts = App.load('cg1.sync.lastSync', null);
+    if(!ts) return 'Nunca sincronizado';
+    const d = new Date(ts);
+    return d.toLocaleDateString('es-ES') + ' · ' +
+           d.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+  },
+
+  // Llamar tras guardar o editar un trabajador — sube solo los workers/firmas
+  async pushAfterWorkerChange() {
+    if(!this.pin || !navigator.onLine) return;
+    try { await this.push(); } catch(e){ console.warn('[Sync] push tras editar worker:', e); }
+  },
+
+  // Init: al arrancar la app, sincronizar en background si hay grupo
+  init() {
+    if(this.pin && navigator.onLine){
+      setTimeout(() => this.syncAll(true), 2500);
+    }
+  }
+};
+
 document.addEventListener('DOMContentLoaded', () => App.init());
 document.addEventListener('DOMContentLoaded', () => PWA.init());
+document.addEventListener('DOMContentLoaded', () => Sync.init());
 </script>
 
 </body>
