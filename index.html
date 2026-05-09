@@ -2187,81 +2187,103 @@
       </div>
     </section>
 
-    <!-- ===== SECCIÓN: CONTROL DE ACCESO ===== -->
+    <!-- ===== SECCIÓN: ADMINISTRADOR (Firebase Auth) ===== -->
     <section class="settings-section">
       <div class="sec-head">
         <span class="sec-num">05</span>
-        <span class="sec-title">Control de acceso</span>
+        <span class="sec-title">Administrador</span>
       </div>
-      <p style="font-size:12.5px;color:var(--text-mute);margin:-6px 0 14px;line-height:1.5;">
-        Cuando está activo, cualquier dispositivo nuevo necesita un <b style="color:var(--text);">código</b> para abrir la app. Si alguien se va, cambias el código y ya no puede entrar.
-      </p>
 
-      <!-- Sin control activo -->
-      <div id="s-access-off">
-        <div style="background:var(--surface);border:1px solid var(--line-2);border-radius:12px;padding:14px 16px;margin-bottom:14px;display:flex;align-items:center;gap:12px;">
-          <div style="width:10px;height:10px;border-radius:50%;background:#6b7280;flex-shrink:0;"></div>
-          <span style="font-size:13px;color:var(--text-mute);">Control de acceso <b>desactivado</b> — cualquiera con el enlace puede usar la app</span>
-        </div>
+      <!-- No logueado: mostrar login -->
+      <div id="s-admin-login-wrap">
+        <p style="font-size:12.5px;color:var(--text-mute);margin:-6px 0 14px;line-height:1.5;">
+          Accede con tu cuenta de administrador para gestionar el control de acceso y ver solicitudes. La sesión se guarda — solo lo introduces una vez por dispositivo.
+        </p>
         <div style="display:flex;flex-direction:column;gap:10px;">
           <div class="field">
-            <span class="field-label">Código que usará el equipo (4-8 dígitos)</span>
-            <input class="input" type="tel" inputmode="numeric" id="s-access-new-code"
-                   placeholder="ej. 8472" maxlength="8"
-                   style="letter-spacing:6px;font-size:20px;text-align:center;font-family:'JetBrains Mono',monospace;">
+            <span class="field-label">Email de administrador</span>
+            <input class="input" type="email" id="s-admin-email" placeholder="tu@email.com" autocomplete="email">
           </div>
           <div class="field">
-            <span class="field-label">Tu PIN de administrador (4-8 dígitos, solo tú lo sabes)</span>
-            <input class="input" type="tel" inputmode="numeric" id="s-access-admin-pin"
-                   placeholder="ej. 3791" maxlength="8"
-                   style="letter-spacing:6px;font-size:20px;text-align:center;font-family:'JetBrains Mono',monospace;">
-            <span style="font-size:11.5px;color:var(--text-mute);">Con este PIN puedes cambiar el código y ver quién solicita acceso. <b>Guárdalo bien.</b></span>
+            <span class="field-label">Contraseña</span>
+            <input class="input" type="password" id="s-admin-pass" placeholder="••••••••" autocomplete="current-password">
           </div>
-          <button type="button" class="btn btn-primary" id="s-access-activate">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px;">
-              <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+          <p id="s-admin-login-error" style="display:none;color:#f87171;font-size:13px;margin:0;"></p>
+          <button type="button" class="btn btn-primary" id="s-admin-login-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" style="width:18px;height:18px;">
+              <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
+              <polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/>
             </svg>
-            Activar control de acceso
+            Acceder como administrador
           </button>
         </div>
       </div>
 
-      <!-- Con control activo -->
-      <div id="s-access-on" style="display:none;flex-direction:column;gap:12px;">
-        <div style="background:rgba(74,222,128,.08);border:1px solid rgba(74,222,128,.25);border-radius:12px;padding:14px 16px;display:flex;align-items:center;gap:12px;">
-          <div style="width:10px;height:10px;border-radius:50%;background:#4ade80;flex-shrink:0;"></div>
-          <span style="font-size:13px;color:#4ade80;font-weight:600;">Control de acceso <b>activo</b></span>
+      <!-- Logueado: panel de gestión -->
+      <div id="s-admin-panel" style="display:none;flex-direction:column;gap:14px;">
+        <!-- Sesión activa -->
+        <div style="background:rgba(74,222,128,.08);border:1px solid rgba(74,222,128,.25);border-radius:12px;padding:12px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px;">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div style="width:9px;height:9px;border-radius:50%;background:#4ade80;flex-shrink:0;"></div>
+            <span id="s-admin-email-display" style="font-size:13px;color:#4ade80;font-weight:600;"></span>
+          </div>
+          <button type="button" id="s-admin-logout" style="font-size:12px;color:var(--text-mute);background:none;border:none;cursor:pointer;padding:4px 8px;">Cerrar sesión</button>
         </div>
-        <!-- Display del código -->
-        <div style="background:var(--surface);border:1px solid var(--line-2);border-radius:14px;padding:16px;text-align:center;">
-          <p style="font-size:11px;color:var(--text-mute);margin:0 0 8px;text-transform:uppercase;letter-spacing:.8px;">Código actual</p>
-          <div id="s-access-code-display" style="font-size:36px;font-weight:700;letter-spacing:10px;font-family:'JetBrains Mono',monospace;color:var(--amber);margin:0 0 12px;"></div>
-          <div style="display:flex;gap:8px;justify-content:center;">
-            <button type="button" class="btn btn-ghost" id="s-access-copy" style="padding:10px 16px;font-size:13px;">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="width:15px;height:15px;">
-                <rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
-              </svg>Copiar
+
+        <!-- Control de acceso -->
+        <div style="border:1px solid var(--line-2);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:12px;">
+          <p style="font-size:13px;font-weight:600;color:var(--text);margin:0;">Control de acceso a la app</p>
+
+          <!-- Sin control activo -->
+          <div id="s-access-off" style="display:flex;flex-direction:column;gap:10px;">
+            <div style="display:flex;align-items:center;gap:10px;">
+              <div style="width:9px;height:9px;border-radius:50%;background:#6b7280;flex-shrink:0;"></div>
+              <span style="font-size:12.5px;color:var(--text-mute);">Desactivado — cualquiera con el enlace puede usar la app</span>
+            </div>
+            <div class="field">
+              <span class="field-label">Código que usará el equipo (4-8 dígitos)</span>
+              <input class="input" type="tel" inputmode="numeric" id="s-access-new-code"
+                     placeholder="ej. 8472" maxlength="8"
+                     style="letter-spacing:6px;font-size:20px;text-align:center;font-family:'JetBrains Mono',monospace;">
+            </div>
+            <button type="button" class="btn btn-primary" id="s-access-activate">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" style="width:18px;height:18px;">
+                <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+              </svg>
+              Activar control de acceso
             </button>
-            <button type="button" class="btn btn-ghost" id="s-access-share-code" style="padding:10px 16px;font-size:13px;">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" style="width:15px;height:15px;">
-                <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
-                <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
-              </svg>Compartir
+          </div>
+
+          <!-- Con control activo -->
+          <div id="s-access-on" style="display:none;flex-direction:column;gap:10px;">
+            <div style="display:flex;align-items:center;gap:10px;">
+              <div style="width:9px;height:9px;border-radius:50%;background:#4ade80;flex-shrink:0;"></div>
+              <span style="font-size:12.5px;color:#4ade80;font-weight:600;">Activo</span>
+            </div>
+            <div style="background:var(--surface);border-radius:12px;padding:14px;text-align:center;">
+              <p style="font-size:11px;color:var(--text-mute);margin:0 0 6px;text-transform:uppercase;letter-spacing:.8px;">Código actual</p>
+              <div id="s-access-code-display" style="font-size:34px;font-weight:700;letter-spacing:10px;font-family:'JetBrains Mono',monospace;color:var(--amber);margin:0 0 10px;"></div>
+              <div style="display:flex;gap:8px;justify-content:center;">
+                <button type="button" class="btn btn-ghost" id="s-access-copy" style="padding:9px 14px;font-size:13px;">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="width:14px;height:14px;"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Copiar
+                </button>
+                <button type="button" class="btn btn-ghost" id="s-access-share-code" style="padding:9px 14px;font-size:13px;">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" style="width:14px;height:14px;"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>Compartir
+                </button>
+              </div>
+            </div>
+            <button type="button" class="btn btn-ghost" id="s-access-change" style="justify-content:center;font-size:13px;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" style="width:14px;height:14px;"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M3 22v-6h6"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/></svg>
+              Cambiar código (bloquear a quien se fue)
+            </button>
+            <button type="button" class="btn btn-ghost" id="s-access-deactivate" style="color:var(--red);border-color:rgba(248,113,113,.3);justify-content:center;font-size:13px;">
+              Desactivar control de acceso
             </button>
           </div>
         </div>
-        <button type="button" class="btn btn-ghost" id="s-access-change" style="justify-content:center;font-size:13px;">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" style="width:15px;height:15px;">
-            <path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/>
-            <path d="M3 22v-6h6"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/>
-          </svg>
-          Cambiar código (bloquear a quien se fue)
-        </button>
-        <button type="button" class="btn btn-ghost" id="s-access-deactivate" style="color:var(--red);border-color:rgba(248,113,113,.3);justify-content:center;font-size:13px;">
-          Desactivar control de acceso
-        </button>
+
         <!-- Solicitudes pendientes -->
-        <div id="s-access-requests" style="display:none;flex-direction:column;gap:8px;margin-top:4px;">
+        <div id="s-access-requests" style="display:none;flex-direction:column;gap:8px;">
           <div style="display:flex;align-items:center;justify-content:space-between;">
             <span style="font-size:13px;font-weight:600;color:var(--text);">Solicitudes de acceso</span>
             <span id="s-access-req-badge" style="background:var(--amber);color:#050810;font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;"></span>
@@ -2479,27 +2501,6 @@
     </div>
   </div>
 
-  <!-- Modal: PIN de administrador (control de acceso) -->
-  <div class="modal-backdrop" id="modal-admin-pin" role="dialog" aria-modal="true">
-    <div class="modal">
-      <div class="modal-head">
-        <h3>PIN de administrador</h3>
-        <button class="modal-close" type="button" id="map-close" aria-label="Cerrar">
-          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></svg>
-        </button>
-      </div>
-      <p style="font-size:13.5px;color:var(--text-dim);margin:0 0 16px;">Introduce tu PIN de administrador para gestionar el control de acceso.</p>
-      <input class="input" type="tel" inputmode="numeric" id="map-pin-input"
-             placeholder="PIN de administrador" maxlength="8"
-             style="letter-spacing:6px;font-size:22px;text-align:center;font-family:'JetBrains Mono',monospace;margin-bottom:12px;">
-      <p id="map-error" style="color:#f87171;font-size:13px;display:none;margin:0 0 12px;">PIN incorrecto.</p>
-      <div class="modal-actions">
-        <button type="button" class="btn btn-ghost" id="map-cancel">Cancelar</button>
-        <button type="button" class="btn btn-primary" id="map-confirm">Confirmar</button>
-      </div>
-    </div>
-  </div>
-
   <!-- ========= VISTA: HISTORIAL ========= -->
   <main class="view" id="view-history">
     <button class="back-btn" data-go="home" type="button">
@@ -2539,7 +2540,7 @@
    ============================================================= */
 
 const App = {
-  version: '0.7.26',
+  version: '0.7.27',
   step: 7,
 
   /* ===== CONSTANTES FIJAS — nunca cambian ===== */
@@ -5031,57 +5032,59 @@ const Settings = {
       PWA.refreshInstallButton();
     }
 
-    // === Control de acceso ===
+    // === Administrador (Firebase Auth) ===
+    document.getElementById('s-admin-login-btn').addEventListener('click', async () => {
+      const email = document.getElementById('s-admin-email').value.trim();
+      const pass  = document.getElementById('s-admin-pass').value;
+      const errEl = document.getElementById('s-admin-login-error');
+      const btn   = document.getElementById('s-admin-login-btn');
+      if(!email || !pass){ errEl.textContent = 'Introduce email y contraseña'; errEl.style.display = 'block'; return; }
+      btn.disabled = true; btn.textContent = 'Verificando…'; errEl.style.display = 'none';
+      try {
+        await Admin.login(email, pass);
+        await this.renderAccess();
+        App.toast('✓ Sesión iniciada');
+      } catch(e){
+        errEl.textContent = e.message; errEl.style.display = 'block';
+      } finally { btn.disabled = false; btn.textContent = 'Acceder como administrador'; }
+    });
+
+    document.getElementById('s-admin-logout').addEventListener('click', () => {
+      if(!confirm('¿Cerrar sesión de administrador en este dispositivo?')) return;
+      Admin.logout(); this.renderAccess();
+    });
+
+    // === Control de acceso (requiere sesión admin) ===
     document.getElementById('s-access-activate').addEventListener('click', async () => {
       const code = document.getElementById('s-access-new-code').value.trim();
-      const pin  = document.getElementById('s-access-admin-pin').value.trim();
-      if(!/^\d{4,8}$/.test(code)){ App.toast('El código del equipo debe tener entre 4 y 8 dígitos'); return; }
-      if(!/^\d{4,8}$/.test(pin)){  App.toast('El PIN de administrador debe tener entre 4 y 8 dígitos'); return; }
-      try {
-        App.toast('Activando…');
-        await Access.setCode(code, pin);
-        await this.renderAccess();
-        App.toast('✓ Control de acceso activado');
-      } catch(e){ App.toast('Error: ' + e.message); }
+      if(!/^\d{4,8}$/.test(code)){ App.toast('El código debe tener entre 4 y 8 dígitos'); return; }
+      try { App.toast('Activando…'); await Access.setCode(code); await this.renderAccess(); App.toast('✓ Control de acceso activado'); }
+      catch(e){ App.toast('Error: ' + e.message); }
     });
 
     document.getElementById('s-access-copy').addEventListener('click', async () => {
-      const cfg = await Access.getConfig();
-      if(!cfg) return;
-      navigator.clipboard?.writeText(cfg.codigo).then(() => App.toast('Código copiado'))
-        .catch(() => App.toast('Código: ' + cfg.codigo));
+      const cfg = await Access.getConfig(); if(!cfg) return;
+      navigator.clipboard?.writeText(cfg.codigo).then(() => App.toast('Código copiado')).catch(() => App.toast('Código: ' + cfg.codigo));
     });
 
     document.getElementById('s-access-share-code').addEventListener('click', async () => {
-      const cfg = await Access.getConfig();
-      if(!cfg) return;
+      const cfg = await Access.getConfig(); if(!cfg) return;
       const msg = `Código de acceso para la app CG1 Partes Seguridad: ${cfg.codigo}`;
       if(navigator.share){ await navigator.share({ title: 'Código de acceso CG1', text: msg }); }
       else { navigator.clipboard?.writeText(msg); App.toast('Copiado'); }
     });
 
-    document.getElementById('s-access-change').addEventListener('click', () => {
-      Access.requireAdmin(async () => {
-        const newCode = prompt('Nuevo código del equipo (4-8 dígitos):\n\nEl código actual quedará inválido.');
-        if(!newCode || !/^\d{4,8}$/.test(newCode.trim())){ App.toast('Código inválido'); return; }
-        try {
-          App.toast('Cambiando código…');
-          await Access.changeCode(newCode.trim());
-          await this.renderAccess();
-          App.toast('✓ Código cambiado — mándalo a tu equipo');
-        } catch(e){ App.toast('Error: ' + e.message); }
-      });
+    document.getElementById('s-access-change').addEventListener('click', async () => {
+      const newCode = prompt('Nuevo código del equipo (4-8 dígitos):\n\nEl código actual quedará inválido.');
+      if(!newCode || !/^\d{4,8}$/.test(newCode.trim())){ App.toast('Código inválido'); return; }
+      try { App.toast('Cambiando código…'); await Access.changeCode(newCode.trim()); await this.renderAccess(); App.toast('✓ Código cambiado — mándalo a tu equipo'); }
+      catch(e){ App.toast('Error: ' + e.message); }
     });
 
-    document.getElementById('s-access-deactivate').addEventListener('click', () => {
-      Access.requireAdmin(async () => {
-        if(!confirm('¿Desactivar el control de acceso?\n\nCualquiera con el enlace podrá usar la app.')) return;
-        try {
-          await Access.disable();
-          await this.renderAccess();
-          App.toast('Control de acceso desactivado');
-        } catch(e){ App.toast('Error: ' + e.message); }
-      });
+    document.getElementById('s-access-deactivate').addEventListener('click', async () => {
+      if(!confirm('¿Desactivar el control de acceso?\n\nCualquiera con el enlace podrá usar la app.')) return;
+      try { await Access.disable(); await this.renderAccess(); App.toast('Control de acceso desactivado'); }
+      catch(e){ App.toast('Error: ' + e.message); }
     });
 
     // === Sincronización del equipo ===
@@ -5173,53 +5176,62 @@ const Settings = {
   },
 
   async renderAccess(){
-    const offEl = document.getElementById('s-access-off');
-    const onEl  = document.getElementById('s-access-on');
+    const loginWrap = document.getElementById('s-admin-login-wrap');
+    const panel     = document.getElementById('s-admin-panel');
+    const offEl     = document.getElementById('s-access-off');
+    const onEl      = document.getElementById('s-access-on');
+
+    if(!Admin.isLoggedIn()){
+      loginWrap.style.display = '';
+      panel.style.display = 'none';
+      return;
+    }
+
+    // Sesión activa — mostrar panel
+    loginWrap.style.display = 'none';
+    panel.style.display = 'flex';
+    document.getElementById('s-admin-email-display').textContent = Admin.getEmail();
+
+    // Cargar config de control de acceso
     let config = null;
     try { config = await Access.getConfig(); } catch(e) {}
 
     if(!config || !config.enabled){
-      offEl.style.display = '';
+      offEl.style.display = 'flex';
       onEl.style.display  = 'none';
-      return;
+    } else {
+      offEl.style.display = 'none';
+      onEl.style.display  = 'flex';
+      document.getElementById('s-access-code-display').textContent = config.codigo || '—';
     }
 
-    offEl.style.display = 'none';
-    onEl.style.display  = 'flex';
-    document.getElementById('s-access-code-display').textContent = config.codigo || '—';
-
-    // Cargar solicitudes pendientes
-    const reqs = await Access.loadRequests();
+    // Solicitudes pendientes
+    const reqs    = await Access.loadRequests();
     const reqWrap = document.getElementById('s-access-requests');
     const reqList = document.getElementById('s-access-req-list');
     const badge   = document.getElementById('s-access-req-badge');
+    const settingsBadge = document.getElementById('settings-badge');
 
     if(reqs.length === 0){
       reqWrap.style.display = 'none';
-      return;
-    }
-
-    badge.textContent = reqs.length;
-    reqWrap.style.display = 'flex';
-    reqList.innerHTML = reqs.map(r => `
-      <div style="background:var(--surface);border:1px solid var(--line-2);border-radius:10px;padding:12px 14px;display:flex;justify-content:space-between;align-items:center;gap:10px;">
-        <div>
-          <p style="font-size:13.5px;font-weight:600;color:var(--text);margin:0 0 2px;">${this.esc(r.nombre || '—')}</p>
-          <p style="font-size:12px;color:var(--text-mute);margin:0;">${this.esc(r.tlf || 'Sin teléfono')} · ${r.fecha ? new Date(r.fecha).toLocaleDateString('es-ES') : ''}</p>
+      if(settingsBadge) settingsBadge.style.display = 'none';
+    } else {
+      badge.textContent = reqs.length;
+      reqWrap.style.display = 'flex';
+      if(settingsBadge) settingsBadge.style.display = 'block';
+      reqList.innerHTML = reqs.map(r => `
+        <div style="background:var(--surface);border:1px solid var(--line-2);border-radius:10px;padding:12px 14px;display:flex;justify-content:space-between;align-items:center;gap:10px;">
+          <div>
+            <p style="font-size:13.5px;font-weight:600;color:var(--text);margin:0 0 2px;">${this.esc(r.nombre||'—')}</p>
+            <p style="font-size:12px;color:var(--text-mute);margin:0;">${this.esc(r.tlf||'Sin teléfono')} · ${r.fecha ? new Date(r.fecha).toLocaleDateString('es-ES') : ''}</p>
+          </div>
+          <button type="button" class="btn btn-ghost" data-req-dismiss="${this.esc(r._id)}" style="padding:8px 12px;font-size:12px;flex-shrink:0;">✓ Atendido</button>
         </div>
-        <button type="button" class="btn btn-ghost" data-req-dismiss="${this.esc(r._id)}"
-          style="padding:8px 12px;font-size:12px;flex-shrink:0;">
-          ✓ Atendido
-        </button>
-      </div>
-    `).join('');
-
-    reqList.querySelectorAll('[data-req-dismiss]').forEach(btn => {
-      btn.addEventListener('click', async () => {
-        await Access.dismissRequest(btn.dataset.reqDismiss);
-        await this.renderAccess();
+      `).join('');
+      reqList.querySelectorAll('[data-req-dismiss]').forEach(btn => {
+        btn.addEventListener('click', async () => { await Access.dismissRequest(btn.dataset.reqDismiss); await this.renderAccess(); });
       });
-    });
+    }
   },
 
   // Actualizar la UI de sincronización según el estado actual
@@ -5604,6 +5616,85 @@ const PWA = {
 };
 
 /* =====================================================================
+   ADMIN — Autenticación de administrador via Firebase Authentication
+   Login con email/contraseña. Sesión persistente con auto-renovación.
+   Solo el admin puede gestionar el control de acceso y ver solicitudes.
+   ===================================================================== */
+const Admin = {
+  AUTH:    'https://identitytoolkit.googleapis.com/v1/accounts',
+  REFRESH: 'https://securetoken.googleapis.com/v1/token',
+  API_KEY: 'AIzaSyCCWBdksF6EDp8AYJBd0SilnJeD0oL0zxw',
+
+  // Login con email + contraseña → guarda sesión en localStorage
+  async login(email, password) {
+    const r = await fetch(`${this.AUTH}:signInWithPassword?key=${this.API_KEY}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password, returnSecureToken: true })
+    });
+    const data = await r.json();
+    if(!r.ok){
+      const msg = data.error?.message || 'Error de autenticación';
+      if(msg.includes('EMAIL_NOT_FOUND') || msg.includes('INVALID_PASSWORD') || msg.includes('INVALID_LOGIN_CREDENTIALS'))
+        throw new Error('Email o contraseña incorrectos');
+      throw new Error(msg);
+    }
+    this._saveSession(data);
+    return data;
+  },
+
+  // Obtener token válido (renueva automáticamente si ha expirado)
+  async getToken() {
+    const s = App.load('cg1.admin.session', null);
+    if(!s) return null;
+    // Si el token sigue vigente (margen de 5 min) devolverlo directamente
+    if(s.expiresAt && Date.now() < s.expiresAt - 300000) return s.idToken;
+    // Renovar con refreshToken
+    try {
+      const r = await fetch(`${this.REFRESH}?key=${this.API_KEY}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: `grant_type=refresh_token&refresh_token=${s.refreshToken}`
+      });
+      const data = await r.json();
+      if(!r.ok) { this.logout(); return null; }
+      const updated = {
+        idToken: data.id_token,
+        refreshToken: data.refresh_token,
+        email: s.email,
+        expiresAt: Date.now() + parseInt(data.expires_in) * 1000
+      };
+      App.save('cg1.admin.session', updated);
+      return updated.idToken;
+    } catch(e) { return s.idToken; } // fallback al token actual si no hay red
+  },
+
+  // ¿Hay sesión activa?
+  isLoggedIn() {
+    const s = App.load('cg1.admin.session', null);
+    return !!(s && s.refreshToken);
+  },
+
+  getEmail() {
+    const s = App.load('cg1.admin.session', null);
+    return s?.email || '';
+  },
+
+  logout() {
+    App.save('cg1.admin.session', null);
+  },
+
+  _saveSession(data) {
+    App.save('cg1.admin.session', {
+      idToken: data.idToken,
+      refreshToken: data.refreshToken,
+      email: data.email,
+      expiresAt: Date.now() + parseInt(data.expiresIn) * 1000
+    });
+  }
+};
+
+/* =====================================================================
    ACCESS — Control de acceso a la app
    Código de equipo: para que los compañeros entren.
    PIN de admin: solo el administrador puede gestionar (cambiar código, ver solicitudes).
@@ -5672,32 +5763,11 @@ const Access = {
     } catch(e) { App.toast('No se pudo enviar. Comprueba la conexión.'); btn.disabled = false; }
   },
 
-  // Pedir PIN admin antes de ejecutar una acción de gestión
-  requireAdmin(onOk) {
-    const modal = document.getElementById('modal-admin-pin');
-    const input = document.getElementById('map-pin-input');
-    const errEl = document.getElementById('map-error');
-    input.value = ''; errEl.style.display = 'none';
-    modal.classList.add('show'); input.focus();
-    const close = () => { modal.classList.remove('show'); };
-    document.getElementById('map-close').onclick  = close;
-    document.getElementById('map-cancel').onclick = close;
-    document.getElementById('map-confirm').onclick = async () => {
-      const pin = input.value.trim();
-      const cfg = await this.getConfig();
-      if(!cfg || String(pin) !== String(cfg.adminPin)){
-        errEl.style.display = 'block'; input.value = ''; input.focus(); return;
-      }
-      close(); onOk();
-    };
-    input.onkeydown = e => { if(e.key === 'Enter') document.getElementById('map-confirm').click(); };
-  },
-
-  async setCode(codigo, adminPin) {
+  async setCode(codigo) {
     const current = await this.getConfig() || { version: 0 };
     const newVersion = (current.version || 0) + 1;
     await Sync.fbSet(this.PATH_CONFIG, {
-      enabled: true, codigo: String(codigo), adminPin: String(adminPin),
+      enabled: true, codigo: String(codigo),
       version: newVersion, updatedAt: Date.now()
     });
     App.save('cg1.access.token', { version: newVersion, at: Date.now() });
