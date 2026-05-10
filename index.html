@@ -882,6 +882,9 @@
   }
   .pref-check input[type="checkbox"]{ width:15px; height:15px; accent-color: var(--amber); cursor:pointer; }
 
+  /* Filtros historial activo */
+  .h-filter-btn.active{ border-color: var(--amber); color: var(--amber); }
+
   /* Modal genérico */
   .modal-backdrop{
     position: fixed; inset: 0;
@@ -1265,12 +1268,19 @@
   <header class="topbar">
     <button class="brand" id="brand-btn" aria-label="Inicio" type="button" style="background:none;border:none;padding:0;cursor:pointer;color:inherit;">
       <span class="brand-mark" aria-hidden="true">
-        <!-- Logo: cruz de antena estilizada -->
+        <!-- Logo: parte de seguridad (documento con check) -->
         <svg viewBox="0 0 24 24" fill="none">
-          <path d="M12 3v18" stroke="#fbbf24" stroke-width="2" stroke-linecap="round"/>
-          <path d="M5 7c2 1.5 4 2.2 7 2.2S17 8.5 19 7" stroke="#e6ecf5" stroke-width="1.5" stroke-linecap="round"/>
-          <path d="M6.5 11c1.6 1 3.4 1.5 5.5 1.5s3.9-.5 5.5-1.5" stroke="#e6ecf5" stroke-width="1.5" stroke-linecap="round" opacity=".7"/>
-          <circle cx="12" cy="20" r="1.5" fill="#fbbf24"/>
+          <!-- Documento -->
+          <rect x="4" y="2" width="13" height="17" rx="2" fill="#1e2d4a" stroke="#fbbf24" stroke-width="1.2"/>
+          <!-- Esquina doblada -->
+          <path d="M13 2 L17 6" stroke="#fbbf24" stroke-width="1.2" stroke-linecap="round"/>
+          <path d="M13 2 L13 6 L17 6" fill="#0c1835" stroke="#fbbf24" stroke-width="1"/>
+          <!-- Líneas de texto -->
+          <line x1="7" y1="10" x2="14" y2="10" stroke="#fbbf24" stroke-width="1" stroke-linecap="round" opacity=".5"/>
+          <line x1="7" y1="13" x2="12" y2="13" stroke="#fbbf24" stroke-width="1" stroke-linecap="round" opacity=".5"/>
+          <!-- Check de seguridad -->
+          <circle cx="19" cy="18" r="5" fill="#fbbf24"/>
+          <polyline points="16.5 18 18.2 19.8 21.5 16.5" stroke="#050810" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
       </span>
       <span class="brand-text">
@@ -1553,14 +1563,18 @@
     <div class="meta-grid" aria-label="Estado de la app">
       <div class="meta-cell">
         <div class="k">Empresa</div>
-        <div class="v">DIGI <small>Spain</small></div>
+        <div class="v" id="meta-empresa" style="font-size:13px;"><small>Sin configurar</small></div>
       </div>
       <div class="meta-cell">
         <div class="k">Trabajadores</div>
         <div class="v" id="meta-workers">0 <small>en lista</small></div>
       </div>
       <div class="meta-cell">
-        <div class="k">Partes</div>
+        <div class="k">Hoy</div>
+        <div class="v" id="meta-hoy">0 <small>partes</small></div>
+      </div>
+      <div class="meta-cell">
+        <div class="k">Total</div>
         <div class="v" id="meta-reports">0 <small>guardados</small></div>
       </div>
     </div>
@@ -2307,116 +2321,10 @@
       </div>
     </section>
 
-    <!-- ===== SECCIÓN: ADMINISTRADOR (Firebase Auth) ===== -->
-    <section class="settings-section">
-      <div class="sec-head">
-        <span class="sec-num">05</span>
-        <span class="sec-title">Administrador</span>
-      </div>
-
-      <!-- No logueado: mostrar login -->
-      <div id="s-admin-login-wrap">
-        <p style="font-size:12.5px;color:var(--text-mute);margin:-6px 0 14px;line-height:1.5;">
-          Accede con tu cuenta de administrador para gestionar el control de acceso y ver solicitudes. La sesión se guarda — solo lo introduces una vez por dispositivo.
-        </p>
-        <div style="display:flex;flex-direction:column;gap:10px;">
-          <div class="field">
-            <span class="field-label">Email de administrador</span>
-            <input class="input" type="email" id="s-admin-email" placeholder="tu@email.com" autocomplete="email">
-          </div>
-          <div class="field">
-            <span class="field-label">Contraseña</span>
-            <input class="input" type="password" id="s-admin-pass" placeholder="••••••••" autocomplete="current-password">
-          </div>
-          <p id="s-admin-login-error" style="display:none;color:#f87171;font-size:13px;margin:0;"></p>
-          <button type="button" class="btn btn-primary" id="s-admin-login-btn">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" style="width:18px;height:18px;">
-              <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
-              <polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/>
-            </svg>
-            Acceder como administrador
-          </button>
-        </div>
-      </div>
-
-      <!-- Logueado: panel de gestión -->
-      <div id="s-admin-panel" style="display:none;flex-direction:column;gap:14px;">
-        <!-- Sesión activa -->
-        <div style="background:rgba(74,222,128,.08);border:1px solid rgba(74,222,128,.25);border-radius:12px;padding:12px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px;">
-          <div style="display:flex;align-items:center;gap:10px;">
-            <div style="width:9px;height:9px;border-radius:50%;background:#4ade80;flex-shrink:0;"></div>
-            <span id="s-admin-email-display" style="font-size:13px;color:#4ade80;font-weight:600;"></span>
-          </div>
-          <button type="button" id="s-admin-logout" style="font-size:12px;color:var(--text-mute);background:none;border:none;cursor:pointer;padding:4px 8px;">Cerrar sesión</button>
-        </div>
-
-        <!-- Control de acceso -->
-        <div style="border:1px solid var(--line-2);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:12px;">
-          <p style="font-size:13px;font-weight:600;color:var(--text);margin:0;">Control de acceso a la app</p>
-
-          <!-- Sin control activo -->
-          <div id="s-access-off" style="display:flex;flex-direction:column;gap:10px;">
-            <div style="display:flex;align-items:center;gap:10px;">
-              <div style="width:9px;height:9px;border-radius:50%;background:#6b7280;flex-shrink:0;"></div>
-              <span style="font-size:12.5px;color:var(--text-mute);">Desactivado — cualquiera con el enlace puede usar la app</span>
-            </div>
-            <div class="field">
-              <span class="field-label">Código que usará el equipo (4-8 dígitos)</span>
-              <input class="input" type="tel" inputmode="numeric" id="s-access-new-code"
-                     placeholder="ej. 8472" maxlength="8"
-                     style="letter-spacing:6px;font-size:20px;text-align:center;font-family:'JetBrains Mono',monospace;">
-            </div>
-            <button type="button" class="btn btn-primary" id="s-access-activate">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" style="width:18px;height:18px;">
-                <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-              </svg>
-              Activar control de acceso
-            </button>
-          </div>
-
-          <!-- Con control activo -->
-          <div id="s-access-on" style="display:none;flex-direction:column;gap:10px;">
-            <div style="display:flex;align-items:center;gap:10px;">
-              <div style="width:9px;height:9px;border-radius:50%;background:#4ade80;flex-shrink:0;"></div>
-              <span style="font-size:12.5px;color:#4ade80;font-weight:600;">Activo</span>
-            </div>
-            <div style="background:var(--surface);border-radius:12px;padding:14px;text-align:center;">
-              <p style="font-size:11px;color:var(--text-mute);margin:0 0 6px;text-transform:uppercase;letter-spacing:.8px;">Código actual</p>
-              <div id="s-access-code-display" style="font-size:34px;font-weight:700;letter-spacing:10px;font-family:'JetBrains Mono',monospace;color:var(--amber);margin:0 0 10px;"></div>
-              <div style="display:flex;gap:8px;justify-content:center;">
-                <button type="button" class="btn btn-ghost" id="s-access-copy" style="padding:9px 14px;font-size:13px;">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="width:14px;height:14px;"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Copiar
-                </button>
-                <button type="button" class="btn btn-ghost" id="s-access-share-code" style="padding:9px 14px;font-size:13px;">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" style="width:14px;height:14px;"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>Compartir
-                </button>
-              </div>
-            </div>
-            <button type="button" class="btn btn-ghost" id="s-access-change" style="justify-content:center;font-size:13px;">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" style="width:14px;height:14px;"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M3 22v-6h6"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/></svg>
-              Cambiar código (bloquear a quien se fue)
-            </button>
-            <button type="button" class="btn btn-ghost" id="s-access-deactivate" style="color:var(--red);border-color:rgba(248,113,113,.3);justify-content:center;font-size:13px;">
-              Desactivar control de acceso
-            </button>
-          </div>
-        </div>
-
-        <!-- Solicitudes pendientes -->
-        <div id="s-access-requests" style="display:none;flex-direction:column;gap:8px;">
-          <div style="display:flex;align-items:center;justify-content:space-between;">
-            <span style="font-size:13px;font-weight:600;color:var(--text);">Solicitudes de acceso</span>
-            <span id="s-access-req-badge" style="background:var(--amber);color:#050810;font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;"></span>
-          </div>
-          <div id="s-access-req-list" style="display:flex;flex-direction:column;gap:6px;"></div>
-        </div>
-      </div>
-    </section>
-
     <!-- ===== SECCIÓN: SINCRONIZACIÓN DEL EQUIPO ===== -->
     <section class="settings-section" id="s-sync-section">
       <div class="sec-head">
-        <span class="sec-num">06</span>
+        <span class="sec-num">05</span>
         <span class="sec-title">Sincronización del equipo</span>
       </div>
       <p style="font-size:12.5px;color:var(--text-mute);margin:-6px 0 14px;line-height:1.5;">
@@ -2522,6 +2430,101 @@
         <p style="font-size:11.5px;color:var(--text-mute);margin:6px 0 0;line-height:1.5;">
           <span id="s-version-text">v0.7.2</span> · Funciona offline tras la primera carga.
         </p>
+      </div>
+    </section>
+
+    <!-- ===== SECCIÓN: ADMINISTRADOR (Firebase Auth) — al final ===== -->
+    <section class="settings-section">
+      <div class="sec-head">
+        <span class="sec-num">07</span>
+        <span class="sec-title">Administrador</span>
+      </div>
+
+      <!-- No logueado: mostrar login -->
+      <div id="s-admin-login-wrap">
+        <p style="font-size:12.5px;color:var(--text-mute);margin:-6px 0 14px;line-height:1.5;">
+          Accede con tu cuenta de administrador para gestionar el control de acceso y ver solicitudes. La sesión se guarda — solo lo introduces una vez por dispositivo.
+        </p>
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <div class="field">
+            <span class="field-label">Email de administrador</span>
+            <input class="input" type="email" id="s-admin-email" placeholder="tu@email.com" autocomplete="email">
+          </div>
+          <div class="field">
+            <span class="field-label">Contraseña</span>
+            <input class="input" type="password" id="s-admin-pass" placeholder="••••••••" autocomplete="current-password">
+          </div>
+          <p id="s-admin-login-error" style="display:none;color:#f87171;font-size:13px;margin:0;"></p>
+          <button type="button" class="btn btn-primary" id="s-admin-login-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" style="width:18px;height:18px;">
+              <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
+              <polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/>
+            </svg>
+            Acceder como administrador
+          </button>
+        </div>
+      </div>
+
+      <!-- Logueado: panel de gestión -->
+      <div id="s-admin-panel" style="display:none;flex-direction:column;gap:14px;">
+        <div style="background:rgba(74,222,128,.08);border:1px solid rgba(74,222,128,.25);border-radius:12px;padding:12px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px;">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div style="width:9px;height:9px;border-radius:50%;background:#4ade80;flex-shrink:0;"></div>
+            <span id="s-admin-email-display" style="font-size:13px;color:#4ade80;font-weight:600;"></span>
+          </div>
+          <button type="button" id="s-admin-logout" style="font-size:12px;color:var(--text-mute);background:none;border:none;cursor:pointer;padding:4px 8px;">Cerrar sesión</button>
+        </div>
+        <div style="border:1px solid var(--line-2);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:12px;">
+          <p style="font-size:13px;font-weight:600;color:var(--text);margin:0;">Control de acceso a la app</p>
+          <div id="s-access-off" style="display:flex;flex-direction:column;gap:10px;">
+            <div style="display:flex;align-items:center;gap:10px;">
+              <div style="width:9px;height:9px;border-radius:50%;background:#6b7280;flex-shrink:0;"></div>
+              <span style="font-size:12.5px;color:var(--text-mute);">Desactivado — cualquiera con el enlace puede usar la app</span>
+            </div>
+            <div class="field">
+              <span class="field-label">Código que usará el equipo (4-8 dígitos)</span>
+              <input class="input" type="tel" inputmode="numeric" id="s-access-new-code" placeholder="ej. 8472" maxlength="8"
+                     style="letter-spacing:6px;font-size:20px;text-align:center;font-family:'JetBrains Mono',monospace;">
+            </div>
+            <button type="button" class="btn btn-primary" id="s-access-activate">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" style="width:18px;height:18px;">
+                <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+              </svg>Activar control de acceso
+            </button>
+          </div>
+          <div id="s-access-on" style="display:none;flex-direction:column;gap:10px;">
+            <div style="display:flex;align-items:center;gap:10px;">
+              <div style="width:9px;height:9px;border-radius:50%;background:#4ade80;flex-shrink:0;"></div>
+              <span style="font-size:12.5px;color:#4ade80;font-weight:600;">Activo</span>
+            </div>
+            <div style="background:var(--surface);border-radius:12px;padding:14px;text-align:center;">
+              <p style="font-size:11px;color:var(--text-mute);margin:0 0 6px;text-transform:uppercase;letter-spacing:.8px;">Código actual</p>
+              <div id="s-access-code-display" style="font-size:34px;font-weight:700;letter-spacing:10px;font-family:'JetBrains Mono',monospace;color:var(--amber);margin:0 0 10px;"></div>
+              <div style="display:flex;gap:8px;justify-content:center;">
+                <button type="button" class="btn btn-ghost" id="s-access-copy" style="padding:9px 14px;font-size:13px;">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="width:14px;height:14px;"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Copiar
+                </button>
+                <button type="button" class="btn btn-ghost" id="s-access-share-code" style="padding:9px 14px;font-size:13px;">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" style="width:14px;height:14px;"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>Compartir
+                </button>
+              </div>
+            </div>
+            <button type="button" class="btn btn-ghost" id="s-access-change" style="justify-content:center;font-size:13px;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" style="width:14px;height:14px;"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M3 22v-6h6"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/></svg>
+              Cambiar código (bloquear a quien se fue)
+            </button>
+            <button type="button" class="btn btn-ghost" id="s-access-deactivate" style="color:var(--red);border-color:rgba(248,113,113,.3);justify-content:center;font-size:13px;">
+              Desactivar control de acceso
+            </button>
+          </div>
+        </div>
+        <div id="s-access-requests" style="display:none;flex-direction:column;gap:8px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;">
+            <span style="font-size:13px;font-weight:600;color:var(--text);">Solicitudes de acceso</span>
+            <span id="s-access-req-badge" style="background:var(--amber);color:#050810;font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;"></span>
+          </div>
+          <div id="s-access-req-list" style="display:flex;flex-direction:column;gap:6px;"></div>
+        </div>
       </div>
     </section>
 
@@ -2634,10 +2637,39 @@
     <div class="section-head">
       <span class="eyebrow">Archivo</span>
       <h1 class="section-title">Historial</h1>
-      <p class="section-sub">Partes generados, guardados en este dispositivo. Toca uno para verlo o compartirlo.</p>
+      <p class="section-sub">Partes generados en este dispositivo. Toca uno para ver, compartir o editar.</p>
     </div>
 
+    <!-- Barra de búsqueda y filtros -->
+    <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px;">
+      <div style="position:relative;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+             style="position:absolute;left:14px;top:50%;transform:translateY(-50%);width:16px;height:16px;color:var(--text-mute);pointer-events:none;">
+          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        <input class="input" type="search" id="h-search" placeholder="Buscar por dirección, nº poste, población…"
+               style="padding-left:42px;">
+      </div>
+      <div style="display:flex;gap:6px;">
+        <button type="button" class="btn btn-ghost h-filter-btn active" data-filter="all"  style="flex:1;padding:9px 6px;font-size:12.5px;">Todos</button>
+        <button type="button" class="btn btn-ghost h-filter-btn"        data-filter="today" style="flex:1;padding:9px 6px;font-size:12.5px;">Hoy</button>
+        <button type="button" class="btn btn-ghost h-filter-btn"        data-filter="postes" style="flex:1;padding:9px 6px;font-size:12.5px;">Postes</button>
+        <button type="button" class="btn btn-ghost h-filter-btn"        data-filter="ccrr"  style="flex:1;padding:9px 6px;font-size:12.5px;">CCRR</button>
+      </div>
+    </div>
+
+    <!-- Botón exportar del día -->
+    <button type="button" class="btn btn-ghost" id="h-export-day" style="width:100%;margin-bottom:12px;justify-content:center;font-size:13px;display:none;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="width:16px;height:16px;">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+      </svg>
+      Descargar todos los partes de hoy
+    </button>
+
     <div class="item-list" id="h-list"></div>
+    <p id="h-empty" style="display:none;text-align:center;color:var(--text-mute);font-size:13.5px;padding:32px 0;">
+      No hay partes que coincidan con la búsqueda.
+    </p>
   </main>
 
   <!-- ========= FOOTER ========= -->
@@ -2761,48 +2793,41 @@ const App = {
   CATEGORIAS_DEFAULT: ['Celador','Fusionador','Técnico instalador','Técnico de red','Oficial 1ª'],
 
   /* ===== CENTRALES por defecto (editables en Ajustes) ===== */
-  CENTRALES_DEFAULT: [
-    'Boiro','Culleredo','Santiago','Monforte de Lemos','Ribeira',
-    'Villalba','As Pontes','Pontedeume','Miño','Carral','Otra'
-  ],
+  CENTRALES_DEFAULT: ['Coruña', 'Ferrol', 'Lugo', 'Santiago', 'Otra'],
 
   /* ===== WORKERS_DEFAULT: vacío — cada usuario añade los suyos ===== */
   WORKERS_DEFAULT: [],
 
   /* ===== Migraciones (operaciones que se ejecutan una sola vez al actualizar la app) ===== */
   MIGRATIONS: {
-    // v1 → quitar trabajadores que ya no están en el default por petición del usuario
+    // v1 → quitar trabajadores antiguos no deseados
     'remove_unwanted_workers_v1': function(){
-      const removeIds = ['w_david', 'w_jorgeb'];
       const ws = App.load(App.KEYS.workers, []);
-      const filtered = ws.filter(w => !removeIds.includes(w.id));
-      if(filtered.length !== ws.length){
-        App.save(App.KEYS.workers, filtered);
-      }
+      const filtered = ws.filter(w => !['w_david','w_jorgeb'].includes(w.id));
+      if(filtered.length !== ws.length) App.save(App.KEYS.workers, filtered);
     },
-    // v2 → reemplazar centrales y celadores por las nuevas listas oficiales
+    // v2 → actualización de datos (legacy)
     'update_defaults_v2': function(){
-      // Centrales nuevas
-      const newCentrales = ['Boiro','Culleredo','Santiago','Monforte de Lemos','Ribeira',
-                            'Villalba','As Pontes','Pontedeume','Miño','Carral','Otra'];
-      App.save(App.KEYS.centrales, newCentrales);
-
-      // Actualizar nombres de celadores
+      // ya no hace nada relevante — la v3 reemplaza todo
+    },
+    // v3 → limpieza para publicación:
+    //   · quitar workers hardcodeados de Braulio (w_jorgeg, w_yago, w_juan, w_marcos)
+    //   · limpiar empresa si sigue siendo "DIGI Spain Telecom"
+    //   · resetear centrales a los nuevos ejemplos genéricos
+    'clean_for_release_v3': function(){
+      // Limpiar workers hardcodeados (los privados de Braulio, no w_braulio que puede tener firma)
+      const idsToRemove = ['w_jorgeg','w_yago','w_juan','w_marcos'];
       const ws = App.load(App.KEYS.workers, []);
-      const renames = {
-        'w_yago':    { nombre: 'Yago Abeledo Rodríguez' },
-        'w_jorgeg':  { nombre: 'Jorge García Leiras' }
-      };
-      // Quitar w_braulioa si existe (ya no está en la lista oficial)
-      const idsToRemove = ['w_braulioa'];
-      const updated = ws
-        .filter(w => !idsToRemove.includes(w.id))
-        .map(w => renames[w.id] ? { ...w, ...renames[w.id] } : w);
-      // Si Jorge no existe, lo añadimos
-      if(!updated.find(w => w.id === 'w_jorgeg')){
-        updated.push({ id: 'w_jorgeg', nombre: 'Jorge García Leiras', categoria: 'Celador', nif: '' });
-      }
-      App.save(App.KEYS.workers, updated);
+      const cleaned = ws.filter(w => !idsToRemove.includes(w.id));
+      if(cleaned.length !== ws.length) App.save(App.KEYS.workers, cleaned);
+
+      // Limpiar empresa si es el valor hardcodeado antiguo
+      const s = App.load(App.KEYS.settings, {});
+      if(s.empresa === 'DIGI Spain Telecom'){ delete s.empresa; App.save(App.KEYS.settings, s); }
+      if(s.unidad  === 'PE')               { delete s.unidad;  App.save(App.KEYS.settings, s); }
+
+      // Resetear centrales a ejemplos genéricos
+      App.save(App.KEYS.centrales, ['Coruña','Ferrol','Lugo','Santiago','Otra']);
     }
   },
 
@@ -2948,10 +2973,21 @@ const App = {
   refreshHomeStats(){
     const workers = this.load(this.KEYS.workers, []);
     const reports = this.load(this.KEYS.reports, []);
-    const w = document.getElementById('meta-workers');
-    const r = document.getElementById('meta-reports');
-    if(w) w.innerHTML = `${workers.length} <small>en lista</small>`;
-    if(r) r.innerHTML = `${reports.length} <small>guardados</small>`;
+    const today   = this.todayISO();
+    const hoy     = reports.filter(r => (r.fecha || r.createdAt || '').startsWith(today)).length;
+
+    const emp = this.setting('empresa');
+    const uni = this.setting('unidad');
+    const empTxt = emp ? (uni ? `${emp} <small>${uni}</small>` : emp) : '<small>Sin configurar</small>';
+
+    const eEl = document.getElementById('meta-empresa');
+    const wEl = document.getElementById('meta-workers');
+    const hEl = document.getElementById('meta-hoy');
+    const rEl = document.getElementById('meta-reports');
+    if(eEl) eEl.innerHTML = empTxt;
+    if(wEl) wEl.innerHTML = `${workers.length} <small>en lista</small>`;
+    if(hEl) hEl.innerHTML = `${hoy} <small>parte${hoy !== 1 ? 's' : ''}</small>`;
+    if(rEl) rEl.innerHTML = `${reports.length} <small>guardados</small>`;
   }
 };
 
@@ -3090,6 +3126,9 @@ const Postes = {
     this.autoSelectDefaultRP();
     this.renderEpis();
     this.refreshGenerateButton();
+    // GPS automático si no hay dirección ya rellenada
+    const dir = document.getElementById('p-direccion');
+    if(!dir?.value) setTimeout(() => this.requestGPS(), 600);
   },
 
   // Si no hay RP seleccionado y existe defaultRPId en settings, lo aplica
@@ -3614,6 +3653,9 @@ const Ccrr = {
     this.applyDraft();
     this.autoSelectDefaultRP();
     this.refreshGenerateButton();
+    // GPS automático si no hay dirección ya rellenada
+    const dir = document.getElementById('c-direccion');
+    if(!dir?.value) setTimeout(() => this.requestGPS(), 600);
   },
 
   /* ----- RENDERS ----- */
@@ -5055,20 +5097,82 @@ const Pdf = {
    MÓDULO HISTORY — Lista de partes guardados
    ============================================================= */
 const History = {
+  _filter: 'all',
+  _query:  '',
+
+  init(){
+    document.getElementById('h-search').addEventListener('input', e => {
+      this._query = e.target.value.toLowerCase();
+      this.render();
+    });
+    document.querySelectorAll('.h-filter-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.h-filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        this._filter = btn.dataset.filter;
+        const expBtn = document.getElementById('h-export-day');
+        if(expBtn) expBtn.style.display = (this._filter === 'today') ? '' : 'none';
+        this.render();
+      });
+    });
+    document.getElementById('h-export-day')?.addEventListener('click', () => this.exportDay());
+  },
+
   onEnter(){
+    this._query = '';
+    this._filter = 'all';
+    const inp = document.getElementById('h-search');
+    if(inp) inp.value = '';
+    document.querySelectorAll('.h-filter-btn').forEach(b => b.classList.toggle('active', b.dataset.filter === 'all'));
+    const expBtn = document.getElementById('h-export-day');
+    if(expBtn) expBtn.style.display = 'none';
     this.render();
   },
+
+  _filtered(){
+    const all    = App.load(App.KEYS.reports, []);
+    const today  = App.todayISO();
+    let list = all;
+    if(this._filter === 'today')  list = list.filter(r => (r.fecha || r.createdAt || '').startsWith(today));
+    if(this._filter === 'postes') list = list.filter(r => r.type === 'postes');
+    if(this._filter === 'ccrr')   list = list.filter(r => r.type === 'ccrr');
+    if(this._query){
+      const q = this._query;
+      list = list.filter(r =>
+        (r.title    || '').toLowerCase().includes(q) ||
+        (r.subtitle || '').toLowerCase().includes(q) ||
+        (r.data?.direccion  || '').toLowerCase().includes(q) ||
+        (r.data?.poblacion  || '').toLowerCase().includes(q) ||
+        (r.data?.numPoste   || '').toLowerCase().includes(q) ||
+        (r.data?.num        || '').toLowerCase().includes(q)
+      );
+    }
+    return list;
+  },
+
   render(){
-    const wrap = document.getElementById('h-list');
-    const reports = App.load(App.KEYS.reports, []);
-    if(reports.length === 0){
+    const wrap  = document.getElementById('h-list');
+    const empty = document.getElementById('h-empty');
+    const all   = App.load(App.KEYS.reports, []);
+    const list  = this._filtered();
+
+    if(all.length === 0){
       wrap.innerHTML = `<div class="empty-list" style="padding:24px;text-align:center;">
         Aún no has generado ningún parte.<br>
         <b>Crea uno desde la pantalla de inicio.</b>
       </div>`;
+      if(empty) empty.style.display = 'none';
       return;
     }
-    wrap.innerHTML = reports.map(r => `
+
+    if(list.length === 0){
+      wrap.innerHTML = '';
+      if(empty) empty.style.display = 'block';
+      return;
+    }
+    if(empty) empty.style.display = 'none';
+
+    wrap.innerHTML = list.map(r => `
       <div class="item-card" data-id="${this._esc(r.id)}">
         <div style="width:36px;height:36px;border-radius:8px;background:var(--surface);border:1px solid var(--line-2);display:grid;place-items:center;flex-shrink:0;">
           <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="${r.type === 'postes' ? '#fbbf24' : '#38bdf8'}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -5086,10 +5190,13 @@ const History = {
           </div>
         </div>
         <div class="item-actions">
+          <button class="icon-action" data-edit="${this._esc(r.id)}" aria-label="Editar y regenerar" title="Editar">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          </button>
           <button class="icon-action" data-share="${this._esc(r.id)}" aria-label="Compartir">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
           </button>
-          <button class="icon-action" data-view="${this._esc(r.id)}" aria-label="Ver">
+          <button class="icon-action" data-view="${this._esc(r.id)}" aria-label="Ver PDF">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
           </button>
           <button class="icon-action danger" data-del="${this._esc(r.id)}" aria-label="Eliminar">
@@ -5099,16 +5206,22 @@ const History = {
       </div>
     `).join('');
 
+    wrap.querySelectorAll('[data-edit]').forEach(b => b.addEventListener('click', () => {
+      const r = all.find(x => x.id === b.dataset.edit);
+      if(!r || !r.data) return;
+      if(!confirm(`¿Reabrir este parte para editarlo?\n\n"${r.title}"\n\nSe cargará en el formulario. Al generar se creará un nuevo PDF.`)) return;
+      this._reopenEntry(r);
+    }));
     wrap.querySelectorAll('[data-share]').forEach(b => b.addEventListener('click', () => {
-      const r = reports.find(x => x.id === b.dataset.share);
+      const r = all.find(x => x.id === b.dataset.share);
       if(r) Pdf.share(r);
     }));
     wrap.querySelectorAll('[data-view]').forEach(b => b.addEventListener('click', () => {
-      const r = reports.find(x => x.id === b.dataset.view);
+      const r = all.find(x => x.id === b.dataset.view);
       if(r) Pdf.view(r);
     }));
     wrap.querySelectorAll('[data-del]').forEach(b => b.addEventListener('click', () => {
-      const r = reports.find(x => x.id === b.dataset.del);
+      const r = all.find(x => x.id === b.dataset.del);
       if(!r) return;
       if(!confirm(`¿Eliminar "${r.title}"?`)) return;
       Pdf.delete(r.id);
@@ -5116,14 +5229,41 @@ const History = {
       App.toast('Parte eliminado');
     }));
   },
+
+  // Reabrir un parte del historial en el formulario para editarlo
+  _reopenEntry(entry){
+    const data = entry.data || {};
+    if(entry.type === 'postes'){
+      App.save(Postes.DRAFT_KEY, data);
+      App.go('postes');
+    } else if(entry.type === 'ccrr'){
+      App.save(Ccrr.DRAFT_KEY, data);
+      App.go('ccrr');
+    }
+    App.toast('Parte cargado — modifícalo y genera un nuevo PDF');
+  },
+
+  // Exportar todos los partes de hoy como PDFs individuales (descarga múltiple)
+  async exportDay(){
+    const today = App.todayISO();
+    const partes = App.load(App.KEYS.reports, [])
+      .filter(r => (r.fecha || r.createdAt || '').startsWith(today));
+    if(partes.length === 0){ App.toast('No hay partes de hoy'); return; }
+    App.toast(`Descargando ${partes.length} partes…`);
+    for(const r of partes){
+      await new Promise(ok => setTimeout(ok, 300)); // pequeña pausa entre descargas
+      const blob = Pdf._dataURLtoBlob(r.pdf);
+      await Pdf._deliverBlob(blob, r.fileName, r.title);
+    }
+  },
+
   _esc(s){
-    return String(s ?? '').replace(/[&<>"']/g, m => ({
-      '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
-    }[m]));
+    return String(s ?? '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
   },
   _dateShort(iso){
+    if(!iso) return '';
     const d = new Date(iso);
-    return d.toLocaleDateString('es-ES') + ' ' + d.toLocaleTimeString('es-ES', {hour: '2-digit', minute: '2-digit'});
+    return d.toLocaleDateString('es-ES') + ' ' + d.toLocaleTimeString('es-ES', {hour:'2-digit', minute:'2-digit'});
   }
 };
 
@@ -5418,8 +5558,10 @@ const Settings = {
     list.innerHTML = cats.map((c,i) => `
       <div class="item-row">
         <span class="item-name">${this.esc(c)}</span>
-        <button type="button" class="item-del" data-cat-idx="${i}" aria-label="Eliminar ${this.esc(c)}">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        <button type="button" class="item-del" data-cat-idx="${i}" aria-label="Eliminar ${this.esc(c)}" title="Eliminar categoría" style="background:none;border:none;cursor:pointer;padding:8px;color:var(--text-mute);border-radius:8px;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;">
+            <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+          </svg>
         </button>
       </div>
     `).join('');
@@ -6316,9 +6458,7 @@ const Sync = {
 
 document.addEventListener('DOMContentLoaded', () => App.init());
 document.addEventListener('DOMContentLoaded', () => PWA.init());
-// Access.check muestra la pantalla de bloqueo si es necesario.
-// Sync.init se llama desde Access.check una vez verificado el acceso,
-// o directamente si no hay control de acceso activo.
+document.addEventListener('DOMContentLoaded', () => History.init());
 document.addEventListener('DOMContentLoaded', async () => {
   await Access.check();
 });
