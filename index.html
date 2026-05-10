@@ -2145,7 +2145,7 @@
       <div style="display:flex;flex-direction:column;gap:10px;">
         <div class="field">
           <span class="field-label">Nombre de empresa</span>
-          <input class="input" type="text" id="s-empresa" placeholder="ej. DIGI Spain Telecom">
+          <input class="input" type="text" id="s-empresa" placeholder="ej. Empresa Telecomunicaciones SL">
         </div>
         <div class="field">
           <span class="field-label">Unidad / Departamento</span>
@@ -2253,6 +2253,27 @@
             <option value="Diurno">Diurno</option>
             <option value="Nocturno">Nocturno</option>
           </select>
+        </div>
+        <p style="font-size:12px;color:var(--text-mute);margin:8px 0 4px;font-weight:600;">EPIs CCRR marcados automáticamente — Página 1:</p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+          <label class="pref-check"><input type="checkbox" id="pref-ccrr-epi-o2">          Medidor O₂</label>
+          <label class="pref-check"><input type="checkbox" id="pref-ccrr-epi-casco">       Casco</label>
+          <label class="pref-check"><input type="checkbox" id="pref-ccrr-epi-gases-ex">   Gases explosivos</label>
+          <label class="pref-check"><input type="checkbox" id="pref-ccrr-epi-gafas">      Gafas</label>
+          <label class="pref-check"><input type="checkbox" id="pref-ccrr-epi-gases-tx">   Gases tóxicos</label>
+          <label class="pref-check"><input type="checkbox" id="pref-ccrr-epi-guantes">    Guantes mec.</label>
+          <label class="pref-check"><input type="checkbox" id="pref-ccrr-epi-comunic">    Eq. comunicación</label>
+          <label class="pref-check"><input type="checkbox" id="pref-ccrr-epi-incend">     Prot. incendios</label>
+          <label class="pref-check" style="grid-column:1/-1;"><input type="checkbox" id="pref-ccrr-epi-arnes"> Arnés + trípode de rescate</label>
+        </div>
+        <p style="font-size:12px;color:var(--text-mute);margin:8px 0 4px;font-weight:600;">EPIs CCRR marcados automáticamente — Página 2:</p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+          <label class="pref-check"><input type="checkbox" id="pref-ccrr-epi-otros">      Otros contaminantes</label>
+          <label class="pref-check"><input type="checkbox" id="pref-ccrr-epi-gaisl">      Guantes aislantes</label>
+          <label class="pref-check"><input type="checkbox" id="pref-ccrr-epi-multid">     Multidetector</label>
+          <label class="pref-check"><input type="checkbox" id="pref-ccrr-epi-gquim">      Guantes prot. química</label>
+          <label class="pref-check"><input type="checkbox" id="pref-ccrr-epi-ventil">     Ventilación</label>
+          <label class="pref-check"><input type="checkbox" id="pref-ccrr-epi-cremas">     Cremas prot. química</label>
         </div>
       </div>
 
@@ -2547,8 +2568,10 @@
       <div class="field-row">
         <div class="field">
           <span class="field-label">Categoría</span>
-          <input class="input" type="text" id="mw-cat" list="mw-cat-list" autocomplete="off" placeholder="ej. Celador">
-          <datalist id="mw-cat-list"></datalist>
+          <select class="select" id="mw-cat-select" style="margin-bottom:6px;">
+            <option value="">— Selecciona —</option>
+          </select>
+          <input class="input" type="text" id="mw-cat" placeholder="O escribe una categoría" autocomplete="off" style="font-size:13.5px;">
         </div>
         <div class="field">
           <span class="field-label">NIF / Matrícula</span>
@@ -2766,6 +2789,23 @@ const App = {
     epi_doblecabo:  false,
     epi_pertiga:    false,
     epi_ptoanclaje: false,
+    // EPIs CCRR página 1
+    ccrr_epi_o2:             false,
+    ccrr_epi_casco:          true,
+    ccrr_epi_comunicacion:   true,
+    ccrr_epi_gases_explos:   false,
+    ccrr_epi_gafas:          true,
+    ccrr_epi_prot_incendios: false,
+    ccrr_epi_gases_toxic:    false,
+    ccrr_epi_guantes:        true,
+    ccrr_epi_arnes:          true,
+    // EPIs CCRR página 2
+    ccrr_epi_otros_cont:     false,
+    ccrr_epi_guantes_aisl:   false,
+    ccrr_epi_multidetector:  true,
+    ccrr_epi_guantes_quim:   false,
+    ccrr_epi_ventilacion:    false,
+    ccrr_epi_cremas_quim:    false,
   },
 
   // Leer defaults del parte (mezcla de defaults globales + personalizados del usuario)
@@ -4287,6 +4327,25 @@ const Pdf = {
       .replace(/\u2013|\u2014/g, '-');
   },
 
+  // Dibuja texto con word wrap en un área (devuelve la Y final)
+  _drawWrappedText(page, text, x, yStart, { size=8, font, color, maxWidth=300, lineHeight } = {}){
+    if(!text) return yStart;
+    const lh = lineHeight || size * 1.4;
+    const avgW = size * 0.55;
+    const maxChars = Math.floor(maxWidth / avgW);
+    const words = this._sanitize(String(text)).split(/\s+/).filter(Boolean);
+    let line = '', curY = yStart;
+    for(const word of words){
+      const test = line ? line + ' ' + word : word;
+      if(test.length > maxChars && line){
+        page.drawText(line, { x, y: curY, size, font, color });
+        line = word; curY -= lh;
+      } else { line = test; }
+    }
+    if(line) page.drawText(line, { x, y: curY, size, font, color });
+    return curY;
+  },
+
   // Convierte fecha ISO YYYY-MM-DD a DD/MM/YYYY
   _dateES(iso){
     if(!iso) return '';
@@ -4541,6 +4600,14 @@ const Pdf = {
     mark('obs1_si');
     mark('obs2_si');
 
+    // === TEXTO LIBRE OBSERVACIONES (cuadro entre Y=117 y Y=137) ===
+    if(d.observaciones){
+      this._drawWrappedText(page, d.observaciones,
+        52, 128,
+        { size: 7.5, font: helvetica, color: black, maxWidth: 270, lineHeight: 9 }
+      );
+    }
+
     // === FIRMA RP ===
     if(rp.id){
       const sigs = App.load('cg1.signatures', {});
@@ -4786,7 +4853,22 @@ const Pdf = {
     // === PÁGINA 1: marcas ===
     const toMark = new Set();
     [...this.CCRR_FIJOS_TR, ...this.CCRR_FIJOS_PREP, ...this.CCRR_FIJOS_ESTADO,
-     ...this.CCRR_FIJOS_ATM, ...this.CCRR_FIJOS_EPIS_P1].forEach(t => toMark.add(t));
+     ...this.CCRR_FIJOS_ATM].forEach(t => toMark.add(t));
+
+    // EPIs CCRR P1 configurables por el usuario
+    const CCRR_EPI_MAP_P1 = {
+      ccrr_epi_o2:61, ccrr_epi_casco:62, ccrr_epi_comunicacion:63,
+      ccrr_epi_gases_explos:64, ccrr_epi_gafas:65, ccrr_epi_prot_incendios:66,
+      ccrr_epi_gases_toxic:67, ccrr_epi_guantes:68, ccrr_epi_arnes:69
+    };
+    const CCRR_EPI_MAP_P2 = {
+      ccrr_epi_otros_cont:70, ccrr_epi_guantes_aisl:71,
+      ccrr_epi_multidetector:72, ccrr_epi_guantes_quim:73,
+      ccrr_epi_ventilacion:74, ccrr_epi_cremas_quim:75
+    };
+    const episP1 = Object.entries(CCRR_EPI_MAP_P1).filter(([k]) => App.parteDefault(k)).map(([,v]) => v);
+    const episP2 = Object.entries(CCRR_EPI_MAP_P2).filter(([k]) => App.parteDefault(k)).map(([,v]) => v);
+    episP1.forEach(t => toMark.add(t));
     Object.entries(d.ubic || {}).forEach(([k, v]) => {
       if(v && this.CCRR_UBIC_BTNS[k]) toMark.add(this.CCRR_UBIC_BTNS[k]);
     });
@@ -4799,6 +4881,15 @@ const Pdf = {
         if(c) drawX1(c[0], c[1]);
       }
     });
+
+    // === BREVE DESCRIPCIÓN DEL ESTADO DEL RECINTO O CCRR (P1, Y=249-282) ===
+    // El label "BREVE DESCRIPCIÓN..." está en Y=282. El área de texto va de Y=249 a Y=280.
+    if(d.estadoDesc){
+      this._drawWrappedText(page1, d.estadoDesc,
+        37, 273,
+        { size: 8, font: helvetica, color: black, maxWidth: 250, lineHeight: 10 }
+      );
+    }
 
     // === PÁGINA 2 ===
 
@@ -4819,7 +4910,7 @@ const Pdf = {
     txt2(170, 631.8, 9, rp.nombre);
     txt2(170, 620.8, 9, rp.nif);
 
-    this.CCRR_FIJOS_EPIS_P2.forEach(t => {
+    episP2.forEach(t => {
       const c = this.CCRR_T_CENTERS[t];
       if(c) drawX2(c[0], c[1]);
     });
@@ -5357,7 +5448,24 @@ const Settings = {
       App.saveParteDefault('ccrr_conos',   g('pref-ccrr-conos').checked);
       App.saveParteDefault('ccrr_baranda', g('pref-ccrr-baranda').checked);
       App.saveParteDefault('ccrr_senalPeligro', g('pref-ccrr-peligro').checked);
-      App.saveParteDefault('ccrr_luminosa',g('pref-ccrr-luz').checked);
+      App.saveParteDefault('ccrr_luminosa',         g('pref-ccrr-luz').checked);
+      // EPIs CCRR P1
+      App.saveParteDefault('ccrr_epi_o2',            g('pref-ccrr-epi-o2').checked);
+      App.saveParteDefault('ccrr_epi_casco',         g('pref-ccrr-epi-casco').checked);
+      App.saveParteDefault('ccrr_epi_gases_explos',  g('pref-ccrr-epi-gases-ex').checked);
+      App.saveParteDefault('ccrr_epi_gafas',         g('pref-ccrr-epi-gafas').checked);
+      App.saveParteDefault('ccrr_epi_gases_toxic',   g('pref-ccrr-epi-gases-tx').checked);
+      App.saveParteDefault('ccrr_epi_guantes',       g('pref-ccrr-epi-guantes').checked);
+      App.saveParteDefault('ccrr_epi_comunicacion',  g('pref-ccrr-epi-comunic').checked);
+      App.saveParteDefault('ccrr_epi_prot_incendios',g('pref-ccrr-epi-incend').checked);
+      App.saveParteDefault('ccrr_epi_arnes',         g('pref-ccrr-epi-arnes').checked);
+      // EPIs CCRR P2
+      App.saveParteDefault('ccrr_epi_otros_cont',    g('pref-ccrr-epi-otros').checked);
+      App.saveParteDefault('ccrr_epi_guantes_aisl',  g('pref-ccrr-epi-gaisl').checked);
+      App.saveParteDefault('ccrr_epi_multidetector', g('pref-ccrr-epi-multid').checked);
+      App.saveParteDefault('ccrr_epi_guantes_quim',  g('pref-ccrr-epi-gquim').checked);
+      App.saveParteDefault('ccrr_epi_ventilacion',   g('pref-ccrr-epi-ventil').checked);
+      App.saveParteDefault('ccrr_epi_cremas_quim',   g('pref-ccrr-epi-cremas').checked);
       App.toast('✓ Preferencias guardadas');
     });
     // Mostrar versión actual también en Ajustes
@@ -5545,6 +5653,23 @@ const Settings = {
     chk('pref-ccrr-baranda', App.parteDefault('ccrr_baranda'));
     chk('pref-ccrr-peligro', App.parteDefault('ccrr_senalPeligro'));
     chk('pref-ccrr-luz',     App.parteDefault('ccrr_luminosa'));
+    // EPIs CCRR P1
+    chk('pref-ccrr-epi-o2',       App.parteDefault('ccrr_epi_o2'));
+    chk('pref-ccrr-epi-casco',    App.parteDefault('ccrr_epi_casco'));
+    chk('pref-ccrr-epi-gases-ex', App.parteDefault('ccrr_epi_gases_explos'));
+    chk('pref-ccrr-epi-gafas',    App.parteDefault('ccrr_epi_gafas'));
+    chk('pref-ccrr-epi-gases-tx', App.parteDefault('ccrr_epi_gases_toxic'));
+    chk('pref-ccrr-epi-guantes',  App.parteDefault('ccrr_epi_guantes'));
+    chk('pref-ccrr-epi-comunic',  App.parteDefault('ccrr_epi_comunicacion'));
+    chk('pref-ccrr-epi-incend',   App.parteDefault('ccrr_epi_prot_incendios'));
+    chk('pref-ccrr-epi-arnes',    App.parteDefault('ccrr_epi_arnes'));
+    // EPIs CCRR P2
+    chk('pref-ccrr-epi-otros',    App.parteDefault('ccrr_epi_otros_cont'));
+    chk('pref-ccrr-epi-gaisl',    App.parteDefault('ccrr_epi_guantes_aisl'));
+    chk('pref-ccrr-epi-multid',   App.parteDefault('ccrr_epi_multidetector'));
+    chk('pref-ccrr-epi-gquim',    App.parteDefault('ccrr_epi_guantes_quim'));
+    chk('pref-ccrr-epi-ventil',   App.parteDefault('ccrr_epi_ventilacion'));
+    chk('pref-ccrr-epi-cremas',   App.parteDefault('ccrr_epi_cremas_quim'));
   },
 
   renderCategorias(){
@@ -5697,11 +5822,19 @@ const Settings = {
     this.state.sigData = null;
     const isNew = !id;
 
-    // Rellenar datalist con categorías guardadas
-    const dl = document.getElementById('mw-cat-list');
-    if(dl){
+    // Poblar select de categorías
+    const sel = document.getElementById('mw-cat-select');
+    const inp = document.getElementById('mw-cat');
+    if(sel){
       const cats = App.load(App.KEYS.categorias, App.CATEGORIAS_DEFAULT.slice());
-      dl.innerHTML = cats.map(c => `<option value="${this.esc(c)}">`).join('');
+      sel.innerHTML = '<option value="">— Selecciona —</option>' +
+        cats.map(c => `<option value="${this.esc(c)}">${this.esc(c)}</option>`).join('') +
+        '<option value="__otra__">Otra (escribe abajo)…</option>';
+      // Al seleccionar una opción, rellenar el campo de texto
+      sel.onchange = () => {
+        if(sel.value && sel.value !== '__otra__') inp.value = sel.value;
+        else if(sel.value === '__otra__') { inp.value = ''; inp.focus(); }
+      };
     }
 
     document.getElementById('mw-title').textContent = isNew ? 'Nuevo trabajador' : 'Editar trabajador';
@@ -5709,14 +5842,21 @@ const Settings = {
 
     if(isNew){
       document.getElementById('mw-name').value = '';
-      document.getElementById('mw-cat').value  = App.load(App.KEYS.categorias, ['Celador'])[0] || '';
-      document.getElementById('mw-nif').value  = '';
+      const firstCat = App.load(App.KEYS.categorias, [''])[0] || '';
+      if(sel) sel.value = firstCat;
+      inp.value = firstCat;
+      document.getElementById('mw-nif').value = '';
     } else {
       const w = App.load(App.KEYS.workers, []).find(x => x.id === id);
       if(!w) return;
       document.getElementById('mw-name').value = w.nombre || '';
-      document.getElementById('mw-cat').value  = w.categoria || '';
-      document.getElementById('mw-nif').value  = w.nif || '';
+      inp.value = w.categoria || '';
+      // Seleccionar en el select si coincide
+      if(sel){
+        const opt = [...sel.options].find(o => o.value === w.categoria);
+        sel.value = opt ? w.categoria : '__otra__';
+      }
+      document.getElementById('mw-nif').value = w.nif || '';
       const sigs = App.load('cg1.signatures', {});
       this.state.sigData = sigs[id] || null;
     }
