@@ -866,6 +866,22 @@
   }
   #p-new svg, #c-new svg{ width: 16px; height: 16px; }
 
+  /* Checkbox de preferencias del parte */
+  .pref-check{
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--text-dim);
+    padding: 8px 10px;
+    background: var(--surface);
+    border: 1px solid var(--line-2);
+    border-radius: 8px;
+    cursor: pointer;
+    user-select: none;
+  }
+  .pref-check input[type="checkbox"]{ width:15px; height:15px; accent-color: var(--amber); cursor:pointer; }
+
   /* Modal genérico */
   .modal-backdrop{
     position: fixed; inset: 0;
@@ -1258,8 +1274,8 @@
         </svg>
       </span>
       <span class="brand-text">
-        <span class="t1">Partes Seguridad</span>
-        <span class="t2">DIGI <b>·</b> PE <b>·</b> CG1 <b>·</b> <span id="brand-version">v0.7.2</span></span>
+        <span class="t1">Partes de Seguridad</span>
+        <span class="t2" id="brand-subtitle">Telefonía <b>·</b> <span id="brand-version">v0.7.28</span></span>
       </span>
     </button>
 
@@ -2103,6 +2119,28 @@
       <h1 class="section-title">Ajustes</h1>
     </div>
 
+    <!-- ===== 00 CONFIGURACIÓN DE LA EMPRESA ===== -->
+    <section class="settings-section">
+      <div class="sec-head">
+        <span class="sec-num">00</span>
+        <span class="sec-title">Tu empresa</span>
+      </div>
+      <p style="font-size:12.5px;color:var(--text-mute);margin:-6px 0 12px;line-height:1.5;">
+        Aparecerá en todos los partes generados.
+      </p>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <div class="field">
+          <span class="field-label">Nombre de empresa</span>
+          <input class="input" type="text" id="s-empresa" placeholder="ej. DIGI Spain Telecom">
+        </div>
+        <div class="field">
+          <span class="field-label">Unidad / Departamento</span>
+          <input class="input" type="text" id="s-unidad" placeholder="ej. PE">
+        </div>
+        <button type="button" class="btn btn-primary" id="s-empresa-save">Guardar empresa</button>
+      </div>
+    </section>
+
     <!-- Trabajadores -->
     <section class="settings-section">
       <div class="sec-head">
@@ -2125,10 +2163,92 @@
       </button>
     </section>
 
-    <!-- RP por defecto -->
+    <!-- ===== Categorías de trabajo ===== -->
     <section class="settings-section">
       <div class="sec-head">
         <span class="sec-num">02</span>
+        <span class="sec-title">Categorías de trabajo</span>
+      </div>
+      <p style="font-size:12.5px;color:var(--text-mute);margin:-6px 0 12px;line-height:1.5;">
+        Aparecen como sugerencias al añadir trabajadores. El usuario puede escribir una distinta.
+      </p>
+      <div class="item-list" id="s-categorias-list"></div>
+      <div style="display:flex;gap:8px;margin-top:8px;">
+        <input class="input" type="text" id="s-categoria-nueva" placeholder="Nueva categoría" style="flex:1;">
+        <button type="button" class="btn btn-ghost" id="s-categoria-add" style="padding:12px 16px;">+</button>
+      </div>
+    </section>
+
+    <!-- ===== Preferencias del parte ===== -->
+    <section class="settings-section">
+      <div class="sec-head">
+        <span class="sec-num">03</span>
+        <span class="sec-title">Preferencias del parte</span>
+      </div>
+      <p style="font-size:12.5px;color:var(--text-mute);margin:-6px 0 14px;line-height:1.5;">
+        Configura qué se marca automáticamente al crear un parte nuevo. Puedes cambiarlo en cada parte si hace falta.
+      </p>
+
+      <p style="font-size:12px;font-weight:600;color:var(--text-dim);text-transform:uppercase;letter-spacing:.5px;margin:0 0 8px;">Parte de postes</p>
+      <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;">
+        <div class="field">
+          <span class="field-label">Tipo de poste por defecto</span>
+          <select class="select" id="pref-tipo-poste">
+            <option value="Madera">Madera</option>
+            <option value="Hormigón">Hormigón</option>
+            <option value="Fibra">Fibra (PRFV)</option>
+          </select>
+        </div>
+        <div class="field">
+          <span class="field-label">Medio de subida por defecto</span>
+          <select class="select" id="pref-medio-subida">
+            <option>Escalera</option>
+            <option>Escalera con patas extensibles</option>
+            <option>PEMP</option>
+            <option>Trepadores</option>
+            <option>Herramienta especial</option>
+          </select>
+        </div>
+        <p style="font-size:12px;color:var(--text-mute);margin:4px 0 4px;font-weight:600;">EPIs que se marcan automáticamente:</p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+          <label class="pref-check"><input type="checkbox" id="pref-epi-casco">     Casco</label>
+          <label class="pref-check"><input type="checkbox" id="pref-epi-chaleco">   Chaleco</label>
+          <label class="pref-check"><input type="checkbox" id="pref-epi-guantes">   Guantes</label>
+          <label class="pref-check"><input type="checkbox" id="pref-epi-gafas">     Gafas</label>
+          <label class="pref-check"><input type="checkbox" id="pref-epi-botas">     Botas</label>
+          <label class="pref-check"><input type="checkbox" id="pref-epi-arnes">     Arnés</label>
+          <label class="pref-check"><input type="checkbox" id="pref-epi-cinturon">  Cinturón</label>
+          <label class="pref-check"><input type="checkbox" id="pref-epi-lineavida"> Línea de vida</label>
+          <label class="pref-check"><input type="checkbox" id="pref-epi-doblecabo"> Doble cabo</label>
+          <label class="pref-check"><input type="checkbox" id="pref-epi-pertiga">   Pértiga</label>
+        </div>
+      </div>
+
+      <p style="font-size:12px;font-weight:600;color:var(--text-dim);text-transform:uppercase;letter-spacing:.5px;margin:0 0 8px;">Parte de CCRR</p>
+      <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:16px;">
+        <p style="font-size:12px;color:var(--text-mute);margin:0 0 4px;font-weight:600;">Señalización marcada por defecto:</p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+          <label class="pref-check"><input type="checkbox" id="pref-ccrr-conos">   Conos</label>
+          <label class="pref-check"><input type="checkbox" id="pref-ccrr-baranda"> Baranda</label>
+          <label class="pref-check"><input type="checkbox" id="pref-ccrr-peligro"> Señal peligro</label>
+          <label class="pref-check"><input type="checkbox" id="pref-ccrr-luz">     Señalización luminosa</label>
+        </div>
+        <div class="field" style="margin-top:4px;">
+          <span class="field-label">Turno por defecto</span>
+          <select class="select" id="pref-turno">
+            <option value="Diurno">Diurno</option>
+            <option value="Nocturno">Nocturno</option>
+          </select>
+        </div>
+      </div>
+
+      <button type="button" class="btn btn-primary" id="pref-save">Guardar preferencias</button>
+    </section>
+
+    <!-- RP por defecto -->
+    <section class="settings-section">
+      <div class="sec-head">
+        <span class="sec-num">04</span>
         <span class="sec-title">Recurso Preventivo por defecto</span>
       </div>
       <p style="font-size:12.5px;color:var(--text-mute);margin:-6px 0 12px;line-height:1.5;">
@@ -2424,7 +2544,8 @@
       <div class="field-row">
         <div class="field">
           <span class="field-label">Categoría</span>
-          <input class="input" type="text" id="mw-cat" value="Celador">
+          <input class="input" type="text" id="mw-cat" list="mw-cat-list" autocomplete="off" placeholder="ej. Celador">
+          <datalist id="mw-cat-list"></datalist>
         </div>
         <div class="field">
           <span class="field-label">NIF / Matrícula</span>
@@ -2521,7 +2642,7 @@
 
   <!-- ========= FOOTER ========= -->
   <footer class="app-foot">
-    <div class="sig">Creado por <b>Braulio</b><span class="dot">·</span>CG1</div>
+    <div class="sig">Por <b id="app-autor">Braulio López</b></div>
     <div class="ver" id="app-ver">v0.1 · STEP 1</div>
   </footer>
 
@@ -2540,72 +2661,113 @@
    ============================================================= */
 
 const App = {
-  version: '0.7.27',
+  version: '0.7.28',
   step: 7,
 
-  /* ===== CONSTANTES FIJAS — nunca cambian ===== */
+  /* ===== DATOS DEL USUARIO (se guardan en localStorage, editables en Ajustes) ===== */
+  // Acceso: App.setting('empresa') → lee de localStorage, fallback al valor por defecto
+  SETTING_DEFAULTS: {
+    empresa:  '',          // nombre de la empresa
+    unidad:   '',          // unidad/departamento
+    autor:    'Braulio López',  // autor visible en el pie de ajustes
+  },
+
+  setting(key) {
+    const s = this.load(this.KEYS.settings, {});
+    return (s[key] !== undefined && s[key] !== '') ? s[key] : this.SETTING_DEFAULTS[key];
+  },
+
+  saveSetting(key, value) {
+    const s = this.load(this.KEYS.settings, {});
+    s[key] = value;
+    this.save(this.KEYS.settings, s);
+  },
+
+  /* ===== CONSTANTES FIJAS — comportamiento de la app ===== */
   FIXED: {
-    empresa: 'DIGI Spain Telecom',
-    unidad: 'PE',
-    categoriaTrabajadoresDefault: 'Celador',
-    formacionAdecuada: true,
-    conocenRiesgos: true,
     telefonoEmergencia1: '061',
     telefonoEmergencia2: '112',
-    // Apartado 6 — checks de escalera (a-g) por defecto SÍ
+    // Checks de escalera (a-g) por defecto SÍ cuando se elige escalera
     escalera: { a:true, b:true, c:true, d:true, e:true, f:true, g:true },
-    // Apartado 8 — postes
+    // Apartado 8 postes — siempre marcados
     postes: { medidasPreventivas:true, episAdecuados:true },
-    // CCRR
+    // CCRR — valores que van siempre en el PDF sin pasar por el formulario
     ccrr: {
-      // Estos valores se imprimen SIEMPRE así en el PDF (no aparecen en el formulario)
-      conductosObturados: 'si',          // siempre SÍ
-      longitudCuelloMayor3m: 'si',       // siempre SÍ
-      // Preparación antes de entrar: estas opciones siempre van marcadas
-      preparacionFija: {
-        ventilacion:        true,
-        controlContinuado:  true
-      },
-      // Control de atmósfera: siempre NO en los 3 controles para las 3 detecciones
+      conductosObturados:    'si',
+      longitudCuelloMayor3m: 'si',
+      preparacionFija: { ventilacion:true, controlContinuado:true },
       atmosfera: {
-        o2:     { inicial: 'no', post1: 'no', post2: 'no' },
-        explos: { inicial: 'no', post1: 'no', post2: 'no' },
-        toxic:  { inicial: 'no', post1: 'no', post2: 'no' }
+        o2:     { inicial:'no', post1:'no', post2:'no' },
+        explos: { inicial:'no', post1:'no', post2:'no' },
+        toxic:  { inicial:'no', post1:'no', post2:'no' }
       },
-      // EPIs siempre marcados (ya no aparecen en el formulario)
       epis: {
-        casco:         true,
-        gafas:         true,
-        guantes_mec:   true,
-        multidetector: true,
-        arnes_tripode: true,
-        comunicacion:  true
-      },
-      descripcionEstadoDefault: ''
+        casco:true, gafas:true, guantes_mec:true,
+        multidetector:true, arnes_tripode:true, comunicacion:true
+      }
     }
+  },
+
+  /* ===== DEFAULTS DEL PARTE — configurables por el usuario en Ajustes ===== */
+  // El usuario puede personalizar qué se marca automáticamente.
+  // Se guardan en cg1.settings.parteDefaults.
+  PARTE_DEFAULTS_DEFAULT: {
+    // Postes
+    tipoPoste:      'Madera',     // tipo de poste preseleccionado
+    climaOk:        'si',         // climatología adecuada por defecto
+    turno:          'Diurno',     // turno por defecto en CCRR
+    medioSubida:    'Escalera con patas extensibles',
+    // Señalización CCRR
+    ccrr_conos:         true,
+    ccrr_baranda:       false,
+    ccrr_senalPeligro:  false,
+    ccrr_luminosa:      false,
+    // EPIs postes por defecto
+    epi_casco:      true,
+    epi_chaleco:    true,
+    epi_guantes:    true,
+    epi_gafas:      true,
+    epi_botas:      true,
+    epi_arnes:      true,
+    epi_cinturon:   true,
+    epi_lineavida:  false,
+    epi_doblecabo:  false,
+    epi_pertiga:    false,
+    epi_ptoanclaje: false,
+  },
+
+  // Leer defaults del parte (mezcla de defaults globales + personalizados del usuario)
+  parteDefault(key) {
+    const s = this.load(this.KEYS.settings, {});
+    const d = s.parteDefaults || {};
+    return (d[key] !== undefined) ? d[key] : this.PARTE_DEFAULTS_DEFAULT[key];
+  },
+
+  saveParteDefault(key, value) {
+    const s = this.load(this.KEYS.settings, {});
+    s.parteDefaults = s.parteDefaults || {};
+    s.parteDefaults[key] = value;
+    this.save(this.KEYS.settings, s);
   },
 
   /* ===== MEDIOS PARA SUBIR según tipo de poste ===== */
   MEDIOS: {
-    'Madera':    ['Escalera','Escalera con patas extensibles','PEMP','Trepadores','Otro'],
-    'Hormigón':  ['Escalera','Escalera con patas extensibles','PEMP','Estribos','Otro'],
-    'Fibra':     ['Escalera','Escalera con patas extensibles','PEMP','Herramienta especial','Otro']
+    'Madera':   ['Escalera','Escalera con patas extensibles','PEMP','Trepadores','Otro'],
+    'Hormigón': ['Escalera','Escalera con patas extensibles','PEMP','Estribos','Otro'],
+    'Fibra':    ['Escalera','Escalera con patas extensibles','PEMP','Herramienta especial','Otro']
   },
 
-  /* ===== Centrales por defecto (editables en Ajustes — Paso 4) ===== */
+  /* ===== CATEGORÍAS DE TRABAJO por defecto (editables en Ajustes) ===== */
+  CATEGORIAS_DEFAULT: ['Celador','Fusionador','Técnico instalador','Técnico de red','Oficial 1ª'],
+
+  /* ===== CENTRALES por defecto (editables en Ajustes) ===== */
   CENTRALES_DEFAULT: [
     'Boiro','Culleredo','Santiago','Monforte de Lemos','Ribeira',
     'Villalba','As Pontes','Pontedeume','Miño','Carral','Otra'
   ],
 
-  /* ===== Trabajador inicial (el propio usuario). Editable en Ajustes ===== */
-  WORKERS_DEFAULT: [
-    { id: 'w_braulio',  nombre: 'Braulio López Pardavila',  categoria: 'Celador', nif: '32699833C' },
-    { id: 'w_jorgeg',   nombre: 'Jorge García Leiras',      categoria: 'Celador', nif: '' },
-    { id: 'w_yago',     nombre: 'Yago Abeledo Rodríguez',   categoria: 'Celador', nif: '' },
-    { id: 'w_juan',     nombre: 'Juan Ponce Orjales',       categoria: 'Celador', nif: '' },
-    { id: 'w_marcos',   nombre: 'Marcos Criado Barbarin',   categoria: 'Celador', nif: '' }
-  ],
+  /* ===== WORKERS_DEFAULT: vacío — cada usuario añade los suyos ===== */
+  WORKERS_DEFAULT: [],
 
   /* ===== Migraciones (operaciones que se ejecutan una sola vez al actualizar la app) ===== */
   MIGRATIONS: {
@@ -2680,6 +2842,7 @@ const App = {
   KEYS: {
     workers:    'cg1.workers',
     centrales:  'cg1.centrales',
+    categorias: 'cg1.categorias',
     reports:    'cg1.reports',
     settings:   'cg1.settings'
   },
@@ -2745,50 +2908,27 @@ const App = {
 
   /* ===== INIT ===== */
   init(){
-    // Mostrar versión actual en el topbar
     const vEl = document.getElementById('brand-version');
     if(vEl) vEl.textContent = 'v' + this.version;
 
-    // Bind navegación
     document.querySelectorAll('[data-go]').forEach(el => {
       el.addEventListener('click', () => this.go(el.dataset.go));
     });
-    document.getElementById('brand-btn').addEventListener('click', () => this.go('home'));
-    document.getElementById('btn-history').addEventListener('click', () => this.go('history'));
+    document.getElementById('brand-btn').addEventListener('click',    () => this.go('home'));
+    document.getElementById('btn-history').addEventListener('click',  () => this.go('history'));
     document.getElementById('btn-settings').addEventListener('click', () => this.go('settings'));
 
-    // Sembrar centrales por defecto solo la primera vez
-    if(!this.load(this.KEYS.centrales, null)){
-      this.save(this.KEYS.centrales, this.CENTRALES_DEFAULT.slice());
-    }
-    // Sembrar trabajadores: añade los del default que aún no estén guardados
-    {
-      const existing = this.load(this.KEYS.workers, null);
-      if(!existing){
-        this.save(this.KEYS.workers, this.WORKERS_DEFAULT.slice());
-      } else {
-        const ids = new Set(existing.map(w => w.id));
-        const merged = existing.slice();
-        let added = 0;
-        this.WORKERS_DEFAULT.forEach(w => {
-          if(!ids.has(w.id)){ merged.push({...w}); added++; }
-        });
-        if(added > 0) this.save(this.KEYS.workers, merged);
-      }
-    }
-    // RP por defecto = primer trabajador la primera vez
-    if(!this.load(this.KEYS.settings, null)){
-      const w = this.load(this.KEYS.workers, []);
-      this.save(this.KEYS.settings, { defaultRPId: (w[0]?.id || '') });
-    }
+    // Sembrar centrales y categorías la primera vez
+    if(!this.load(this.KEYS.centrales,  null)) this.save(this.KEYS.centrales,  this.CENTRALES_DEFAULT.slice());
+    if(!this.load(this.KEYS.categorias, null)) this.save(this.KEYS.categorias, this.CATEGORIAS_DEFAULT.slice());
+    // Workers: primera vez vacío (el usuario añade los suyos)
+    if(!this.load(this.KEYS.workers, null)) this.save(this.KEYS.workers, []);
+    // Settings: inicializar si no existe
+    if(!this.load(this.KEYS.settings, null)) this.save(this.KEYS.settings, {});
 
-    // Migraciones (después de sembrar)
     this.runMigrations();
-
-    // Estadísticas en home
     this.refreshHomeStats();
 
-    // Versión visible
     document.getElementById('app-ver').textContent = `v${this.version} · STEP ${this.step}`;
 
     // Mensaje de bienvenida (solo primera vez)
@@ -2890,20 +3030,29 @@ const Postes = {
     const draft = App.load(this.DRAFT_KEY, null);
     this.state.tempWorkers = App.load(this.TEMP_WORKERS_KEY, []);
     if(draft){
-      this.state.tipo = draft.tipo || 'Madera';
-      this.state.estado = draft.estado || 'bueno';
-      this.state.climaOk = draft.climaOk || 'si';
+      this.state.tipo    = draft.tipo    || App.parteDefault('tipoPoste');
+      this.state.estado  = draft.estado  || 'bueno';
+      this.state.climaOk = draft.climaOk || App.parteDefault('climaOk');
       this.state.workersSelected = draft.workersSelected || [];
       this.state.epis = draft.epis || this.defaultEpis();
     } else {
-      this.state.epis = this.defaultEpis();
+      // Sin borrador: aplicar preferencias del usuario
+      this.state.tipo    = App.parteDefault('tipoPoste');
+      this.state.estado  = 'bueno';
+      this.state.climaOk = App.parteDefault('climaOk');
+      this.state.epis    = this.defaultEpis();
     }
     this.renderEpis();
   },
 
   defaultEpis(){
     const out = {};
-    App.EPIS_LIST.forEach(e => out[e.id] = !!e.def);
+    App.EPIS_LIST.forEach(e => {
+      // Usar preferencia del usuario si está definida, si no el default de la app
+      const prefKey = 'epi_' + e.id;
+      const pref = App.parteDefault(prefKey);
+      out[e.id] = (pref !== undefined) ? pref : !!e.def;
+    });
     return out;
   },
 
@@ -4271,8 +4420,8 @@ const Pdf = {
         case 'direccion':    val = d.direccion; break;
         case 'provincia':    val = d.provincia; break;
         case 'poblacion':    val = d.poblacion; break;
-        case 'empresa':      val = App.FIXED.empresa; break;
-        case 'unidad':       val = App.FIXED.unidad; break;
+        case 'empresa':      val = App.setting('empresa') || 'Empresa'; break;
+        case 'unidad':       val = App.setting('unidad'); break;
         case 'numActuacion': val = d.numActuacion; break;
         case 'fecha':        val = this._dateES(d.fecha); break;
         case 'hora':         val = d.hora; break;
@@ -5021,6 +5170,56 @@ const Settings = {
     });
 
     document.getElementById('s-export').addEventListener('click', () => this.exportData());
+    // Pie de ajustes con autor
+    const autorEl = document.getElementById('app-autor');
+    if(autorEl) autorEl.textContent = App.setting('autor') || 'Braulio López';
+
+    // === Empresa y unidad ===
+    document.getElementById('s-empresa-save').addEventListener('click', () => {
+      const empresa = document.getElementById('s-empresa').value.trim();
+      const unidad  = document.getElementById('s-unidad').value.trim();
+      App.saveSetting('empresa', empresa);
+      App.saveSetting('unidad',  unidad);
+      App.toast('✓ Empresa guardada');
+    });
+
+    // === Categorías de trabajo ===
+    document.getElementById('s-categoria-add').addEventListener('click', () => {
+      const input = document.getElementById('s-categoria-nueva');
+      const val = input.value.trim();
+      if(!val) return;
+      const cats = App.load(App.KEYS.categorias, App.CATEGORIAS_DEFAULT.slice());
+      if(!cats.includes(val)){ cats.push(val); App.save(App.KEYS.categorias, cats); }
+      input.value = '';
+      this.renderCategorias();
+      App.toast('Categoría añadida');
+    });
+    document.getElementById('s-categoria-nueva').addEventListener('keydown', e => {
+      if(e.key === 'Enter') document.getElementById('s-categoria-add').click();
+    });
+
+    // === Preferencias del parte ===
+    document.getElementById('pref-save').addEventListener('click', () => {
+      const g = id => document.getElementById(id);
+      App.saveParteDefault('tipoPoste',    g('pref-tipo-poste').value);
+      App.saveParteDefault('medioSubida',  g('pref-medio-subida').value);
+      App.saveParteDefault('turno',        g('pref-turno').value);
+      App.saveParteDefault('epi_casco',    g('pref-epi-casco').checked);
+      App.saveParteDefault('epi_chaleco',  g('pref-epi-chaleco').checked);
+      App.saveParteDefault('epi_guantes',  g('pref-epi-guantes').checked);
+      App.saveParteDefault('epi_gafas',    g('pref-epi-gafas').checked);
+      App.saveParteDefault('epi_botas',    g('pref-epi-botas').checked);
+      App.saveParteDefault('epi_arnes',    g('pref-epi-arnes').checked);
+      App.saveParteDefault('epi_cinturon', g('pref-epi-cinturon').checked);
+      App.saveParteDefault('epi_lineavida',g('pref-epi-lineavida').checked);
+      App.saveParteDefault('epi_doblecabo',g('pref-epi-doblecabo').checked);
+      App.saveParteDefault('epi_pertiga',  g('pref-epi-pertiga').checked);
+      App.saveParteDefault('ccrr_conos',   g('pref-ccrr-conos').checked);
+      App.saveParteDefault('ccrr_baranda', g('pref-ccrr-baranda').checked);
+      App.saveParteDefault('ccrr_senalPeligro', g('pref-ccrr-peligro').checked);
+      App.saveParteDefault('ccrr_luminosa',g('pref-ccrr-luz').checked);
+      App.toast('✓ Preferencias guardadas');
+    });
     // Mostrar versión actual también en Ajustes
     const vTxt = document.getElementById('s-version-text');
     if(vTxt) vTxt.textContent = 'v' + App.version;
@@ -5169,10 +5368,69 @@ const Settings = {
 
   onEnter(){
     this.renderWorkers();
+    this.renderCategorias();
     this.renderCentrales();
     this.renderDefaultRP();
     this.renderSync();
     this.renderAccess();
+    this.loadEmpresa();
+    this.loadPreferencias();
+  },
+
+  loadEmpresa(){
+    const eEl = document.getElementById('s-empresa');
+    const uEl = document.getElementById('s-unidad');
+    if(eEl) eEl.value = App.setting('empresa') || '';
+    if(uEl) uEl.value = App.setting('unidad')  || '';
+  },
+
+  loadPreferencias(){
+    const g = id => document.getElementById(id);
+    const set = (id, val) => { const e = g(id); if(e) e.value = val; };
+    const chk = (id, val) => { const e = g(id); if(e) e.checked = !!val; };
+    set('pref-tipo-poste',   App.parteDefault('tipoPoste'));
+    set('pref-medio-subida', App.parteDefault('medioSubida'));
+    set('pref-turno',        App.parteDefault('turno'));
+    chk('pref-epi-casco',    App.parteDefault('epi_casco'));
+    chk('pref-epi-chaleco',  App.parteDefault('epi_chaleco'));
+    chk('pref-epi-guantes',  App.parteDefault('epi_guantes'));
+    chk('pref-epi-gafas',    App.parteDefault('epi_gafas'));
+    chk('pref-epi-botas',    App.parteDefault('epi_botas'));
+    chk('pref-epi-arnes',    App.parteDefault('epi_arnes'));
+    chk('pref-epi-cinturon', App.parteDefault('epi_cinturon'));
+    chk('pref-epi-lineavida',App.parteDefault('epi_lineavida'));
+    chk('pref-epi-doblecabo',App.parteDefault('epi_doblecabo'));
+    chk('pref-epi-pertiga',  App.parteDefault('epi_pertiga'));
+    chk('pref-ccrr-conos',   App.parteDefault('ccrr_conos'));
+    chk('pref-ccrr-baranda', App.parteDefault('ccrr_baranda'));
+    chk('pref-ccrr-peligro', App.parteDefault('ccrr_senalPeligro'));
+    chk('pref-ccrr-luz',     App.parteDefault('ccrr_luminosa'));
+  },
+
+  renderCategorias(){
+    const list = document.getElementById('s-categorias-list');
+    if(!list) return;
+    const cats = App.load(App.KEYS.categorias, App.CATEGORIAS_DEFAULT.slice());
+    if(cats.length === 0){
+      list.innerHTML = '<div class="empty-list">Sin categorías. Añade alguna abajo.</div>';
+      return;
+    }
+    list.innerHTML = cats.map((c,i) => `
+      <div class="item-row">
+        <span class="item-name">${this.esc(c)}</span>
+        <button type="button" class="item-del" data-cat-idx="${i}" aria-label="Eliminar ${this.esc(c)}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+    `).join('');
+    list.querySelectorAll('[data-cat-idx]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const cats2 = App.load(App.KEYS.categorias, []);
+        cats2.splice(parseInt(btn.dataset.catIdx), 1);
+        App.save(App.KEYS.categorias, cats2);
+        this.renderCategorias();
+      });
+    });
   },
 
   async renderAccess(){
@@ -5297,18 +5555,25 @@ const Settings = {
     this.state.sigData = null;
     const isNew = !id;
 
+    // Rellenar datalist con categorías guardadas
+    const dl = document.getElementById('mw-cat-list');
+    if(dl){
+      const cats = App.load(App.KEYS.categorias, App.CATEGORIAS_DEFAULT.slice());
+      dl.innerHTML = cats.map(c => `<option value="${this.esc(c)}">`).join('');
+    }
+
     document.getElementById('mw-title').textContent = isNew ? 'Nuevo trabajador' : 'Editar trabajador';
     document.getElementById('mw-delete').style.display = isNew ? 'none' : '';
 
     if(isNew){
       document.getElementById('mw-name').value = '';
-      document.getElementById('mw-cat').value = 'Celador';
-      document.getElementById('mw-nif').value = '';
+      document.getElementById('mw-cat').value  = App.load(App.KEYS.categorias, ['Celador'])[0] || '';
+      document.getElementById('mw-nif').value  = '';
     } else {
       const w = App.load(App.KEYS.workers, []).find(x => x.id === id);
       if(!w) return;
       document.getElementById('mw-name').value = w.nombre || '';
-      document.getElementById('mw-cat').value  = w.categoria || 'Celador';
+      document.getElementById('mw-cat').value  = w.categoria || '';
       document.getElementById('mw-nif').value  = w.nif || '';
       const sigs = App.load('cg1.signatures', {});
       this.state.sigData = sigs[id] || null;
