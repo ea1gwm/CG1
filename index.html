@@ -26,7 +26,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="CG1">
-<link rel="icon" type="image/png" sizes="64x64" href="favicon.png">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23fbbf24'/%3E%3Cpath d='M16 4 L27 8.5 V15.5 C27 21.5 22.3 26 16 28 C9.7 26 5 21.5 5 15.5 V8.5 Z' fill='rgba(5,8,16,0.15)' stroke='%23050810' stroke-width='1.5' stroke-linejoin='round'/%3E%3Ccircle cx='16' cy='21' r='1.8' fill='%23050810'/%3E%3Cpath d='M12 18 A5 5 0 0 1 20 18' stroke='%23050810' stroke-width='1.8' stroke-linecap='round' fill='none'/%3E%3Cpath d='M9 14.5 A8.5 8.5 0 0 1 23 14.5' stroke='%23050810' stroke-width='1.8' stroke-linecap='round' fill='none'/%3E%3C/svg%3E">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
@@ -885,6 +885,18 @@
   /* Filtros historial activo */
   .h-filter-btn.active{ border-color: var(--amber); color: var(--amber); }
 
+  /* Nota de observaciones en el historial */
+  .item-obs{
+    font-size: 11.5px;
+    color: var(--amber);
+    margin-top: 4px;
+    padding: 5px 8px;
+    background: rgba(251,191,36,.08);
+    border-radius: 6px;
+    border-left: 2px solid var(--amber);
+    line-height: 1.4;
+  }
+
   /* Modal genérico */
   .modal-backdrop{
     position: fixed; inset: 0;
@@ -1209,13 +1221,21 @@
   padding:32px 24px;gap:0;
 ">
   <!-- Logo -->
-  <div style="width:64px;height:64px;background:var(--amber);border-radius:18px;display:flex;align-items:center;justify-content:center;margin-bottom:24px;">
-    <svg viewBox="0 0 24 24" fill="none" stroke="#050810" stroke-width="2.5" stroke-linecap="round" style="width:34px;height:34px;">
-      <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+  <div style="width:72px;height:72px;background:var(--amber);border-radius:22px;display:flex;align-items:center;justify-content:center;margin-bottom:22px;box-shadow:0 8px 24px rgba(251,191,36,.35);">
+    <svg viewBox="0 0 24 24" fill="none" style="width:40px;height:40px;">
+      <!-- Escudo moderno -->
+      <path d="M12 2.5 L20.5 6.5 V12.5 C20.5 17.2 16.8 20.8 12 22.5 C7.2 20.8 3.5 17.2 3.5 12.5 V6.5 Z"
+            fill="rgba(5,8,16,0.18)" stroke="#050810" stroke-width="1.4" stroke-linejoin="round"/>
+      <!-- Señal de telecomunicaciones (wifi/ondas) centrada en 12,16 -->
+      <circle cx="12" cy="15.5" r="1.3" fill="#050810"/>
+      <path d="M9.2 13 A3.8 3.8 0 0 1 14.8 13"
+            stroke="#050810" stroke-width="1.4" stroke-linecap="round" fill="none"/>
+      <path d="M6.8 10.8 A6.5 6.5 0 0 1 17.2 10.8"
+            stroke="#050810" stroke-width="1.4" stroke-linecap="round" fill="none"/>
     </svg>
   </div>
-  <h1 style="font-size:22px;font-weight:700;color:var(--text);margin:0 0 6px;text-align:center;">Partes Seguridad</h1>
-  <p style="font-size:13px;color:var(--text-mute);margin:0 0 32px;text-align:center;">DIGI · PE · CG1</p>
+  <h1 style="font-size:21px;font-weight:700;color:var(--text);margin:0 0 5px;text-align:center;">Partes de Seguridad</h1>
+  <p style="font-size:13px;color:var(--text-mute);margin:0 0 32px;text-align:center;letter-spacing:.3px;">Telefonía · v0.8.0</p>
 
   <!-- Estado: verificando -->
   <div id="lock-checking" style="display:flex;flex-direction:column;align-items:center;gap:12px;">
@@ -1268,24 +1288,22 @@
   <header class="topbar">
     <button class="brand" id="brand-btn" aria-label="Inicio" type="button" style="background:none;border:none;padding:0;cursor:pointer;color:inherit;">
       <span class="brand-mark" aria-hidden="true">
-        <!-- Logo: parte de seguridad (documento con check) -->
+        <!-- Logo: escudo de seguridad con señal de telecomunicaciones -->
         <svg viewBox="0 0 24 24" fill="none">
-          <!-- Documento -->
-          <rect x="4" y="2" width="13" height="17" rx="2" fill="#1e2d4a" stroke="#fbbf24" stroke-width="1.2"/>
-          <!-- Esquina doblada -->
-          <path d="M13 2 L17 6" stroke="#fbbf24" stroke-width="1.2" stroke-linecap="round"/>
-          <path d="M13 2 L13 6 L17 6" fill="#0c1835" stroke="#fbbf24" stroke-width="1"/>
-          <!-- Líneas de texto -->
-          <line x1="7" y1="10" x2="14" y2="10" stroke="#fbbf24" stroke-width="1" stroke-linecap="round" opacity=".5"/>
-          <line x1="7" y1="13" x2="12" y2="13" stroke="#fbbf24" stroke-width="1" stroke-linecap="round" opacity=".5"/>
-          <!-- Check de seguridad -->
-          <circle cx="19" cy="18" r="5" fill="#fbbf24"/>
-          <polyline points="16.5 18 18.2 19.8 21.5 16.5" stroke="#050810" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          <!-- Escudo -->
+          <path d="M12 2.5 L20.5 6.5 V12.5 C20.5 17.2 16.8 20.8 12 22.5 C7.2 20.8 3.5 17.2 3.5 12.5 V6.5 Z"
+                fill="rgba(5,8,16,0.15)" stroke="#fbbf24" stroke-width="1.3" stroke-linejoin="round"/>
+          <!-- Señal telecomunicaciones -->
+          <circle cx="12" cy="15.5" r="1.2" fill="#fbbf24"/>
+          <path d="M9.3 13.1 A3.6 3.6 0 0 1 14.7 13.1"
+                stroke="#fbbf24" stroke-width="1.3" stroke-linecap="round" fill="none"/>
+          <path d="M7 10.9 A6.3 6.3 0 0 1 17 10.9"
+                stroke="#fbbf24" stroke-width="1.3" stroke-linecap="round" fill="none"/>
         </svg>
       </span>
       <span class="brand-text">
         <span class="t1">Partes de Seguridad</span>
-        <span class="t2" id="brand-subtitle">Telefonía <b>·</b> <span id="brand-version">v0.7.28</span></span>
+        <span class="t2">Telefonía <b>·</b> <span id="brand-version">v0.8.0</span></span>
       </span>
     </button>
 
@@ -2716,7 +2734,7 @@
    ============================================================= */
 
 const App = {
-  version: '0.7.28',
+  version: '0.8.0',
   step: 7,
 
   /* ===== DATOS DEL USUARIO (se guardan en localStorage, editables en Ajustes) ===== */
@@ -4600,11 +4618,13 @@ const Pdf = {
     mark('obs1_si');
     mark('obs2_si');
 
-    // === TEXTO LIBRE OBSERVACIONES (cuadro entre Y=117 y Y=137) ===
+    // === TEXTO LIBRE OBSERVACIONES ===
+    // El cuadro está a la DERECHA del label "Observaciones:" (que termina en X=406)
+    // en la zona del apartado 8, entre Y=117 y Y=137, baseline Y=126.4
     if(d.observaciones){
       this._drawWrappedText(page, d.observaciones,
-        52, 128,
-        { size: 7.5, font: helvetica, color: black, maxWidth: 270, lineHeight: 9 }
+        408, 126,
+        { size: 7.5, font: helvetica, color: black, maxWidth: 148, lineHeight: 9 }
       );
     }
 
@@ -5279,6 +5299,7 @@ const History = {
             <span>· ${this._esc(r.subtitle || '')}</span>
             <span>· ${this._dateShort(r.created_at)}</span>
           </div>
+          ${r.data?.observaciones ? `<div class="item-obs">📝 ${this._esc(r.data.observaciones)}</div>` : ''}
         </div>
         <div class="item-actions">
           <button class="icon-action" data-edit="${this._esc(r.id)}" aria-label="Editar y regenerar" title="Editar">
