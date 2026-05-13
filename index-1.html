@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
-<meta name="theme-color" content="#0a0e1a" />
+<meta name="theme-color" content="#0a0e1a" id="meta-theme-color" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -20,6 +20,16 @@
 <script src="https://unpkg.com/@pdf-lib/fontkit@1.1.1/dist/fontkit.umd.min.js"></script>
 
 <!-- PWA -->
+<script>
+  // Aplicar tema antes de renderizar para evitar flash
+  (function(){
+    try {
+      const s = JSON.parse(localStorage.getItem('cg1.settings') || '{}');
+      const theme = s.theme || 'dark';
+      document.documentElement.setAttribute('data-theme', theme);
+    } catch(e){}
+  })();
+</script>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#0a0e1a">
 <meta name="mobile-web-app-capable" content="yes">
@@ -35,6 +45,7 @@
   /* ==========================================================
      TOKENS DE DISEÑO
      ========================================================== */
+  /* ── Tema oscuro (por defecto) ────────────────────────────────── */
   :root{
     --bg:        #0a0e1a;
     --bg-2:     #0f1525;
@@ -45,21 +56,65 @@
     --text:      #e6ecf5;
     --text-dim:  #94a3b8;
     --text-mute: #64748b;
-    --amber:     #fbbf24;     /* acento principal — seguridad */
+    --amber:     #fbbf24;
     --amber-2:   #f59e0b;
     --amber-glow: rgba(251,191,36,.18);
-    --cyan:      #38bdf8;     /* info */
-    --green:     #4ade80;     /* ok */
-    --red:       #f87171;     /* peligro */
+    --cyan:      #38bdf8;
+    --green:     #4ade80;
+    --red:       #f87171;
     --red-deep:  #b91c1c;
-
-    --r-sm: 10px;
-    --r-md: 14px;
-    --r-lg: 20px;
-    --r-xl: 28px;
-
+    --r-sm: 10px; --r-md: 14px; --r-lg: 20px; --r-xl: 28px;
     --shadow-1: 0 1px 0 rgba(255,255,255,.04) inset, 0 8px 24px rgba(0,0,0,.35);
     --shadow-2: 0 1px 0 rgba(255,255,255,.05) inset, 0 24px 60px rgba(0,0,0,.55);
+    color-scheme: dark;
+  }
+
+  /* ── Tema claro ─────────────────────────────────────────────── */
+  :root[data-theme="light"]{
+    --bg:        #f0f4f9;
+    --bg-2:      #ffffff;
+    --surface:   #e4eaf4;
+    --surface-2: #d8e0ef;
+    --line:      #c8d2e2;
+    --line-2:    #b0bdd0;
+    --text:      #0d1624;
+    --text-dim:  #2e4060;
+    --text-mute: #64748b;
+    --amber:     #d97706;
+    --amber-2:   #b45309;
+    --amber-glow: rgba(217,119,6,.14);
+    --cyan:      #0369a1;
+    --green:     #16a34a;
+    --red:       #dc2626;
+    --red-deep:  #991b1b;
+    --shadow-1: 0 1px 0 rgba(255,255,255,.8) inset, 0 4px 16px rgba(0,0,0,.10);
+    --shadow-2: 0 1px 0 rgba(255,255,255,.7) inset, 0 12px 40px rgba(0,0,0,.15);
+    color-scheme: light;
+  }
+
+  /* ── Tema automático (sigue el sistema del dispositivo) ───────── */
+  @media (prefers-color-scheme: light){
+    :root[data-theme="auto"]{
+      --bg:        #f0f4f9;
+      --bg-2:      #ffffff;
+      --surface:   #e4eaf4;
+      --surface-2: #d8e0ef;
+      --line:      #c8d2e2;
+      --line-2:    #b0bdd0;
+      --text:      #0d1624;
+      --text-dim:  #2e4060;
+      --text-mute: #64748b;
+      --amber:     #d97706;
+      --amber-2:   #b45309;
+      --amber-glow: rgba(217,119,6,.14);
+      --cyan:      #0369a1;
+      --green:     #16a34a;
+      --red:       #dc2626;
+      --red-deep:  #991b1b;
+      --shadow-1: 0 1px 0 rgba(255,255,255,.8) inset, 0 4px 16px rgba(0,0,0,.10);
+      --shadow-2: 0 1px 0 rgba(255,255,255,.7) inset, 0 12px 40px rgba(0,0,0,.15);
+      color-scheme: light;
+    }
   }
 
   *{ box-sizing:border-box; -webkit-tap-highlight-color: transparent; }
@@ -69,8 +124,8 @@
     font-family: 'IBM Plex Sans', system-ui, sans-serif;
     color: var(--text);
     background:
-      radial-gradient(1200px 600px at 80% -10%, rgba(56,189,248,.07), transparent 60%),
-      radial-gradient(900px 500px at -10% 110%, rgba(251,191,36,.06), transparent 60%),
+      radial-gradient(1200px 600px at 80% -10%, rgba(56,189,248,.06), transparent 60%),
+      radial-gradient(900px 500px at -10% 110%, rgba(251,191,36,.05), transparent 60%),
       var(--bg);
     min-height: 100dvh;
     -webkit-font-smoothing: antialiased;
@@ -592,6 +647,9 @@
   .gps-btn svg{ width:16px; height:16px; }
   .gps-btn[data-loading="1"]{ opacity:.6; pointer-events:none; }
   .gps-btn[data-loading="1"] svg{ animation: spin 1s linear infinite; }
+  /* Variante solo icono (sin texto) para el botón Ahora */
+  .gps-btn--icon{ padding: 0; width: 44px; justify-content: center; }
+  .gps-btn--icon svg{ width:18px; height:18px; }
   @keyframes spin{ to{ transform: rotate(360deg); } }
 
   /* Segmented control (Madera/Hormigón/Fibra, Bueno/Malo, Diurno/Nocturno) */
@@ -884,6 +942,30 @@
 
   /* Filtros historial activo */
   .h-filter-btn.active{ border-color: var(--amber); color: var(--amber); }
+
+  /* Acordeón de ayuda */
+  .help-item{ background:var(--surface);border:1px solid var(--line-2);border-radius:14px;overflow:hidden; }
+  .help-head{
+    width:100%;display:flex;align-items:center;justify-content:space-between;
+    padding:16px 16px;background:none;border:none;cursor:pointer;
+    font-size:14px;font-weight:600;color:var(--text);text-align:left;gap:10px;
+    transition:background .15s;
+  }
+  .help-head:hover{ background:rgba(255,255,255,.04); }
+  .help-head:active{ background:rgba(255,255,255,.07); }
+  .help-icon{ font-size:20px;flex-shrink:0; }
+  .help-chevron{ width:18px;height:18px;flex-shrink:0;color:var(--text-mute);transition:transform .2s; }
+  .help-item.open .help-chevron{ transform:rotate(180deg); }
+  .help-body{
+    display:none;padding:0 16px 16px;
+    font-size:13.5px;color:var(--text-dim);line-height:1.65;
+  }
+  .help-item.open .help-body{ display:block; }
+  .help-body p{ margin:0 0 10px; }
+  .help-body p:last-child{ margin-bottom:0; }
+  .help-body ol,.help-body ul{ margin:0 0 10px;padding-left:20px; }
+  .help-body li{ margin-bottom:6px; }
+  .help-body b{ color:var(--text); }
 
   /* Nota de observaciones en el historial */
   .item-obs{
@@ -1587,6 +1669,26 @@
     </div>
 
     <!-- META / ESTADO -->
+    <!-- Accesos rápidos secundarios -->
+    <div style="display:flex;gap:8px;margin-top:4px;margin-bottom:8px;">
+      <button class="btn btn-ghost" data-go="manual" type="button"
+              style="flex:1;justify-content:center;gap:8px;padding:13px;font-size:13px;border-style:dashed;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;">
+          <path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/>
+        </svg>
+        Manual
+      </button>
+      <button class="btn btn-ghost" data-go="help" type="button"
+              style="flex:1;justify-content:center;gap:8px;padding:13px;font-size:13px;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;">
+          <circle cx="12" cy="12" r="10"/>
+          <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+          <line x1="12" y1="17" x2="12.01" y2="17" stroke-width="2.5"/>
+        </svg>
+        Ayuda
+      </button>
+    </div>
+
     <div class="meta-grid" aria-label="Estado de la app">
       <div class="meta-cell">
         <div class="k">Empresa</div>
@@ -1702,20 +1804,19 @@
         </div>
 
         <div class="field-row">
-          <div class="field">
+          <div class="field" style="min-width:0;">
             <span class="field-label">Fecha</span>
             <input class="input" type="date" id="p-fecha">
           </div>
-          <div class="field">
+          <div class="field" style="min-width:0;">
             <span class="field-label">Hora</span>
             <div class="input-gps">
-              <input class="input" type="time" id="p-hora">
-              <button type="button" class="gps-btn" id="p-hora-now" aria-label="Hora actual">
+              <input class="input" type="time" id="p-hora" style="min-width:0;">
+              <button type="button" class="gps-btn gps-btn--icon" id="p-hora-now" aria-label="Hora actual" title="Poner hora actual">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
                   <circle cx="12" cy="12" r="9.5"/><polyline points="12 7 12 12.5 15 14.5"/>
                   <circle cx="12" cy="12" r=".8" fill="currentColor" stroke="none"/>
                 </svg>
-                Ahora
               </button>
             </div>
           </div>
@@ -2464,7 +2565,16 @@
         <span class="sec-num">06</span>
         <span class="sec-title">Aplicación</span>
       </div>
-      <p style="font-size:12.5px;color:var(--text-mute);margin:-6px 0 12px;line-height:1.5;">
+
+      <!-- Selector de tema -->
+      <p style="font-size:12.5px;color:var(--text-mute);margin:-6px 0 10px;line-height:1.5;">Apariencia</p>
+      <div class="segmented" role="group" id="s-theme-selector" style="margin-bottom:16px;">
+        <button type="button" data-val="dark"  aria-pressed="true">🌙 Oscuro</button>
+        <button type="button" data-val="auto"  aria-pressed="false">🌓 Auto</button>
+        <button type="button" data-val="light" aria-pressed="false">☀️ Claro</button>
+      </div>
+
+      <p style="font-size:12.5px;color:var(--text-mute);margin:0 0 12px;line-height:1.5;">
         Instala la app en este dispositivo para usarla sin conexión y abrirla desde la pantalla de inicio.
       </p>
       <div style="display:flex;flex-direction:column;gap:8px;">
@@ -2475,7 +2585,7 @@
           Instalar app en este dispositivo
         </button>
         <p style="font-size:11.5px;color:var(--text-mute);margin:6px 0 0;line-height:1.5;">
-          <span id="s-version-text">v0.7.2</span> · Funciona offline tras la primera carga.
+          <span id="s-version-text">v0.8.0</span> · Funciona offline tras la primera carga.
         </p>
       </div>
     </section>
@@ -2674,6 +2784,357 @@
     </div>
   </div>
 
+  <!-- ========= VISTA: AYUDA ========= -->
+  <main class="view" id="view-help">
+    <button class="back-btn" data-go="home" type="button">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+      Volver
+    </button>
+    <div class="section-head">
+      <span class="eyebrow">Guía rápida</span>
+      <h1 class="section-title">Ayuda</h1>
+      <p class="section-sub">Pulsa cada sección para ver los detalles.</p>
+    </div>
+
+    <div id="help-accordion" style="display:flex;flex-direction:column;gap:8px;padding-bottom:32px;">
+
+      <!-- 1 -->
+      <div class="help-item">
+        <button class="help-head" type="button">
+          <span style="display:flex;align-items:center;gap:12px;">
+            <span class="help-icon">📋</span>
+            <span>¿Qué es esta app?</span>
+          </span>
+          <svg class="help-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg>
+        </button>
+        <div class="help-body">
+          <p>Esta app genera los <b>partes de seguridad oficiales de Telefónica</b> para trabajos en postes y cámaras de registro (CCRR). El PDF resultante es idéntico al parte impreso, con tu firma y todos los datos rellenados.</p>
+          <p>Funciona <b>sin conexión</b> — los datos se guardan en el móvil. Si tienes un grupo de equipo configurado, se sincronizan los trabajadores entre dispositivos cuando hay red.</p>
+        </div>
+      </div>
+
+      <!-- 2 -->
+      <div class="help-item">
+        <button class="help-head" type="button">
+          <span style="display:flex;align-items:center;gap:12px;">
+            <span class="help-icon">🪵</span>
+            <span>Parte de postes paso a paso</span>
+          </span>
+          <svg class="help-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg>
+        </button>
+        <div class="help-body">
+          <ol>
+            <li>Desde el inicio pulsa <b>Parte de Postes</b>.</li>
+            <li>El GPS se activa automáticamente para rellenar la dirección. Si prefieres escribirla tú, cancela el permiso.</li>
+            <li>Elige el <b>tipo de poste</b> (Madera, Hormigón o Fibra).</li>
+            <li>Indica el <b>estado</b> tras hacer las comprobaciones previas.</li>
+            <li>Selecciona el <b>medio de subida</b>. Si usas escalera se despliega el check de verificación a–g.</li>
+            <li>En <b>Trabajadores</b> toca los que participan. El que tenga RP marcado firma el parte.</li>
+            <li>Marca los <b>EPIs</b> que se usan — los que hayas configurado en Ajustes ya estarán marcados.</li>
+            <li>Escribe en <b>Observaciones</b> cualquier incidencia (aparecerá en el historial como nota y en el PDF).</li>
+            <li>Pulsa <b>Generar PDF</b> y elige Compartir o Descargar.</li>
+          </ol>
+        </div>
+      </div>
+
+      <!-- 3 -->
+      <div class="help-item">
+        <button class="help-head" type="button">
+          <span style="display:flex;align-items:center;gap:12px;">
+            <span class="help-icon">🕳️</span>
+            <span>Parte de CCRR paso a paso</span>
+          </span>
+          <svg class="help-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg>
+        </button>
+        <div class="help-body">
+          <ol>
+            <li>Desde el inicio pulsa <b>Parte de CCRR</b>.</li>
+            <li>El GPS rellena la dirección automáticamente.</li>
+            <li>Introduce el <b>número de cámara</b>, provincia y población.</li>
+            <li>Selecciona la <b>señalización</b> desplegada (conos, baranda, etc.).</li>
+            <li>Indica el <b>turno</b> (Diurno / Nocturno) y las condiciones.</li>
+            <li>Selecciona los <b>trabajadores</b> y el Recurso Preventivo.</li>
+            <li>Escribe la <b>breve descripción del estado del recinto</b> — aparece en el campo correspondiente del PDF.</li>
+            <li>Pulsa <b>Generar PDF</b>. El parte tiene 2 páginas.</li>
+          </ol>
+          <p style="margin-top:8px;">Los EPIs, la atmósfera y los checks fijos de preparación se marcan según las preferencias que hayas configurado en <b>Ajustes → Preferencias del parte</b>.</p>
+        </div>
+      </div>
+
+      <!-- 4 -->
+      <div class="help-item">
+        <button class="help-head" type="button">
+          <span style="display:flex;align-items:center;gap:12px;">
+            <span class="help-icon">✏️</span>
+            <span>Modo manual</span>
+          </span>
+          <svg class="help-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg>
+        </button>
+        <div class="help-body">
+          <p>Para situaciones especiales donde la lógica automática no se ajusta a la realidad — por ejemplo, un poste defectuoso con circunstancias especiales.</p>
+          <p>Pulsa <b>Manual</b> en la pantalla de inicio. Selecciona si el parte es de Postes o CCRR, y rellena los campos a tu criterio. <b>No hay restricciones automáticas</b> — puedes marcar cualquier combinación de casillas.</p>
+          <p>El PDF resultante es igual al normal y queda guardado en el historial.</p>
+        </div>
+      </div>
+
+      <!-- 5 -->
+      <div class="help-item">
+        <button class="help-head" type="button">
+          <span style="display:flex;align-items:center;gap:12px;">
+            <span class="help-icon">🕐</span>
+            <span>Historial de partes</span>
+          </span>
+          <svg class="help-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg>
+        </button>
+        <div class="help-body">
+          <p>Pulsa el <b>icono de reloj</b> arriba a la derecha para ver todos los partes guardados.</p>
+          <ul>
+            <li><b>Buscar</b> — filtra por dirección, número de poste, población…</li>
+            <li><b>Filtros</b> — Todos / Hoy / Postes / CCRR.</li>
+            <li><b>✏️ Editar</b> — abre un parte anterior en el formulario para modificarlo y generar un PDF nuevo.</li>
+            <li><b>⬆️ Compartir</b> — envía el PDF por WhatsApp, Telegram, correo…</li>
+            <li><b>👁 Ver</b> — abre el PDF en el visor.</li>
+            <li><b>🗑 Eliminar</b> — borra el parte del historial.</li>
+          </ul>
+          <p>Si escribiste observaciones en un parte, aparecen como <b>nota amarilla</b> bajo el nombre del parte en el historial.</p>
+          <p>En el filtro <b>Hoy</b> aparece el botón para descargar todos los partes del día de una vez.</p>
+        </div>
+      </div>
+
+      <!-- 6 -->
+      <div class="help-item">
+        <button class="help-head" type="button">
+          <span style="display:flex;align-items:center;gap:12px;">
+            <span class="help-icon">👥</span>
+            <span>Trabajadores y firmas</span>
+          </span>
+          <svg class="help-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg>
+        </button>
+        <div class="help-body">
+          <p>Ve a <b>Ajustes → 01 Trabajadores</b> para gestionar la lista.</p>
+          <ul>
+            <li>Pulsa <b>+ Nuevo trabajador</b> e introduce nombre, categoría y NIF.</li>
+            <li>En la tarjeta del trabajador puedes añadir su <b>firma táctil</b> — dibuja con el dedo. Esta firma aparecerá en el PDF cuando ese trabajador sea el RP.</li>
+            <li>El <b>Recurso Preventivo por defecto</b> se configura en la sección 04 de Ajustes.</li>
+          </ul>
+          <p>En <b>Ajustes → 02 Categorías de trabajo</b> puedes gestionar la lista de categorías (Celador, Fusionador, Técnico instalador…) que aparecen como sugerencias al añadir trabajadores.</p>
+        </div>
+      </div>
+
+      <!-- 7 -->
+      <div class="help-item">
+        <button class="help-head" type="button">
+          <span style="display:flex;align-items:center;gap:12px;">
+            <span class="help-icon">🔄</span>
+            <span>Sincronización del equipo</span>
+          </span>
+          <svg class="help-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg>
+        </button>
+        <div class="help-body">
+          <p>Permite compartir la lista de trabajadores y firmas entre los móviles del equipo, usando un <b>código de 6 dígitos</b>.</p>
+          <ol>
+            <li>Ve a <b>Ajustes → 06 Sincronización del equipo</b>.</li>
+            <li>El primero del equipo pulsa <b>Crear grupo nuevo</b> y comparte el código por WhatsApp o Telegram.</li>
+            <li>Los demás entran en Ajustes → Sincronización → <b>Unirse con código</b> e introducen los 6 dígitos.</li>
+            <li>Al unirse, los trabajadores y firmas se comparten automáticamente.</li>
+          </ol>
+          <p>Si alguien sale del equipo: <b>Cambiar código</b> genera uno nuevo. Solo mándas el nuevo código a los que siguen.</p>
+        </div>
+      </div>
+
+      <!-- 8 -->
+      <div class="help-item">
+        <button class="help-head" type="button">
+          <span style="display:flex;align-items:center;gap:12px;">
+            <span class="help-icon">⚙️</span>
+            <span>Preferencias y configuración</span>
+          </span>
+          <svg class="help-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg>
+        </button>
+        <div class="help-body">
+          <ul>
+            <li><b>00 Tu empresa</b> — nombre y unidad que aparecen en todos los PDFs.</li>
+            <li><b>03 Preferencias del parte</b> — qué se marca automáticamente al crear un parte nuevo: tipo de poste, medio de subida, EPIs de postes, señalización CCRR, EPIs de CCRR página 1 y 2. Cada persona puede configurar los suyos.</li>
+            <li><b>05 Copias de seguridad</b> — exporta todos tus datos a un archivo JSON para guardarlos, e impórtalos en otro dispositivo.</li>
+            <li><b>06 Aplicación</b> — instala la app en la pantalla de inicio del móvil para usarla sin navegador.</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- 9 -->
+      <div class="help-item">
+        <button class="help-head" type="button">
+          <span style="display:flex;align-items:center;gap:12px;">
+            <span class="help-icon">📱</span>
+            <span>Instalar en el móvil</span>
+          </span>
+          <svg class="help-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg>
+        </button>
+        <div class="help-body">
+          <p><b>Android (Chrome):</b> ve a Ajustes → 06 Aplicación → pulsa <b>Instalar app en este dispositivo</b>. También puede aparecer un banner en la parte inferior del navegador.</p>
+          <p><b>iPhone (Safari):</b> pulsa el icono de compartir ⬆️ en la barra inferior → <b>Añadir a pantalla de inicio</b>. No olvides usar Safari, no Chrome ni otro navegador.</p>
+          <p>Una vez instalada, la app se abre como si fuera nativa, <b>funciona sin conexión</b> y tiene su propio icono en la pantalla de inicio.</p>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- ========= VISTA: MODO MANUAL ========= -->
+  <main class="view" id="view-manual">
+    <button class="back-btn" data-go="home" type="button">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+      Volver
+    </button>
+
+    <div class="section-head">
+      <span class="eyebrow" style="color:#f59e0b;">✦ Modo manual</span>
+      <h1 class="section-title">Cubrir <span class="accent">a mano</span></h1>
+      <p class="section-sub">Sin restricciones automáticas. Marca libremente cualquier casilla. Útil para partes con incidencias especiales.</p>
+    </div>
+
+    <!-- Selector tipo -->
+    <div class="segmented" role="group" id="mn-tipo-parte" style="margin-bottom:16px;">
+      <button type="button" data-val="postes" aria-pressed="true">Postes</button>
+      <button type="button" data-val="ccrr"   aria-pressed="false">CCRR</button>
+    </div>
+
+    <form class="form" id="form-manual" autocomplete="off" novalidate>
+
+      <!-- === INFO GENERAL === -->
+      <section class="form-section">
+        <div class="sec-head"><span class="sec-num">01</span><span class="sec-title">Información general</span></div>
+        <div class="field-row">
+          <div class="field"><span class="field-label">Nº Poste / CCRR</span><input class="input" type="text" id="mn-num" placeholder="123456"></div>
+          <div class="field"><span class="field-label">Nº Línea</span><input class="input" type="text" id="mn-linea"></div>
+        </div>
+        <div class="field"><span class="field-label">Dirección</span><input class="input" type="text" id="mn-dir" placeholder="Calle, número..."></div>
+        <div class="field-row">
+          <div class="field"><span class="field-label">Provincia</span><input class="input" type="text" id="mn-prov"></div>
+          <div class="field"><span class="field-label">Población</span><input class="input" type="text" id="mn-pob"></div>
+        </div>
+        <div class="field"><span class="field-label">Trabajo a realizar</span><input class="input" type="text" id="mn-trabajo" placeholder="Descripción del trabajo"></div>
+        <div class="field-row">
+          <div class="field" style="min-width:0;"><span class="field-label">Fecha</span><input class="input" type="date" id="mn-fecha"></div>
+          <div class="field" style="min-width:0;"><span class="field-label">Hora</span><input class="input" type="time" id="mn-hora"></div>
+        </div>
+        <div class="field"><span class="field-label">Central</span><input class="input" type="text" id="mn-central"></div>
+      </section>
+
+      <!-- === TIPO DE POSTE (solo postes) === -->
+      <section class="form-section" id="mn-sec-tipo">
+        <div class="sec-head"><span class="sec-num">02</span><span class="sec-title">Tipo de poste</span></div>
+        <div class="segmented" role="group" id="mn-tipo">
+          <button type="button" data-val="Madera"   aria-pressed="true">Madera</button>
+          <button type="button" data-val="Hormigón" aria-pressed="false">Hormigón</button>
+          <button type="button" data-val="Fibra"    aria-pressed="false">Fibra</button>
+        </div>
+        <div style="margin-top:12px;">
+          <p style="font-size:12.5px;font-weight:600;color:var(--text-dim);margin:0 0 8px;">Estado del poste</p>
+          <div class="segmented" role="group" id="mn-estado">
+            <button type="button" data-val="bueno"     aria-pressed="true">✓ Bueno/Adecuado</button>
+            <button type="button" data-val="defectuoso" aria-pressed="false">✗ Defectuoso</button>
+          </div>
+        </div>
+        <div style="margin-top:12px;">
+          <p style="font-size:12.5px;font-weight:600;color:var(--text-dim);margin:0 0 8px;">Medio de subida</p>
+          <select class="select" id="mn-medio">
+            <option>Escalera</option>
+            <option>Escalera con patas extensibles</option>
+            <option>PEMP</option>
+            <option>Trepadores</option>
+            <option>Estribos</option>
+            <option>Herramienta especial</option>
+            <option>Otro</option>
+          </select>
+        </div>
+      </section>
+
+      <!-- === CHECK ESCALERA === -->
+      <section class="form-section" id="mn-sec-escalera">
+        <div class="sec-head"><span class="sec-num">03</span><span class="sec-title">Check escalera (a–g)</span></div>
+        <p style="font-size:12px;color:var(--text-mute);margin:-4px 0 10px;">Marca libremente. Sin restricciones automáticas.</p>
+        <div style="display:flex;flex-direction:column;gap:6px;" id="mn-checks-escalera">
+          <!-- generado por JS -->
+        </div>
+        <div style="margin-top:12px;">
+          <p style="font-size:12.5px;font-weight:600;color:var(--text-dim);margin:0 0 8px;">¿Se puede usar la escalera?</p>
+          <div class="segmented" role="group" id="mn-puede-escalera">
+            <button type="button" data-val="si" aria-pressed="true">SÍ</button>
+            <button type="button" data-val="no" aria-pressed="false">NO</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- === EPIs (postes) === -->
+      <section class="form-section" id="mn-sec-epis">
+        <div class="sec-head"><span class="sec-num">04</span><span class="sec-title">EPIs</span></div>
+        <p style="font-size:12px;color:var(--text-mute);margin:-4px 0 10px;">Marca los que correspondan al trabajo.</p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;" id="mn-epis-wrap">
+          <!-- generado por JS -->
+        </div>
+      </section>
+
+      <!-- === SEÑALIZACIÓN CCRR === -->
+      <section class="form-section" id="mn-sec-senal" style="display:none;">
+        <div class="sec-head"><span class="sec-num">02</span><span class="sec-title">Señalización</span></div>
+        <div style="display:flex;flex-direction:column;gap:6px;" id="mn-senal-wrap">
+          <!-- generado por JS -->
+        </div>
+      </section>
+
+      <!-- === EPIs CCRR P1 === -->
+      <section class="form-section" id="mn-sec-epis-ccrr" style="display:none;">
+        <div class="sec-head"><span class="sec-num">03</span><span class="sec-title">EPIs — Página 1</span></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;" id="mn-epis-ccrr-p1">
+          <!-- generado por JS -->
+        </div>
+      </section>
+
+      <!-- === EPIs CCRR P2 === -->
+      <section class="form-section" id="mn-sec-epis-ccrr2" style="display:none;">
+        <div class="sec-head"><span class="sec-num">04</span><span class="sec-title">EPIs — Página 2</span></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;" id="mn-epis-ccrr-p2">
+          <!-- generado por JS -->
+        </div>
+      </section>
+
+      <!-- === TRABAJADORES === -->
+      <section class="form-section">
+        <div class="sec-head"><span class="sec-num" id="mn-num-sec-tr">05</span><span class="sec-title">Trabajadores</span></div>
+        <div class="worker-cards" id="mn-workers"></div>
+        <div id="mn-rp-row" class="field" style="margin-top:10px;">
+          <span class="field-label">Recurso Preventivo (RP)</span>
+          <select class="select" id="mn-rp"></select>
+        </div>
+      </section>
+
+      <!-- === DESCRIPCIÓN / OBSERVACIONES === -->
+      <section class="form-section">
+        <div class="sec-head"><span class="sec-num" id="mn-num-sec-obs">06</span><span class="sec-title">Descripción y observaciones</span></div>
+        <div class="field" id="mn-desc-field" style="display:none;">
+          <span class="field-label">Breve descripción del estado del recinto</span>
+          <textarea class="textarea" id="mn-estado-desc" rows="2" placeholder="Estado del recinto CCRR..."></textarea>
+        </div>
+        <div class="field">
+          <span class="field-label">Observaciones</span>
+          <textarea class="textarea" id="mn-obs" rows="3" placeholder="Incidencias, notas especiales, motivo del parte manual..."></textarea>
+        </div>
+      </section>
+
+    </form>
+
+    <!-- Botón generar -->
+    <div class="generate-bar" style="margin-top:8px;">
+      <button type="button" class="btn btn-primary" id="mn-generate" style="width:100%;padding:18px;font-size:16px;font-weight:700;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/>
+        </svg>
+        Generar PDF manual
+      </button>
+    </div>
+  </main>
+
   <!-- ========= VISTA: HISTORIAL ========= -->
   <main class="view" id="view-history">
     <button class="back-btn" data-go="home" type="button">
@@ -2744,6 +3205,30 @@
 const App = {
   version: '0.8.0',
   step: 7,
+
+  // ── TEMA ──────────────────────────────────────────────────────
+  applyTheme(theme){
+    theme = theme || 'dark';
+    document.documentElement.setAttribute('data-theme', theme);
+    // Actualizar meta theme-color
+    const dark  = '#0a0e1a';
+    const light = '#f0f4f9';
+    const isLight = theme === 'light' ||
+      (theme === 'auto' && window.matchMedia('(prefers-color-scheme: light)').matches);
+    const meta = document.getElementById('meta-theme-color');
+    if(meta) meta.setAttribute('content', isLight ? light : dark);
+  },
+
+  setTheme(theme){
+    const s = this.load(this.KEYS.settings, {});
+    s.theme = theme;
+    this.save(this.KEYS.settings, s);
+    this.applyTheme(theme);
+  },
+
+  getTheme(){
+    return this.load(this.KEYS.settings, {}).theme || 'dark';
+  },
 
   /* ===== DATOS DEL USUARIO (se guardan en localStorage, editables en Ajustes) ===== */
   // Acceso: App.setting('empresa') → lee de localStorage, fallback al valor por defecto
@@ -2965,6 +3450,8 @@ const App = {
     // Hooks por vista
     if(view === 'postes'   && typeof Postes   !== 'undefined') Postes.onEnter();
     if(view === 'ccrr'     && typeof Ccrr     !== 'undefined') Ccrr.onEnter();
+    if(view === 'manual'   && typeof Manual   !== 'undefined') Manual.onEnter();
+    if(view === 'help'     ) Help.onEnter();
     if(view === 'settings' && typeof Settings !== 'undefined') Settings.onEnter();
     if(view === 'history'  && typeof History  !== 'undefined') History.onEnter();
   },
@@ -2999,6 +3486,9 @@ const App = {
 
   /* ===== INIT ===== */
   init(){
+    // Aplicar tema guardado
+    this.applyTheme(this.getTheme());
+
     const vEl = document.getElementById('brand-version');
     if(vEl) vEl.textContent = 'v' + this.version;
 
@@ -5513,6 +6003,21 @@ const Settings = {
     if(vTxt) vTxt.textContent = 'v' + App.version;
     document.getElementById('s-import').addEventListener('click', () => document.getElementById('s-import-file').click());
     document.getElementById('s-import-file').addEventListener('change', (e) => this.importData(e));
+    // === Tema de la app ===
+    const themeSel = document.getElementById('s-theme-selector');
+    if(themeSel){
+      const currentTheme = App.getTheme();
+      themeSel.querySelectorAll('button').forEach(btn => {
+        btn.setAttribute('aria-pressed', btn.dataset.val === currentTheme ? 'true' : 'false');
+        btn.addEventListener('click', () => {
+          themeSel.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed','false'));
+          btn.setAttribute('aria-pressed','true');
+          App.setTheme(btn.dataset.val);
+        });
+      });
+    }
+
+    // === Instalación PWA ===
     const installBtn = document.getElementById('s-install-btn');
     if(installBtn){
       installBtn.addEventListener('click', () => PWA.install());
@@ -6282,6 +6787,291 @@ const Admin = {
 };
 
 /* =====================================================================
+   HELP — Pantalla de ayuda con acordeón expandible
+   ===================================================================== */
+const Help = {
+  _initialized: false,
+  onEnter(){
+    if(this._initialized) return;
+    this._initialized = true;
+    document.querySelectorAll('#help-accordion .help-head').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const item = btn.closest('.help-item');
+        const isOpen = item.classList.contains('open');
+        // Cerrar todos
+        document.querySelectorAll('#help-accordion .help-item').forEach(i => i.classList.remove('open'));
+        // Abrir el pulsado si estaba cerrado
+        if(!isOpen) item.classList.add('open');
+      });
+    });
+  }
+};
+
+/* =====================================================================
+   MANUAL — Modo manual de partes sin restricciones automáticas
+   El usuario marca libremente cualquier campo del PDF.
+   ===================================================================== */
+const Manual = {
+  _tipo: 'postes', // 'postes' o 'ccrr'
+
+  CHECKS_ESCALERA: [
+    { id:'a', label:'a) Revisión vigente y pegatina de revisión' },
+    { id:'b', label:'b) Estado correcto, sin defectos' },
+    { id:'c', label:'c) Terreno firme — zapatas/estabilizadores si hace falta' },
+    { id:'d', label:'d) Suelo despejado, apoyo estable' },
+    { id:'e', label:'e) Inclinación correcta (~75° respecto al suelo)' },
+    { id:'f', label:'f) Longitud adecuada para el trabajo' },
+    { id:'g', label:'g) Zona señalizada antes de empezar' },
+  ],
+
+  EPIS_POSTES: [
+    'Casco','Chaleco AV','Guantes mec.','Arnés anticaídas',
+    'Gafas','Cinturón posicionamiento','Botas','Línea de vida',
+    'Doble cabo','Pértiga + línea','Pto. anclaje móvil','Otros'
+  ],
+
+  EPIS_CCRR_P1: [
+    'Medidor O₂','Casco','Eq. comunicación',
+    'Gases explosivos','Gafas','Prot. incendios',
+    'Gases tóxicos','Guantes mec.','Arnés + trípode'
+  ],
+  EPIS_CCRR_P2: [
+    'Otros contaminantes','Guantes aislantes',
+    'Multidetector','Guantes prot. química',
+    'Ventilación','Cremas prot. química'
+  ],
+
+  SENALIZACION: [
+    'Conos','Baranda','Señal de peligro','Señalización luminosa',
+    'Balizas','Cartel informativo'
+  ],
+
+  _state: {},
+
+  init(){
+    // Selector tipo de parte
+    document.querySelectorAll('#mn-tipo-parte button').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('#mn-tipo-parte button').forEach(b => b.setAttribute('aria-pressed','false'));
+        btn.setAttribute('aria-pressed','true');
+        this._tipo = btn.dataset.val;
+        this._renderSections();
+      });
+    });
+
+    // Segmented controls internos
+    ['mn-tipo','mn-estado','mn-puede-escalera'].forEach(id => {
+      document.querySelectorAll(`#${id} button`).forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll(`#${id} button`).forEach(b => b.setAttribute('aria-pressed','false'));
+          btn.setAttribute('aria-pressed','true');
+        });
+      });
+    });
+
+    // Generar
+    document.getElementById('mn-generate').addEventListener('click', () => this.generate());
+
+    // Fecha/hora por defecto
+    document.getElementById('mn-fecha').value = App.todayISO();
+    document.getElementById('mn-hora').value  = App.nowHHMM();
+
+    this._renderCheks();
+    this._renderEpis();
+    this._renderSenal();
+    this._renderWorkers();
+    this._renderSections();
+  },
+
+  onEnter(){
+    this._renderWorkers();
+    document.getElementById('mn-fecha').value = App.todayISO();
+    document.getElementById('mn-hora').value  = App.nowHHMM();
+  },
+
+  _renderSections(){
+    const isPostes = this._tipo === 'postes';
+    document.getElementById('mn-sec-tipo').style.display      = isPostes ? '' : 'none';
+    document.getElementById('mn-sec-escalera').style.display  = isPostes ? '' : 'none';
+    document.getElementById('mn-sec-epis').style.display      = isPostes ? '' : 'none';
+    document.getElementById('mn-sec-senal').style.display     = isPostes ? 'none' : '';
+    document.getElementById('mn-sec-epis-ccrr').style.display  = isPostes ? 'none' : '';
+    document.getElementById('mn-sec-epis-ccrr2').style.display = isPostes ? 'none' : '';
+    document.getElementById('mn-desc-field').style.display    = isPostes ? 'none' : '';
+  },
+
+  _renderCheks(){
+    const wrap = document.getElementById('mn-checks-escalera');
+    if(!wrap) return;
+    wrap.innerHTML = this.CHECKS_ESCALERA.map(c => `
+      <div style="background:var(--surface);border:1px solid var(--line-2);border-radius:10px;padding:10px 12px;">
+        <p style="font-size:12.5px;color:var(--text-dim);margin:0 0 8px;line-height:1.4;">${c.label}</p>
+        <div class="segmented segmented--sm" role="group" id="mn-esc-${c.id}">
+          <button type="button" data-val="si"  aria-pressed="true">SI</button>
+          <button type="button" data-val="no"  aria-pressed="false">NO</button>
+          <button type="button" data-val="na"  aria-pressed="false">N/A</button>
+        </div>
+      </div>
+    `).join('');
+    // Bind segmented
+    this.CHECKS_ESCALERA.forEach(c => {
+      document.querySelectorAll(`#mn-esc-${c.id} button`).forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll(`#mn-esc-${c.id} button`).forEach(b => b.setAttribute('aria-pressed','false'));
+          btn.setAttribute('aria-pressed','true');
+        });
+      });
+    });
+  },
+
+  _renderEpis(){
+    const wp = document.getElementById('mn-epis-wrap');
+    if(wp) wp.innerHTML = this.EPIS_POSTES.map((e,i) => `
+      <label class="pref-check">
+        <input type="checkbox" id="mn-epi-p-${i}"> ${e}
+      </label>
+    `).join('');
+
+    const p1 = document.getElementById('mn-epis-ccrr-p1');
+    if(p1) p1.innerHTML = this.EPIS_CCRR_P1.map((e,i) => `
+      <label class="pref-check"><input type="checkbox" id="mn-epi-c1-${i}"> ${e}</label>
+    `).join('');
+
+    const p2 = document.getElementById('mn-epis-ccrr-p2');
+    if(p2) p2.innerHTML = this.EPIS_CCRR_P2.map((e,i) => `
+      <label class="pref-check"><input type="checkbox" id="mn-epi-c2-${i}"> ${e}</label>
+    `).join('');
+  },
+
+  _renderSenal(){
+    const wrap = document.getElementById('mn-senal-wrap');
+    if(wrap) wrap.innerHTML = this.SENALIZACION.map((s,i) => `
+      <label class="pref-check"><input type="checkbox" id="mn-senal-${i}"> ${s}</label>
+    `).join('');
+  },
+
+  _renderWorkers(){
+    const wrap = document.getElementById('mn-workers');
+    const sel  = document.getElementById('mn-rp');
+    const workers = App.load(App.KEYS.workers, []);
+    if(!wrap || !sel) return;
+
+    wrap.innerHTML = workers.map(w => `
+      <div class="worker-card" data-wid="${w.id}" style="cursor:pointer;user-select:none;">
+        <div class="wc-avatar">${(w.nombre||'?')[0]}</div>
+        <div class="wc-info">
+          <span class="wc-name">${w.nombre}</span>
+          <span class="wc-cat">${w.categoria||''}</span>
+        </div>
+        <div class="wc-toggle" id="mn-wt-${w.id}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="width:16px;height:16px;opacity:.3">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+        </div>
+      </div>
+    `).join('') || '<p style="color:var(--text-mute);font-size:13px;">Sin trabajadores — añade en Ajustes</p>';
+
+    this._state.selectedWorkers = new Set();
+    wrap.querySelectorAll('.worker-card').forEach(card => {
+      card.addEventListener('click', () => {
+        const wid = card.dataset.wid;
+        const tog = document.getElementById(`mn-wt-${wid}`);
+        if(this._state.selectedWorkers.has(wid)){
+          this._state.selectedWorkers.delete(wid);
+          card.classList.remove('selected');
+          if(tog) tog.querySelector('svg').style.opacity = '.3';
+        } else {
+          this._state.selectedWorkers.add(wid);
+          card.classList.add('selected');
+          if(tog) tog.querySelector('svg').style.opacity = '1';
+        }
+      });
+    });
+
+    sel.innerHTML = '<option value="">— Sin RP —</option>' +
+      workers.map(w => `<option value="${w.id}">${w.nombre}</option>`).join('');
+    const defRP = App.load(App.KEYS.settings, {}).defaultRPId || '';
+    if(defRP) sel.value = defRP;
+  },
+
+  _val(id){ const e = document.getElementById(id); return e ? e.value.trim() : ''; },
+  _seg(id){ const b = document.querySelector(`#${id} [aria-pressed="true"]`); return b ? b.dataset.val : ''; },
+  _chk(id){ const e = document.getElementById(id); return e ? e.checked : false; },
+
+  collect(){
+    const tipo = this._tipo;
+    const workers = App.load(App.KEYS.workers, []);
+    const selIds  = [...this._state.selectedWorkers];
+    const selW    = workers.filter(w => selIds.includes(w.id));
+    const rpId    = this._val('mn-rp');
+    const rp      = workers.find(w => w.id === rpId) || selW[0] || null;
+
+    const base = {
+      _manual:      true,
+      fecha:        this._val('mn-fecha'),
+      hora:         this._val('mn-hora'),
+      direccion:    this._val('mn-dir'),
+      provincia:    this._val('mn-prov'),
+      poblacion:    this._val('mn-pob'),
+      central:      this._val('mn-central'),
+      trabajo:      this._val('mn-trabajo'),
+      observaciones:this._val('mn-obs'),
+      workersSelected: selIds,
+      rpId,
+    };
+
+    if(tipo === 'postes'){
+      const checks = {};
+      this.CHECKS_ESCALERA.forEach(c => { checks[c.id] = this._seg(`mn-esc-${c.id}`); });
+      const episFlags = {};
+      this.EPIS_POSTES.forEach((_,i) => { episFlags[i] = this._chk(`mn-epi-p-${i}`); });
+      return { ...base, type:'postes',
+        numPoste: this._val('mn-num'), numLinea: this._val('mn-linea'),
+        tipo:   this._seg('mn-tipo'),
+        estado: this._seg('mn-estado'),
+        medio:  this._val('mn-medio'),
+        puedeEscalera: this._seg('mn-puede-escalera'),
+        checksEscalera: checks,
+        episManual: episFlags,
+      };
+    } else {
+      const senal = {};
+      this.SENALIZACION.forEach((_,i) => { senal[i] = this._chk(`mn-senal-${i}`); });
+      const episC1 = {}, episC2 = {};
+      this.EPIS_CCRR_P1.forEach((_,i) => { episC1[i] = this._chk(`mn-epi-c1-${i}`); });
+      this.EPIS_CCRR_P2.forEach((_,i) => { episC2[i] = this._chk(`mn-epi-c2-${i}`); });
+      return { ...base, type:'ccrr',
+        num: this._val('mn-num'),
+        estadoDesc: this._val('mn-estado-desc'),
+        senalManual: senal,
+        episManualC1: episC1,
+        episManualC2: episC2,
+      };
+    }
+  },
+
+  async generate(){
+    const d = this.collect();
+    const btn = document.getElementById('mn-generate');
+    btn.disabled = true;
+    btn.textContent = 'Generando…';
+    try {
+      if(d.type === 'postes'){
+        await Pdf.buildPostes(d);
+      } else {
+        await Pdf.buildCcrr(d);
+      }
+    } catch(e){
+      console.error('[Manual]', e);
+      App.toast('Error al generar: ' + e.message);
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg> Generar PDF manual`;
+    }
+  }
+};
+
+/* =====================================================================
    ACCESS — Control de acceso a la app
    Código de equipo: para que los compañeros entren.
    PIN de admin: solo el administrador puede gestionar (cambiar código, ver solicitudes).
@@ -6639,9 +7429,8 @@ const Sync = {
 document.addEventListener('DOMContentLoaded', () => App.init());
 document.addEventListener('DOMContentLoaded', () => PWA.init());
 document.addEventListener('DOMContentLoaded', () => History.init());
-document.addEventListener('DOMContentLoaded', async () => {
-  await Access.check();
-});
+document.addEventListener('DOMContentLoaded', () => Manual.init());
+document.addEventListener('DOMContentLoaded', async () => { await Access.check(); });
 </script>
 
 </body>
