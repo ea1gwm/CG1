@@ -155,7 +155,7 @@
     position: sticky; top: 0; z-index: 30;
     backdrop-filter: blur(14px);
     -webkit-backdrop-filter: blur(14px);
-    background: linear-gradient(180deg, rgba(10,14,26,.92), rgba(10,14,26,.78));
+    background: color-mix(in srgb, var(--bg) 88%, transparent);
     border-bottom: 1px solid var(--line);
     padding: 14px 18px 12px;
     display:flex; align-items:center; gap:12px;
@@ -167,8 +167,7 @@
   .brand-mark{
     width: 36px; height: 36px;
     border-radius: 9px;
-    background:
-      linear-gradient(135deg, #1a2340 0%, #0e1426 100%);
+    background: var(--surface);
     border: 1px solid var(--line-2);
     display:grid; place-items:center;
     box-shadow: var(--shadow-1);
@@ -515,7 +514,7 @@
   .toast{
     position: fixed; left: 50%; bottom: calc(28px + env(safe-area-inset-bottom));
     transform: translateX(-50%) translateY(20px);
-    background: #0e1426;
+    background: var(--surface-2);
     color: var(--text);
     border: 1px solid var(--line-2);
     border-left: 3px solid var(--amber);
@@ -941,45 +940,118 @@
   .pref-check input[type="checkbox"]{ width:15px; height:15px; accent-color: var(--amber); cursor:pointer; }
 
   /* ── Ajustes específicos para tema claro ───────────────────── */
-  [data-theme="light"] .topbar,
-  :root[data-theme="light"] .topbar{ border-bottom-color: var(--line); }
+  /* Forzar color-scheme en selects y inputs para que el sistema los renderice en claro */
+  [data-theme="light"] select,
+  [data-theme="light"] input,
+  [data-theme="light"] textarea{ color-scheme: light; }
+
+  [data-theme="light"] body{
+    background:
+      radial-gradient(900px 500px at 80% -10%, rgba(56,189,248,.04), transparent 60%),
+      radial-gradient(700px 400px at -10% 110%, rgba(217,119,6,.04), transparent 60%),
+      var(--bg);
+  }
 
   [data-theme="light"] .form-section,
-  [data-theme="light"] .settings-section{ border-color: var(--line); }
+  [data-theme="light"] .settings-section{
+    background: var(--bg-2);
+    border-color: var(--line);
+    box-shadow: 0 1px 3px rgba(0,0,0,.06);
+  }
+
+  [data-theme="light"] .topbar{
+    background: color-mix(in srgb, var(--bg) 90%, transparent);
+    border-bottom-color: var(--line);
+  }
 
   [data-theme="light"] .item-card,
-  [data-theme="light"] .item-row{ border-color: var(--line); }
+  [data-theme="light"] .item-row{
+    background: var(--bg-2);
+    border-color: var(--line);
+  }
 
   [data-theme="light"] .segmented{
-    background: var(--surface-2);
+    background: var(--surface);
     border-color: var(--line);
   }
   [data-theme="light"] .segmented button{ color: var(--text-dim); }
   [data-theme="light"] .segmented button[aria-pressed="true"]{
-    background: var(--amber);
-    color: #0d1624;
+    background: var(--amber); color: #0d1624;
     box-shadow: 0 2px 8px -2px rgba(217,119,6,.35);
   }
 
+  [data-theme="light"] .btn,
   [data-theme="light"] .btn-ghost{
     border-color: var(--line-2);
     color: var(--text-dim);
   }
   [data-theme="light"] .btn-ghost:hover{ color: var(--amber); border-color: var(--amber); }
-  [data-theme="light"] .modal{ box-shadow: 0 8px 40px rgba(0,0,0,.2); }
-  [data-theme="light"] .pref-check{ background: var(--bg-2); border-color: var(--line); color: var(--text-dim); }
-  [data-theme="light"] .help-item{ background: var(--bg-2); border-color: var(--line); }
+  [data-theme="light"] .btn-primary{ color: #0d1624; border-color: transparent; }
 
+  [data-theme="light"] .icon-btn{
+    background: rgba(0,0,0,.04);
+    border-color: rgba(0,0,0,.08);
+    color: var(--text-dim);
+  }
+  [data-theme="light"] .icon-btn:hover{ background: rgba(217,119,6,.1); border-color: rgba(217,119,6,.25); }
+
+  [data-theme="light"] .modal{
+    background: var(--bg-2);
+    box-shadow: 0 8px 40px rgba(0,0,0,.15);
+    border-top-color: var(--line);
+  }
+
+  [data-theme="light"] .modal-backdrop{ background: rgba(15,21,37,.45); }
+
+  [data-theme="light"] .pref-check{
+    background: var(--bg-2); border-color: var(--line); color: var(--text-dim);
+  }
+  [data-theme="light"] .pref-check:hover{ border-color: var(--amber); }
+
+  [data-theme="light"] .help-item{ background: var(--bg-2); border-color: var(--line); }
+  [data-theme="light"] .help-head{ color: var(--text); }
+  [data-theme="light"] .help-body{ color: var(--text-dim); }
+
+  [data-theme="light"] .brand-mark{ background: var(--surface); border-color: var(--line); }
+  [data-theme="light"] .brand-mark svg [stroke="#fbbf24"]{ stroke: var(--amber); }
+
+  [data-theme="light"] .rp-card,
+  [data-theme="light"] .worker-card{ background: var(--bg-2); border-color: var(--line); }
+
+  [data-theme="light"] .gps-btn{ background: var(--bg-2); border-color: var(--line); color: var(--text-dim); }
+  [data-theme="light"] .gps-btn:hover{ border-color: var(--amber); color: var(--amber); }
+
+  [data-theme="light"] .back-btn{ color: var(--text-dim); }
+  [data-theme="light"] .back-btn:hover{ color: var(--amber); }
+
+  [data-theme="light"] .item-action,
+  [data-theme="light"] .icon-action{
+    background: rgba(0,0,0,.03); border-color: rgba(0,0,0,.08);
+  }
+
+  /* Auto modo claro — mismos ajustes */
   @media (prefers-color-scheme: light){
-    [data-theme="auto"] .segmented{
-      background: var(--surface-2); border-color: var(--line);
+    [data-theme="auto"] select,
+    [data-theme="auto"] input,
+    [data-theme="auto"] textarea{ color-scheme: light; }
+    [data-theme="auto"] body{
+      background: radial-gradient(900px 500px at 80% -10%, rgba(56,189,248,.04), transparent 60%),
+                  radial-gradient(700px 400px at -10% 110%, rgba(217,119,6,.04), transparent 60%),
+                  var(--bg);
     }
+    [data-theme="auto"] .form-section,
+    [data-theme="auto"] .settings-section{ background: var(--bg-2); border-color: var(--line); box-shadow: 0 1px 3px rgba(0,0,0,.06); }
+    [data-theme="auto"] .segmented{ background: var(--surface); border-color: var(--line); }
     [data-theme="auto"] .segmented button{ color: var(--text-dim); }
-    [data-theme="auto"] .segmented button[aria-pressed="true"]{
-      background: var(--amber); color: #0d1624;
-    }
+    [data-theme="auto"] .segmented button[aria-pressed="true"]{ background: var(--amber); color: #0d1624; }
     [data-theme="auto"] .btn-ghost{ border-color: var(--line-2); color: var(--text-dim); }
+    [data-theme="auto"] .btn-primary{ color: #0d1624; border-color: transparent; }
     [data-theme="auto"] .pref-check{ background: var(--bg-2); border-color: var(--line); color: var(--text-dim); }
+    [data-theme="auto"] .modal{ background: var(--bg-2); border-top-color: var(--line); }
+    [data-theme="auto"] .item-card, [data-theme="auto"] .item-row{ background: var(--bg-2); border-color: var(--line); }
+    [data-theme="auto"] .rp-card, [data-theme="auto"] .worker-card{ background: var(--bg-2); border-color: var(--line); }
+    [data-theme="auto"] .gps-btn{ background: var(--bg-2); border-color: var(--line); color: var(--text-dim); }
+    [data-theme="auto"] .icon-btn{ background: rgba(0,0,0,.04); border-color: rgba(0,0,0,.08); color: var(--text-dim); }
     [data-theme="auto"] .help-item{ background: var(--bg-2); border-color: var(--line); }
   }
 
@@ -3031,8 +3103,8 @@
     </button>
 
     <div class="section-head">
-      <span class="eyebrow" style="color:#f59e0b;">✦ Modo manual</span>
-      <h1 class="section-title">Cubrir <span class="accent">a mano</span></h1>
+      <span class="eyebrow" style="color:var(--amber);">✦ Sin restricciones</span>
+      <h1 class="section-title">Cubrir Parte Manual</h1>
       <p class="section-sub">Sin restricciones automáticas. Marca libremente cualquier casilla. Útil para partes con incidencias especiales.</p>
     </div>
 
@@ -3246,7 +3318,7 @@
    ============================================================= */
 
 const App = {
-  version: '0.8.1',
+  version: '0.8.2',
   step: 7,
 
   // ── TEMA ──────────────────────────────────────────────────────
@@ -7133,16 +7205,12 @@ const Manual = {
     const d = this.collect();
     const btn = document.getElementById('mn-generate');
     btn.disabled = true;
-    btn.textContent = 'Generando…';
+    btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="width:18px;height:18px;animation:spin .8s linear infinite"><path d="M21 12a9 9 0 1 1-6.2-8.6"/></svg> Generando…`;
     try {
-      if(d.type === 'postes'){
-        await Pdf.buildPostes(d);
-      } else {
-        await Pdf.buildCcrr(d);
-      }
+      await Pdf.saveAndDownload(d.type, d);
     } catch(e){
       console.error('[Manual]', e);
-      App.toast('Error al generar: ' + e.message);
+      App.toast('Error al generar: ' + (e.message || e));
     } finally {
       btn.disabled = false;
       btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg> Generar PDF manual`;
