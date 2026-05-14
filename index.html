@@ -1015,8 +1015,26 @@
   [data-theme="light"] .brand-mark{ background: var(--surface); border-color: var(--line); }
   [data-theme="light"] .brand-mark svg [stroke="#fbbf24"]{ stroke: var(--amber); }
 
-  [data-theme="light"] .rp-card,
-  [data-theme="light"] .worker-card{ background: var(--bg-2); border-color: var(--line); }
+  [data-theme="light"] .input,
+  [data-theme="light"] .select,
+  [data-theme="light"] .textarea{
+    background: var(--bg-2);
+    color: var(--text);
+    border-color: var(--line-2);
+  }
+  [data-theme="light"] .input:focus,
+  [data-theme="light"] .select:focus,
+  [data-theme="light"] .textarea:focus{ border-color: var(--amber); }
+
+  @media (prefers-color-scheme: light){
+    [data-theme="auto"] .input,
+    [data-theme="auto"] .select,
+    [data-theme="auto"] .textarea{
+      background: var(--bg-2);
+      color: var(--text);
+      border-color: var(--line-2);
+    }
+  }
 
   [data-theme="light"] .gps-btn{ background: var(--bg-2); border-color: var(--line); color: var(--text-dim); }
   [data-theme="light"] .gps-btn:hover{ border-color: var(--amber); color: var(--amber); }
@@ -1791,7 +1809,7 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;">
           <path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/>
         </svg>
-        Manual
+        Parte manual
       </button>
       <button class="btn btn-ghost" data-go="help" type="button"
               style="flex:1;justify-content:center;gap:8px;padding:13px;font-size:13px;">
@@ -2484,9 +2502,10 @@
       <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:16px;">
         <p style="font-size:12px;color:var(--text-mute);margin:0 0 4px;font-weight:600;">Señalización marcada por defecto:</p>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
-          <label class="pref-check"><input type="checkbox" id="pref-ccrr-conos">   Conos</label>
-          <label class="pref-check"><input type="checkbox" id="pref-ccrr-baranda"> Baranda</label>
-          <label class="pref-check"><input type="checkbox" id="pref-ccrr-peligro"> Señal peligro</label>
+          <label class="pref-check"><input type="checkbox" id="pref-ccrr-conos">   Conos de señalización</label>
+          <label class="pref-check"><input type="checkbox" id="pref-ccrr-baranda"> Baranda con banderola roja</label>
+          <label class="pref-check"><input type="checkbox" id="pref-ccrr-peligro"> Señal peligro por obras</label>
+          <label class="pref-check"><input type="checkbox" id="pref-ccrr-tienda">  Tienda dotada de defensa</label>
           <label class="pref-check"><input type="checkbox" id="pref-ccrr-luz">     Señalización luminosa</label>
         </div>
         <div class="field" style="margin-top:4px;">
@@ -2899,7 +2918,24 @@
     </div>
   </div>
 
-  <!-- ========= VISTA: AYUDA ========= -->
+  <!-- ===== BANNER ACTUALIZACIÓN ===== -->
+  <div id="update-banner" style="display:none;position:fixed;inset:0;z-index:9998;background:rgba(5,8,16,.9);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);align-items:center;justify-content:center;padding:24px;">
+    <div style="background:var(--bg-2);border:2px solid var(--amber);border-radius:24px;padding:32px 28px;max-width:360px;width:100%;text-align:center;box-shadow:0 0 60px rgba(251,191,36,.3),0 24px 80px rgba(0,0,0,.5);">
+      <div style="width:68px;height:68px;background:var(--amber);border-radius:20px;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;box-shadow:0 8px 24px rgba(251,191,36,.4);">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#050810" stroke-width="2.5" stroke-linecap="round" style="width:36px;height:36px;">
+          <path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M3 22v-6h6"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/>
+        </svg>
+      </div>
+      <div style="display:inline-block;background:rgba(251,191,36,.15);border:1px solid rgba(251,191,36,.4);border-radius:20px;padding:4px 12px;font-size:12px;font-weight:700;color:var(--amber);letter-spacing:.5px;margin-bottom:12px;">ACTUALIZACIÓN DISPONIBLE</div>
+      <h2 style="font-size:24px;font-weight:800;color:var(--text);margin:0 0 10px;line-height:1.2;">Nueva versión lista</h2>
+      <p style="font-size:14.5px;color:var(--text-dim);margin:0 0 24px;line-height:1.6;">Hay mejoras disponibles. Para aplicarlas, cierra la app completamente y vuelve a abrirla.</p>
+      <button type="button" id="update-banner-close"
+        style="width:100%;padding:16px;background:var(--amber);border:none;border-radius:14px;color:#050810;font-size:16px;font-weight:700;cursor:pointer;margin-bottom:10px;">
+        ✓ Entendido, lo haré ahora
+      </button>
+      <p style="font-size:12px;color:var(--text-mute);margin:0;">O cierra y abre la app cuando quieras</p>
+    </div>
+  </div>
   <main class="view" id="view-help">
     <button class="back-btn" data-go="home" type="button">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
@@ -3121,7 +3157,7 @@
         <div class="sec-head"><span class="sec-num">01</span><span class="sec-title">Información general</span></div>
         <div class="field-row">
           <div class="field"><span class="field-label">Nº Poste / CCRR</span><input class="input" type="text" id="mn-num" placeholder="123456"></div>
-          <div class="field"><span class="field-label">Nº Línea</span><input class="input" type="text" id="mn-linea"></div>
+          <div class="field"><span class="field-label">Nº Actuación</span><input class="input" type="text" id="mn-linea" placeholder="—"></div>
         </div>
         <div class="field"><span class="field-label">Dirección</span><input class="input" type="text" id="mn-dir" placeholder="Calle, número..."></div>
         <div class="field-row">
@@ -3133,7 +3169,25 @@
           <div class="field" style="min-width:0;"><span class="field-label">Fecha</span><input class="input" type="date" id="mn-fecha"></div>
           <div class="field" style="min-width:0;"><span class="field-label">Hora</span><input class="input" type="time" id="mn-hora"></div>
         </div>
-        <div class="field"><span class="field-label">Central</span><input class="input" type="text" id="mn-central"></div>
+        <!-- Campos extra CCRR (ocultos en postes) -->
+        <div id="mn-ccrr-extra" style="display:none;">
+          <div class="field" style="margin-top:12px;">
+            <span class="field-label">Duración prevista (horas)</span>
+            <input class="input" type="text" id="mn-duracion" placeholder="ej. 4">
+          </div>
+          <div class="field-row">
+            <div class="field"><span class="field-label">Desde</span><input class="input" type="time" id="mn-desde"></div>
+            <div class="field"><span class="field-label">Hasta</span><input class="input" type="time" id="mn-hasta"></div>
+          </div>
+          <div class="field" style="margin-top:12px;">
+            <span class="field-label">Climatología adecuada</span>
+            <div class="segmented" role="group" id="mn-clima">
+              <button type="button" data-val="si" aria-pressed="true">SÍ</button>
+              <button type="button" data-val="no" aria-pressed="false">NO</button>
+            </div>
+          </div>
+        </div>
+        <div class="field" style="margin-top:12px;"><span class="field-label">Central</span><input class="input" type="text" id="mn-central"></div>
       </section>
 
       <!-- === TIPO DE POSTE (solo postes) === -->
@@ -3149,6 +3203,13 @@
           <div class="segmented" role="group" id="mn-estado">
             <button type="button" data-val="bueno"     aria-pressed="true">✓ Bueno/Adecuado</button>
             <button type="button" data-val="defectuoso" aria-pressed="false">✗ Defectuoso</button>
+          </div>
+        </div>
+        <div style="margin-top:12px;">
+          <p style="font-size:12.5px;font-weight:600;color:var(--text-dim);margin:0 0 8px;">Climatología adecuada</p>
+          <div class="segmented" role="group" id="mn-clima-ok">
+            <button type="button" data-val="si" aria-pressed="true">SÍ</button>
+            <button type="button" data-val="no" aria-pressed="false">NO</button>
           </div>
         </div>
         <div style="margin-top:12px;">
@@ -3190,28 +3251,141 @@
         </div>
       </section>
 
+
       <!-- === SEÑALIZACIÓN CCRR === -->
       <section class="form-section" id="mn-sec-senal" style="display:none;">
         <div class="sec-head"><span class="sec-num">02</span><span class="sec-title">Señalización</span></div>
-        <div style="display:flex;flex-direction:column;gap:6px;" id="mn-senal-wrap">
-          <!-- generado por JS -->
+        <div style="display:flex;flex-direction:column;gap:6px;" id="mn-senal-wrap"><!-- JS --></div>
+      </section>
+
+      <!-- === UBICACIÓN DEL RECINTO === -->
+      <section class="form-section" id="mn-sec-ubic" style="display:none;">
+        <div class="sec-head"><span class="sec-num">03</span><span class="sec-title">Ubicación del recinto</span></div>
+        <div style="display:flex;flex-direction:column;gap:6px;">
+          <label class="pref-check"><input type="checkbox" id="mn-ubic-acera">    Acera</label>
+          <label class="pref-check"><input type="checkbox" id="mn-ubic-calz-urb"> Calzada urbana</label>
+          <label class="pref-check"><input type="checkbox" id="mn-ubic-calz-no">  Calzada no urbana</label>
+          <label class="pref-check"><input type="checkbox" id="mn-ubic-campo">    Campo</label>
+          <label class="pref-check"><input type="checkbox" id="mn-ubic-carril">   Interfiere carril de circulación</label>
+        </div>
+        <div class="field" style="margin-top:12px;">
+          <span class="field-label">Estado de la tapa de entrada</span>
+          <div class="segmented" role="group" id="mn-tapa" style="margin-top:6px;">
+            <button type="button" data-val="buena"      aria-pressed="true">Buena</button>
+            <button type="button" data-val="defectuosa" aria-pressed="false">Defectuosa</button>
+            <button type="button" data-val="sin_tapa"   aria-pressed="false">Sin tapa</button>
+          </div>
+        </div>
+        <div class="field" style="margin-top:12px;">
+          <span class="field-label">¿Tienda dotada de defensa?</span>
+          <div class="segmented" role="group" id="mn-tienda" style="margin-top:6px;">
+            <button type="button" data-val="si" aria-pressed="true">SÍ</button>
+            <button type="button" data-val="no" aria-pressed="false">NO</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- === PREPARACIÓN ANTES DE ENTRAR === -->
+      <section class="form-section" id="mn-sec-prep" style="display:none;">
+        <div class="sec-head"><span class="sec-num">04</span><span class="sec-title">Preparación antes de entrar</span></div>
+        <div style="display:flex;flex-direction:column;gap:6px;">
+          <label class="pref-check"><input type="checkbox" id="mn-prep-vent"   checked> Ventilación del recinto</label>
+          <label class="pref-check"><input type="checkbox" id="mn-prep-senal"        > Señalización perimetral</label>
+          <label class="pref-check"><input type="checkbox" id="mn-prep-ilum"         > Iluminación</label>
+          <label class="pref-check"><input type="checkbox" id="mn-prep-comuni"       > Comunicaciones</label>
+          <label class="pref-check"><input type="checkbox" id="mn-prep-paux"         > Primeros auxilios</label>
+          <label class="pref-check"><input type="checkbox" id="mn-prep-ctrl"   checked> Control continuo de atmósfera</label>
+          <label class="pref-check"><input type="checkbox" id="mn-prep-obtur"  checked> Conductos obturados</label>
+          <label class="pref-check"><input type="checkbox" id="mn-prep-cuello" checked> Longitud cuello &gt;3m</label>
+        </div>
+      </section>
+
+      <!-- === CONTROL DE ATMÓSFERA === -->
+      <section class="form-section" id="mn-sec-atm" style="display:none;">
+        <div class="sec-head"><span class="sec-num">05</span><span class="sec-title">Control de atmósfera</span></div>
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <div>
+            <p style="font-size:12.5px;font-weight:600;color:var(--text-dim);margin:0 0 6px;">Oxígeno (O₂)</p>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;">
+              <div><span style="font-size:11px;color:var(--text-mute);">Inicial</span>
+                <div class="segmented segmented--sm" role="group" id="mn-o2-ini"><button type="button" data-val="no" aria-pressed="true">NO</button><button type="button" data-val="si" aria-pressed="false">SÍ</button></div></div>
+              <div><span style="font-size:11px;color:var(--text-mute);">Post 1</span>
+                <div class="segmented segmented--sm" role="group" id="mn-o2-p1"><button type="button" data-val="no" aria-pressed="true">NO</button><button type="button" data-val="si" aria-pressed="false">SÍ</button></div></div>
+              <div><span style="font-size:11px;color:var(--text-mute);">Post 2</span>
+                <div class="segmented segmented--sm" role="group" id="mn-o2-p2"><button type="button" data-val="no" aria-pressed="true">NO</button><button type="button" data-val="si" aria-pressed="false">SÍ</button></div></div>
+            </div>
+          </div>
+          <div>
+            <p style="font-size:12.5px;font-weight:600;color:var(--text-dim);margin:0 0 6px;">Gases explosivos</p>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;">
+              <div><span style="font-size:11px;color:var(--text-mute);">Inicial</span>
+                <div class="segmented segmented--sm" role="group" id="mn-ex-ini"><button type="button" data-val="no" aria-pressed="true">NO</button><button type="button" data-val="si" aria-pressed="false">SÍ</button></div></div>
+              <div><span style="font-size:11px;color:var(--text-mute);">Post 1</span>
+                <div class="segmented segmented--sm" role="group" id="mn-ex-p1"><button type="button" data-val="no" aria-pressed="true">NO</button><button type="button" data-val="si" aria-pressed="false">SÍ</button></div></div>
+              <div><span style="font-size:11px;color:var(--text-mute);">Post 2</span>
+                <div class="segmented segmented--sm" role="group" id="mn-ex-p2"><button type="button" data-val="no" aria-pressed="true">NO</button><button type="button" data-val="si" aria-pressed="false">SÍ</button></div></div>
+            </div>
+          </div>
+          <div>
+            <p style="font-size:12.5px;font-weight:600;color:var(--text-dim);margin:0 0 6px;">Gases tóxicos</p>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;">
+              <div><span style="font-size:11px;color:var(--text-mute);">Inicial</span>
+                <div class="segmented segmented--sm" role="group" id="mn-tx-ini"><button type="button" data-val="no" aria-pressed="true">NO</button><button type="button" data-val="si" aria-pressed="false">SÍ</button></div></div>
+              <div><span style="font-size:11px;color:var(--text-mute);">Post 1</span>
+                <div class="segmented segmented--sm" role="group" id="mn-tx-p1"><button type="button" data-val="no" aria-pressed="true">NO</button><button type="button" data-val="si" aria-pressed="false">SÍ</button></div></div>
+              <div><span style="font-size:11px;color:var(--text-mute);">Post 2</span>
+                <div class="segmented segmented--sm" role="group" id="mn-tx-p2"><button type="button" data-val="no" aria-pressed="true">NO</button><button type="button" data-val="si" aria-pressed="false">SÍ</button></div></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- === ESTADO DEL RECINTO SUBTERRÁNEO === -->
+      <section class="form-section" id="mn-sec-recinto" style="display:none;">
+        <div class="sec-head"><span class="sec-num">06</span><span class="sec-title">Estado del recinto</span></div>
+        <p style="font-size:12px;color:var(--text-mute);margin:-4px 0 10px;">Estado de la cámara de registro o recinto subterráneo.</p>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <div>
+            <p style="font-size:12.5px;font-weight:600;color:var(--text-dim);margin:0 0 6px;">Conductos obturados (vacantes y ocupados)</p>
+            <div class="segmented" role="group" id="mn-recinto-obtur">
+              <button type="button" data-val="si" aria-pressed="true">SÍ</button>
+              <button type="button" data-val="no" aria-pressed="false">NO</button>
+            </div>
+          </div>
+          <div>
+            <p style="font-size:12.5px;font-weight:600;color:var(--text-dim);margin:0 0 6px;">Existencia de bomba extractora de agua</p>
+            <div class="segmented" role="group" id="mn-recinto-bomba">
+              <button type="button" data-val="si" aria-pressed="true">SÍ</button>
+              <button type="button" data-val="no" aria-pressed="false">NO</button>
+            </div>
+          </div>
+          <div>
+            <p style="font-size:12.5px;font-weight:600;color:var(--text-dim);margin:0 0 6px;">Existencia de extintor</p>
+            <div class="segmented" role="group" id="mn-recinto-extintor">
+              <button type="button" data-val="si" aria-pressed="true">SÍ</button>
+              <button type="button" data-val="no" aria-pressed="false">NO</button>
+            </div>
+          </div>
+          <div>
+            <p style="font-size:12.5px;font-weight:600;color:var(--text-dim);margin:0 0 6px;">Mantenimiento realizado</p>
+            <div class="segmented" role="group" id="mn-recinto-mant">
+              <button type="button" data-val="si" aria-pressed="true">SÍ</button>
+              <button type="button" data-val="no" aria-pressed="false">NO</button>
+            </div>
+          </div>
         </div>
       </section>
 
       <!-- === EPIs CCRR P1 === -->
       <section class="form-section" id="mn-sec-epis-ccrr" style="display:none;">
-        <div class="sec-head"><span class="sec-num">03</span><span class="sec-title">EPIs — Página 1</span></div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;" id="mn-epis-ccrr-p1">
-          <!-- generado por JS -->
-        </div>
+        <div class="sec-head"><span class="sec-num">07</span><span class="sec-title">EPIs — Página 1</span></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;" id="mn-epis-ccrr-p1"><!-- JS --></div>
       </section>
 
       <!-- === EPIs CCRR P2 === -->
       <section class="form-section" id="mn-sec-epis-ccrr2" style="display:none;">
-        <div class="sec-head"><span class="sec-num">04</span><span class="sec-title">EPIs — Página 2</span></div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;" id="mn-epis-ccrr-p2">
-          <!-- generado por JS -->
-        </div>
+        <div class="sec-head"><span class="sec-num">07</span><span class="sec-title">EPIs — Página 2</span></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;" id="mn-epis-ccrr-p2"><!-- JS --></div>
       </section>
 
       <!-- === TRABAJADORES === -->
@@ -3318,7 +3492,7 @@
    ============================================================= */
 
 const App = {
-  version: '0.8.2',
+  version: '0.8.4',
   step: 7,
 
   // ── TEMA ──────────────────────────────────────────────────────
@@ -3332,6 +3506,11 @@ const App = {
       (theme === 'auto' && window.matchMedia('(prefers-color-scheme: light)').matches);
     const meta = document.getElementById('meta-theme-color');
     if(meta) meta.setAttribute('content', isLight ? light : dark);
+  },
+
+  showUpdateBanner(){
+    const banner = document.getElementById('update-banner');
+    if(banner) banner.style.display = 'flex';
   },
 
   setTheme(theme){
@@ -3401,6 +3580,7 @@ const App = {
     // Señalización CCRR
     ccrr_conos:         true,
     ccrr_baranda:       false,
+    ccrr_tienda:        false,
     ccrr_senalPeligro:  false,
     ccrr_luminosa:      false,
     // EPIs postes por defecto
@@ -3524,6 +3704,7 @@ const App = {
   CCRR_SENALIZACION: [
     { id: 'conos',                label: 'Conos de señalización',               def: true  },
     { id: 'baranda',              label: 'Baranda con banderola roja',          def: false },
+    { id: 'tienda_defensa',       label: 'Tienda dotada de defensa',            def: false },
     { id: 'senal_obras',          label: 'Señal de peligro por obras',          def: false },
     { id: 'senal_estrechamiento', label: 'Señal de peligro por estrechamiento', def: false },
     { id: 'luminosa',             label: 'Señalización luminosa',               def: false }
@@ -3601,6 +3782,12 @@ const App = {
 
   /* ===== INIT ===== */
   init(){
+    // Banner de actualización
+    const updateClose = document.getElementById('update-banner-close');
+    if(updateClose) updateClose.addEventListener('click', () => {
+      document.getElementById('update-banner').style.display = 'none';
+    });
+
     // Aplicar tema guardado
     this.applyTheme(this.getTheme());
 
@@ -4560,12 +4747,14 @@ const Ccrr = {
     if(horaEl && !horaEl.value) horaEl.value = (d && d.hora) ? d.hora : App.nowHHMM();
 
     if(!d){
-      // Sin draft: prellenar con últimos valores usados
       const setIfEmpty = (id, v) => { const e=document.getElementById(id); if(e && !e.value && v) e.value=v; };
       setIfEmpty('c-direccion', lastUsed.direccion);
       setIfEmpty('c-provincia', lastUsed.provincia);
       setIfEmpty('c-poblacion', lastUsed.poblacion);
       setIfEmpty('c-clima',     lastUsed.clima);
+      // Prellenar "desde" con la hora actual si está vacío
+      const desdeEl = document.getElementById('c-desde');
+      if(desdeEl && !desdeEl.value) desdeEl.value = App.nowHHMM();
       return;
     }
     const setIf = (id, v) => { const e=document.getElementById(id); if(e && v!=null) e.value=v; };
@@ -5192,8 +5381,8 @@ const Pdf = {
     else if(d.tipo === 'Hormigón') mark('tipo_hormigon');
     else                            mark('tipo_fibra');
 
-    // Climatología
-    mark(d.climaOk === 'si' ? 'clima_si' : 'clima_no');
+    // Climatología — fallback a 'si' si el dato no existe (partes antiguos)
+    mark((d.climaOk || 'si') === 'si' ? 'clima_si' : 'clima_no');
 
     // Trabajadores: SI formación + SI conocen + RP en su fila
     trList.forEach((w, i) => {
@@ -5219,15 +5408,31 @@ const Pdf = {
     const medioKeys = this.POSTES_SUBIR_KEYS[d.tipo] || {};
     if(medioKeys[d.medio]) mark(medioKeys[d.medio]);
 
-    // Si usa escalera → marcar todos los SI del check escalera + ¿se puede usar? SI
+    // Si usa escalera → marcar checks escalera a-g y ¿puede usar?
     const usaEscalera = (d.medio === 'Escalera' || d.medio === 'Escalera con patas extensibles');
-    if(usaEscalera){
-      ['esc_a_si', 'esc_b_si', 'esc_c_si', 'esc_d_si', 'esc_e_si', 'esc_f_si', 'esc_g_si'].forEach(mark);
+
+    if(d._manual){
+      // Modo manual: respetar checks individuales a-g y puedeEscalera
+      ['a','b','c','d','e','f','g'].forEach(l => {
+        const val = d['check_'+l] || 'si';
+        mark(`esc_${l}_${val}`);
+      });
+      if(d.puedeEscalera === 'no') mark('puede_esc_no');
+      else mark('puede_esc_si');
+    } else if(usaEscalera){
+      // Modo normal con escalera: todos SI
+      ['a','b','c','d','e','f','g'].forEach(l => mark(`esc_${l}_si`));
       mark('puede_esc_si');
     }
 
-    // EPIs siempre fijos
-    this.POSTES_EPIS_FIJOS.forEach(mark);
+    // EPIs: usar d.epis si existe, si no caer a POSTES_EPIS_FIJOS
+    if(d.epis && Object.keys(d.epis).length > 0){
+      App.EPIS_LIST.forEach(e => {
+        if(d.epis[e.id]) mark('epi_' + e.id);
+      });
+    } else {
+      this.POSTES_EPIS_FIJOS.forEach(mark);
+    }
 
     // Observaciones SI (apartado 8 — solo 2 filas en plantilla nueva)
     mark('obs1_si');
@@ -5394,12 +5599,22 @@ const Pdf = {
   },
 
   // Datos fijos CCRR
-  CCRR_FIJOS_TR:        [1, 2, 3, 4],         // SI conocen riesgos / medidas / formación / RP
-  CCRR_FIJOS_PREP:      [30, 32],              // ventilación + control continuado
-  CCRR_FIJOS_ESTADO:    [33, 41],              // conductos obturados SI + longitud cuello SI
-  CCRR_FIJOS_ATM:       [44, 46, 48, 50, 52, 54, 56, 58, 60],  // todos NO
-  CCRR_FIJOS_EPIS_P1:   [62, 65, 68, 69, 63], // casco, gafas, guantes, arnés trípode, eq comunicación
-  CCRR_FIJOS_EPIS_P2:   [72],                  // multidetector
+  CCRR_FIJOS_TR:        [1, 2, 3, 4],
+  CCRR_FIJOS_PREP:      [30, 32],
+  CCRR_FIJOS_ESTADO:    [33, 41],
+  CCRR_FIJOS_ATM:       [44, 46, 48, 50, 52, 54, 56, 58, 60],
+  CCRR_FIJOS_EPIS_P1:   [62, 65, 68, 69, 63],
+  CCRR_FIJOS_EPIS_P2:   [72],
+
+  // Mapeo para checks del estado del recinto subterráneo (manual)
+  // Btn 33=conductos_obturados_SI, 34=NO; 35=bomba_SI, 36=NO;
+  // Btn 37=extintor_SI, 38=NO; 39=mantenimiento_SI, 40=NO
+  CCRR_RECINTO_MAP: {
+    'conductos_obturados_si': 33, 'conductos_obturados_no': 34,
+    'bomba_si': 35, 'bomba_no': 36,
+    'extintor_si': 37, 'extintor_no': 38,
+    'mantenimiento_si': 39, 'mantenimiento_no': 40,
+  },
 
   CCRR_UBIC_BTNS: {
     'acera': 9, 'calzada_urb': 10, 'campo': 11,
@@ -5487,8 +5702,19 @@ const Pdf = {
 
     // === PÁGINA 1: marcas ===
     const toMark = new Set();
-    [...this.CCRR_FIJOS_TR, ...this.CCRR_FIJOS_PREP, ...this.CCRR_FIJOS_ESTADO,
-     ...this.CCRR_FIJOS_ATM].forEach(t => toMark.add(t));
+    [...this.CCRR_FIJOS_TR, ...this.CCRR_FIJOS_PREP, ...this.CCRR_FIJOS_ATM].forEach(t => toMark.add(t));
+
+    // Estado del recinto: en modo manual respetar valores del usuario; en normal usar FIJOS_ESTADO
+    if(d._manual && d.recinto){
+      const R = d.recinto;
+      if(R.conductos === 'si') toMark.add(33); else toMark.add(34);
+      if(R.bomba === 'si')     toMark.add(35); else toMark.add(36);
+      if(R.extintor === 'si')  toMark.add(37); else toMark.add(38);
+      if(R.mant === 'si')      toMark.add(39); else toMark.add(40);
+      toMark.add(41); // check adicional fijo
+    } else {
+      this.CCRR_FIJOS_ESTADO.forEach(t => toMark.add(t));
+    }
 
     // EPIs CCRR P1 configurables por el usuario
     const CCRR_EPI_MAP_P1 = {
@@ -6098,6 +6324,7 @@ const Settings = {
       App.saveParteDefault('epi_pertiga',  g('pref-epi-pertiga').checked);
       App.saveParteDefault('ccrr_conos',   g('pref-ccrr-conos').checked);
       App.saveParteDefault('ccrr_baranda', g('pref-ccrr-baranda').checked);
+      App.saveParteDefault('ccrr_tienda',  g('pref-ccrr-tienda').checked);
       App.saveParteDefault('ccrr_senalPeligro', g('pref-ccrr-peligro').checked);
       App.saveParteDefault('ccrr_luminosa',         g('pref-ccrr-luz').checked);
       // EPIs CCRR P1
@@ -6317,6 +6544,7 @@ const Settings = {
     chk('pref-epi-pertiga',  App.parteDefault('epi_pertiga'));
     chk('pref-ccrr-conos',   App.parteDefault('ccrr_conos'));
     chk('pref-ccrr-baranda', App.parteDefault('ccrr_baranda'));
+    chk('pref-ccrr-tienda',  App.parteDefault('ccrr_tienda'));
     chk('pref-ccrr-peligro', App.parteDefault('ccrr_senalPeligro'));
     chk('pref-ccrr-luz',     App.parteDefault('ccrr_luminosa'));
     // EPIs CCRR P1
@@ -6764,8 +6992,8 @@ const PWA = {
               if(!nw) return;
               nw.addEventListener('statechange', () => {
                 if(nw.state === 'installed' && navigator.serviceWorker.controller){
-                  // Hay una nueva versión esperando
-                  App.toast('Nueva versión disponible. Cierra y abre la app.');
+                  // Mostrar banner de actualización destacado
+                  App.showUpdateBanner();
                 }
               });
             });
@@ -6981,7 +7209,7 @@ const Manual = {
     });
 
     // Segmented controls internos
-    ['mn-tipo','mn-estado','mn-puede-escalera'].forEach(id => {
+    ['mn-tipo','mn-estado','mn-puede-escalera','mn-clima-ok'].forEach(id => {
       document.querySelectorAll(`#${id} button`).forEach(btn => {
         btn.addEventListener('click', () => {
           document.querySelectorAll(`#${id} button`).forEach(b => b.setAttribute('aria-pressed','false'));
@@ -6996,6 +7224,26 @@ const Manual = {
     // Fecha/hora por defecto
     document.getElementById('mn-fecha').value = App.todayISO();
     document.getElementById('mn-hora').value  = App.nowHHMM();
+
+    // Auto-cálculo hasta = desde + duración (para CCRR manual)
+    const calcHasta = () => {
+      const desdeEl = document.getElementById('mn-desde');
+      const durEl   = document.getElementById('mn-duracion');
+      const hastaEl = document.getElementById('mn-hasta');
+      if(!desdeEl || !durEl || !hastaEl) return;
+      const desde = desdeEl.value;
+      const dur   = parseFloat(durEl.value);
+      if(!desde || isNaN(dur) || dur <= 0) return;
+      const [h, m] = desde.split(':').map(Number);
+      const total  = h * 60 + m + Math.round(dur * 60);
+      const hh = Math.floor(total / 60) % 24;
+      const mm = total % 60;
+      const pad = n => String(n).padStart(2,'0');
+      hastaEl.value = `${pad(hh)}:${pad(mm)}`;
+    };
+    document.addEventListener('change', e => {
+      if(e.target.id === 'mn-desde' || e.target.id === 'mn-duracion') calcHasta();
+    });
 
     this._renderCheks();
     this._renderEpis();
@@ -7012,13 +7260,38 @@ const Manual = {
 
   _renderSections(){
     const isPostes = this._tipo === 'postes';
-    document.getElementById('mn-sec-tipo').style.display      = isPostes ? '' : 'none';
-    document.getElementById('mn-sec-escalera').style.display  = isPostes ? '' : 'none';
-    document.getElementById('mn-sec-epis').style.display      = isPostes ? '' : 'none';
-    document.getElementById('mn-sec-senal').style.display     = isPostes ? 'none' : '';
-    document.getElementById('mn-sec-epis-ccrr').style.display  = isPostes ? 'none' : '';
-    document.getElementById('mn-sec-epis-ccrr2').style.display = isPostes ? 'none' : '';
-    document.getElementById('mn-desc-field').style.display    = isPostes ? 'none' : '';
+    const show = (id, v) => { const e = document.getElementById(id); if(e) e.style.display = v ? '' : 'none'; };
+    show('mn-sec-tipo',      isPostes);
+    show('mn-sec-escalera',  isPostes);
+    show('mn-sec-epis',      isPostes);
+    show('mn-ccrr-extra',   !isPostes);
+    show('mn-sec-senal',    !isPostes);
+    show('mn-sec-ubic',     !isPostes);
+    show('mn-sec-prep',     !isPostes);
+    show('mn-sec-atm',      !isPostes);
+    show('mn-sec-recinto',  !isPostes);
+    show('mn-sec-epis-ccrr',!isPostes);
+    show('mn-sec-epis-ccrr2',!isPostes);
+    show('mn-sec-recinto',  !isPostes);
+    show('mn-desc-field',   !isPostes);
+    // Bind segmented de las nuevas secciones CCRR
+    if(!isPostes) this._bindNewSegs();
+  },
+
+  _bindNewSegs(){
+    const ids = ['mn-clima','mn-tapa','mn-tienda',
+                 'mn-o2-ini','mn-o2-p1','mn-o2-p2',
+                 'mn-ex-ini','mn-ex-p1','mn-ex-p2',
+                 'mn-tx-ini','mn-tx-p1','mn-tx-p2',
+                 'mn-recinto-obtur','mn-recinto-bomba','mn-recinto-extintor','mn-recinto-mant'];
+    ids.forEach(id => {
+      document.querySelectorAll(`#${id} button`).forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll(`#${id} button`).forEach(b => b.setAttribute('aria-pressed','false'));
+          btn.setAttribute('aria-pressed','true');
+        });
+      });
+    });
   },
 
   _renderCheks(){
@@ -7161,14 +7434,12 @@ const Manual = {
         check_d: checks.d, check_e: checks.e, check_f: checks.f,
         check_g: checks.g,
         epis,
-        climaOk: 'si',
+        climaOk: this._seg('mn-clima-ok') || 'si',
         _manual: true,
       };
     } else {
-      // Señalización con IDs de App.CCRR_SENALIZACION
       const senal = {};
       App.CCRR_SENALIZACION.forEach((s,i) => { senal[s.id] = this._chk(`mn-senal-${i}`); });
-      // EPIs CCRR mapeados a botones del PDF
       const CCRR_EPI_MAP_P1 = {
         ccrr_epi_o2:61, ccrr_epi_casco:62, ccrr_epi_comunicacion:63,
         ccrr_epi_gases_explos:64, ccrr_epi_gafas:65, ccrr_epi_prot_incendios:66,
@@ -7179,23 +7450,62 @@ const Manual = {
         ccrr_epi_multidetector:72, ccrr_epi_guantes_quim:73,
         ccrr_epi_ventilacion:74, ccrr_epi_cremas_quim:75
       };
-      // Sobreescribir preferencias con lo que marcó el usuario en el formulario manual
       const episMnP1 = this.EPIS_CCRR_P1.map((_,i) => this._chk(`mn-epi-c1-${i}`));
       const episMnP2 = this.EPIS_CCRR_P2.map((_,i) => this._chk(`mn-epi-c2-${i}`));
       const keysP1 = Object.keys(CCRR_EPI_MAP_P1);
       const keysP2 = Object.keys(CCRR_EPI_MAP_P2);
-      // Sobreescribir parteDefaults con los valores del formulario manual
       const overrideDefaults = {};
       keysP1.forEach((k,i) => { overrideDefaults[k] = episMnP1[i]; });
       keysP2.forEach((k,i) => { overrideDefaults[k] = episMnP2[i]; });
 
+      // Ubicación del recinto
+      const ubic = {
+        acera:           this._chk('mn-ubic-acera'),
+        calzada_urb:     this._chk('mn-ubic-calz-urb'),
+        calzada_no_urb:  this._chk('mn-ubic-calz-no'),
+        campo:           this._chk('mn-ubic-campo'),
+        interfiere_carril: this._chk('mn-ubic-carril'),
+      };
+
+      // Atmósfera
+      const atm = {
+        o2:    { inicial: this._seg('mn-o2-ini'), post1: this._seg('mn-o2-p1'), post2: this._seg('mn-o2-p2') },
+        explos:{ inicial: this._seg('mn-ex-ini'), post1: this._seg('mn-ex-p1'), post2: this._seg('mn-ex-p2') },
+        toxic: { inicial: this._seg('mn-tx-ini'), post1: this._seg('mn-tx-p1'), post2: this._seg('mn-tx-p2') },
+      };
+
+      // Estado del recinto subterráneo
+      const recinto = {
+        conductos: this._seg('mn-recinto-obtur'),
+        bomba:     this._seg('mn-recinto-bomba'),
+        extintor:  this._seg('mn-recinto-extintor'),
+        mant:      this._seg('mn-recinto-mant'),
+      };
+
       return { ...base, type:'ccrr',
-        num: this._val('mn-num'),
+        num:        this._val('mn-num'),
+        numActuacion: this._val('mn-linea'),
+        duracion:   this._val('mn-duracion'),
+        desde:      this._val('mn-desde'),
+        hasta:      this._val('mn-hasta'),
+        clima:      this._seg('mn-clima') || 'si',
         estadoDesc: this._val('mn-estado-desc'),
         senal,
-        ubic: {},   // sin ubicación específica en manual
-        turno: App.parteDefault('turno'),
-        _manual: true,
+        ubic,
+        turno:      App.parteDefault('turno'),
+        prep_vent:   this._chk('mn-prep-vent'),
+        prep_senal:  this._chk('mn-prep-senal'),
+        prep_ilum:   this._chk('mn-prep-ilum'),
+        prep_comuni: this._chk('mn-prep-comuni'),
+        prep_paux:   this._chk('mn-prep-paux'),
+        prep_ctrl:   this._chk('mn-prep-ctrl'),
+        conductosObturados:    this._chk('mn-prep-obtur') ? 'si' : 'no',
+        longitudCuelloMayor3m: this._chk('mn-prep-cuello') ? 'si' : 'no',
+        estadoTapa:  this._seg('mn-tapa'),
+        tienda:      this._seg('mn-tienda'),
+        atmosfera:   atm,
+        recinto,
+        _manual:     true,
         _episOverride: overrideDefaults,
       };
     }
