@@ -3492,7 +3492,7 @@
    ============================================================= */
 
 const App = {
-  version: '0.8.4',
+  version: '0.8.5',
   step: 7,
 
   // ── TEMA ──────────────────────────────────────────────────────
@@ -3984,6 +3984,11 @@ const Postes = {
     this.autoSelectDefaultRP();
     this.renderEpis();
     this.refreshGenerateButton();
+    // Garantizar fecha y hora aunque applyDraft no las haya puesto
+    const _fEl = document.getElementById('p-fecha');
+    const _hEl = document.getElementById('p-hora');
+    if(_fEl && !_fEl.value) _fEl.value = App.todayISO();
+    if(_hEl && !_hEl.value) _hEl.value = App.nowHHMM();
     // GPS automático si no hay dirección ya rellenada
     const dir = document.getElementById('p-direccion');
     if(!dir?.value) setTimeout(() => this.requestGPS(), 600);
@@ -4511,6 +4516,11 @@ const Ccrr = {
     this.applyDraft();
     this.autoSelectDefaultRP();
     this.refreshGenerateButton();
+    // Garantizar fecha y hora aunque applyDraft no las haya puesto
+    const _fElC = document.getElementById('c-fecha');
+    const _hElC = document.getElementById('c-hora');
+    if(_fElC && !_fElC.value) _fElC.value = App.todayISO();
+    if(_hElC && !_hElC.value) _hElC.value = App.nowHHMM();
     // GPS automático si no hay dirección ya rellenada
     const dir = document.getElementById('c-direccion');
     if(!dir?.value) setTimeout(() => this.requestGPS(), 600);
@@ -4948,23 +4958,48 @@ const Geo = {
     // Población
     const poblacion = a.city || a.town || a.village || a.municipality || a.hamlet || '';
 
-    // Provincia (en España: priorizamos `province`, luego `county`, evitando "Galicia" que es CCAA)
-    let provincia = a.province || '';
-    if(!provincia){
-      // a.county en Galicia suele ser "A Coruña" o "Lugo" → válido
-      // a.state suele ser "Galicia" → no nos sirve como provincia
-      const stateNoCCAA = a.state && /galicia|asturias|cantabria|navarra|rioja|murcia|madrid|aragón|cataluña|valenciana|baleares|canarias|extremadura|castilla|andalucía|euskadi|país vasco/i.test(a.state) ? '' : a.state;
-      provincia = a.county || stateNoCCAA || '';
-    }
-    // Limpieza: "Provincia de A Coruña" → "Coruña"
-    provincia = provincia.replace(/^provincia\s+de\s+/i, '').replace(/^a\s+coru[ñn]a$/i, 'Coruña').trim();
+    // Provincia — estrategia en capas:
+    // 1) a.province si existe (el más fiable)
+    // 2) Parsear display_name: "Dir, Ciudad, Comarca, PROVINCIA, CCAA, España"
+    //    La provincia suele estar 2 posiciones antes de "España"
+    // 3) a.county si no coincide con el municipio ni con una CCAA
+    const CCAA = /^(galicia|asturias|cantabria|navarra|la rioja|murcia|madrid|aragón|cataluña|comunitat valenciana|illes balears|canarias|extremadura|castilla y le[oó]n|castilla-la mancha|andalucía|país vasco|euskadi|euskal herria)$/i;
 
-    // Si la provincia coincide con la población (caso típico Ferrol → comarca Ferrolterra
-    // que Nominatim devuelve a veces en a.county igual al nombre del municipio), descartarla
-    // para que el usuario mantenga la provincia que tuviera o la rellene manualmente.
-    if(provincia && poblacion && provincia.toLowerCase() === poblacion.toLowerCase()){
-      provincia = '';
+    let provincia = '';
+
+    // Capa 1: a.province
+    if(a.province && !CCAA.test(a.province)){
+      provincia = a.province;
     }
+
+    // Capa 2: parsear display_name
+    if(!provincia){
+      const parts = (data.display_name || '').split(',').map(p => p.trim()).filter(Boolean);
+      const espIdx = parts.findIndex(p => /^españa$/i.test(p));
+      if(espIdx >= 2){
+        // Candidata: 2 posiciones antes de "España"
+        const cand = parts[espIdx - 2];
+        if(cand && !CCAA.test(cand) && cand.toLowerCase() !== poblacion.toLowerCase()){
+          provincia = cand;
+        }
+      }
+    }
+
+    // Capa 3: a.county si no coincide con el municipio
+    if(!provincia){
+      const county = a.county || '';
+      if(county && !CCAA.test(county) &&
+         !county.toLowerCase().includes(poblacion.toLowerCase()) &&
+         !poblacion.toLowerCase().includes(county.toLowerCase())){
+        provincia = county;
+      }
+    }
+
+    // Limpieza: "Provincia de A Coruña" → "Coruña", "A Coruña" → "Coruña"
+    provincia = provincia
+      .replace(/^provincia\s+de\s+/i, '')
+      .replace(/^a\s+coru[ñn]a$/i, 'Coruña')
+      .trim();
 
     return { direccion, poblacion, provincia, raw: data };
   },
