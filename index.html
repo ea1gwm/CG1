@@ -625,7 +625,9 @@
   }
 
   /* Input con botón GPS al lado */
-  .input-gps{ display:flex; gap:8px; align-items:stretch; }
+  .input-gps{ display:flex; gap:6px; align-items:stretch; }
+  .input-gps .input{ flex:1; min-width:0; }
+  .gps-btn--icon{ flex-shrink:0; padding:0; width:44px; justify-content:center; }
   .input-gps .input{ flex: 1; }
   .gps-btn{
     flex-shrink:0;
@@ -3492,7 +3494,7 @@
    ============================================================= */
 
 const App = {
-  version: '0.8.5',
+  version: '0.8.6',
   step: 7,
 
   // ── TEMA ──────────────────────────────────────────────────────
@@ -4963,21 +4965,46 @@ const Geo = {
     // 2) Parsear display_name: "Dir, Ciudad, Comarca, PROVINCIA, CCAA, España"
     //    La provincia suele estar 2 posiciones antes de "España"
     // 3) a.county si no coincide con el municipio ni con una CCAA
-    const CCAA = /^(galicia|asturias|cantabria|navarra|la rioja|murcia|madrid|aragón|cataluña|comunitat valenciana|illes balears|canarias|extremadura|castilla y le[oó]n|castilla-la mancha|andalucía|país vasco|euskadi|euskal herria)$/i;
+    // Lista completa de provincias españolas para búsqueda directa en display_name
+    const CCAA = /^(galicia|asturias|cantabria|navarra|la rioja|murcia|madrid|aragón|aragon|cataluña|catalonia|comunitat valenciana|comunidad valenciana|illes balears|islas baleares|canarias|canary islands|extremadura|castilla y le[oó]n|castilla-la mancha|andalucía|andalusia|país vasco|euskadi|euskal herria)$/i;
+
+    const PROVINCIAS_ES = [
+      'Álava','Albacete','Alicante','Almería','Asturias','Ávila','Badajoz',
+      'Barcelona','Burgos','Cáceres','Cádiz','Cantabria','Castellón','Ciudad Real',
+      'Córdoba','Cuenca','Girona','Granada','Guadalajara','Guipúzcoa','Huelva',
+      'Huesca','Jaén','La Rioja','Las Palmas','León','Lleida','Lugo','Madrid',
+      'Málaga','Murcia','Navarra','Ourense','Palencia','Pontevedra','Salamanca',
+      'Santa Cruz de Tenerife','Segovia','Sevilla','Soria','Tarragona','Teruel',
+      'Toledo','Valencia','Valladolid','Vizcaya','Zamora','Zaragoza',
+      // Galicia con sus variantes
+      'A Coruña','Coruña','La Coruña',
+    ];
 
     let provincia = '';
 
-    // Capa 1: a.province
+    // Capa 1: a.province si no es CCAA
     if(a.province && !CCAA.test(a.province)){
       provincia = a.province;
     }
 
-    // Capa 2: parsear display_name
+    // Capa 2: buscar provincia directamente en el display_name
+    if(!provincia){
+      const dn = data.display_name || '';
+      for(const prov of PROVINCIAS_ES){
+        // Buscar exacto delimitado por comas/inicio/fin de string
+        const re = new RegExp(`(?:^|,\\s*)${prov.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')}(?:\\s*,|\\s*$)`, 'i');
+        if(re.test(dn)){
+          provincia = prov;
+          break;
+        }
+      }
+    }
+
+    // Capa 3: parsear display_name por posición (2 antes de España/Spain)
     if(!provincia){
       const parts = (data.display_name || '').split(',').map(p => p.trim()).filter(Boolean);
-      const espIdx = parts.findIndex(p => /^españa$/i.test(p));
+      const espIdx = parts.findIndex(p => /^(españa|spain)$/i.test(p));
       if(espIdx >= 2){
-        // Candidata: 2 posiciones antes de "España"
         const cand = parts[espIdx - 2];
         if(cand && !CCAA.test(cand) && cand.toLowerCase() !== poblacion.toLowerCase()){
           provincia = cand;
@@ -4985,7 +5012,7 @@ const Geo = {
       }
     }
 
-    // Capa 3: a.county si no coincide con el municipio
+    // Capa 4: a.county si no es municipio ni CCAA
     if(!provincia){
       const county = a.county || '';
       if(county && !CCAA.test(county) &&
@@ -4995,10 +5022,10 @@ const Geo = {
       }
     }
 
-    // Limpieza: "Provincia de A Coruña" → "Coruña", "A Coruña" → "Coruña"
+    // Normalización: "A Coruña" → "Coruña", quitar "Provincia de"
     provincia = provincia
       .replace(/^provincia\s+de\s+/i, '')
-      .replace(/^a\s+coru[ñn]a$/i, 'Coruña')
+      .replace(/^(A|La)\s+Coru[ñn]a$/i, 'Coruña')
       .trim();
 
     return { direccion, poblacion, provincia, raw: data };
