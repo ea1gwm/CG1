@@ -2485,7 +2485,24 @@
             <option>Herramienta especial</option>
           </select>
         </div>
-        <p style="font-size:12px;color:var(--text-mute);margin:4px 0 4px;font-weight:600;">EPIs que se marcan automáticamente:</p>
+
+        <!-- v0.8.7 — EPIs por medio de subida -->
+        <div class="field" style="margin-top:4px;">
+          <span class="field-label">EPIs automáticos según el medio</span>
+          <select class="select" id="pref-epi-medio-select">
+            <option value="Escalera">Escalera</option>
+            <option value="Escalera con patas extensibles">Escalera con patas extensibles</option>
+            <option value="PEMP">PEMP</option>
+            <option value="Trepadores">Trepadores</option>
+            <option value="Estribos">Estribos</option>
+            <option value="Herramienta especial">Herramienta especial</option>
+            <option value="Otro">Otro</option>
+          </select>
+        </div>
+        <p style="font-size:11.5px;color:var(--text-mute);margin:-2px 0 6px;line-height:1.5;">
+          Elige un medio arriba y marca los EPIs que se activarán automáticamente cuando uses <b>ese medio</b>.
+          Así puedes tener distintos EPIs por defecto para escalera, PEMP, trepadores…
+        </p>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
           <label class="pref-check"><input type="checkbox" id="pref-epi-casco">     Casco</label>
           <label class="pref-check"><input type="checkbox" id="pref-epi-chaleco">   Chaleco</label>
@@ -2983,10 +3000,11 @@
             <li>Indica el <b>estado</b> tras hacer las comprobaciones previas.</li>
             <li>Selecciona el <b>medio de subida</b>. Si usas escalera se despliega el check de verificación a–g.</li>
             <li>En <b>Trabajadores</b> toca los que participan. El que tenga RP marcado firma el parte.</li>
-            <li>Marca los <b>EPIs</b> que se usan — los que hayas configurado en Ajustes ya estarán marcados.</li>
+            <li>Marca los <b>EPIs</b> que se usan — los que hayas configurado en Ajustes <b>para ese medio</b> ya estarán marcados.</li>
             <li>Escribe en <b>Observaciones</b> cualquier incidencia (aparecerá en el historial como nota y en el PDF).</li>
             <li>Pulsa <b>Generar PDF</b> y elige Compartir o Descargar.</li>
           </ol>
+          <p style="margin-top:8px;"><b>Nuevo:</b> al cambiar el medio de subida en el formulario, los EPIs se actualizan automáticamente a los que tengas configurados para ese medio. Si usas <b>Escalera con patas extensibles</b> tendrás un set de EPIs; si usas <b>PEMP</b>, otro distinto. Configúralos en <b>Ajustes → Preferencias del parte</b>.</p>
         </div>
       </div>
 
@@ -3107,10 +3125,12 @@
         <div class="help-body">
           <ul>
             <li><b>00 Tu empresa</b> — nombre y unidad que aparecen en todos los PDFs.</li>
-            <li><b>03 Preferencias del parte</b> — qué se marca automáticamente al crear un parte nuevo: tipo de poste, medio de subida, EPIs de postes, señalización CCRR, EPIs de CCRR página 1 y 2. Cada persona puede configurar los suyos.</li>
+            <li><b>03 Preferencias del parte</b> — qué se marca automáticamente al crear un parte nuevo: tipo de poste, medio de subida, EPIs de postes (¡<b>configurables por cada medio</b>!), señalización CCRR, EPIs de CCRR página 1 y 2. Cada persona puede configurar los suyos.</li>
             <li><b>05 Copias de seguridad</b> — exporta todos tus datos a un archivo JSON para guardarlos, e impórtalos en otro dispositivo.</li>
             <li><b>06 Aplicación</b> — instala la app en la pantalla de inicio del móvil para usarla sin navegador.</li>
           </ul>
+          <p style="margin-top:8px;"><b>EPIs por medio de subida:</b> en la sección <i>EPIs automáticos según el medio</i>, elige primero el medio (Escalera, PEMP, Trepadores…) y luego marca los EPIs que quieres que se activen cuando uses <b>ese medio</b> en un parte nuevo. Si cambias el selector, los EPIs marcados se guardan automáticamente para el medio anterior y se cargan los del nuevo medio. Pulsa <b>Guardar preferencias</b> para confirmar.</p>
+          <p style="margin-top:8px;"><b>Fecha automática:</b> cuando entras a un parte un día distinto al que abriste el formulario por última vez, la fecha se actualiza al día actual. También puedes pulsar el <b>icono del reloj</b> junto a la hora para forzar la actualización de fecha y hora a este momento.</p>
         </div>
       </div>
 
@@ -3494,7 +3514,7 @@
    ============================================================= */
 
 const App = {
-  version: '0.8.6',
+  version: '0.8.7',
   step: 7,
 
   // ── TEMA ──────────────────────────────────────────────────────
@@ -3628,6 +3648,51 @@ const App = {
     s.parteDefaults = s.parteDefaults || {};
     s.parteDefaults[key] = value;
     this.save(this.KEYS.settings, s);
+  },
+
+  /* ===== v0.8.7 — EPIs configurables POR MEDIO DE SUBIDA =====
+     Permite que cada medio (Escalera, PEMP, Trepadores, etc.) tenga sus propios
+     EPIs marcados automáticamente. Si para un medio no se ha definido nada,
+     se usa la configuración global como fallback. */
+  MEDIOS_EPI_KEYS: ['Escalera','Escalera con patas extensibles','PEMP','Trepadores','Estribos','Herramienta especial','Otro'],
+
+  // Devuelve el valor por defecto de un EPI concreto para un medio concreto:
+  //  1º) configuración específica del medio (parteDefaults.epi_byMedio[medio][epi])
+  //  2º) configuración global (parteDefaults.epi_xxx)
+  //  3º) default del EPIS_LIST
+  parteDefaultEpiForMedio(medio, epiId){
+    const s = this.load(this.KEYS.settings, {});
+    const d = s.parteDefaults || {};
+    if(medio && d.epi_byMedio && d.epi_byMedio[medio] && d.epi_byMedio[medio][epiId] !== undefined){
+      return d.epi_byMedio[medio][epiId];
+    }
+    // fallback a configuración global
+    const globalKey = 'epi_' + epiId;
+    if(d[globalKey] !== undefined) return d[globalKey];
+    if(this.PARTE_DEFAULTS_DEFAULT[globalKey] !== undefined) return this.PARTE_DEFAULTS_DEFAULT[globalKey];
+    // último fallback: def del EPIS_LIST
+    const item = this.EPIS_LIST.find(e => e.id === epiId);
+    return !!(item && item.def);
+  },
+
+  // Guarda los EPIs para un medio concreto
+  saveParteEpisForMedio(medio, episObj){
+    if(!medio) return;
+    const s = this.load(this.KEYS.settings, {});
+    s.parteDefaults = s.parteDefaults || {};
+    s.parteDefaults.epi_byMedio = s.parteDefaults.epi_byMedio || {};
+    s.parteDefaults.epi_byMedio[medio] = { ...episObj };
+    this.save(this.KEYS.settings, s);
+  },
+
+  // Lee los EPIs configurados para un medio (objeto {epiId: bool})
+  // Si no hay nada guardado para ese medio, devuelve los valores que tocan según el fallback.
+  parteEpisForMedio(medio){
+    const out = {};
+    this.EPIS_LIST.forEach(e => {
+      out[e.id] = this.parteDefaultEpiForMedio(medio, e.id);
+    });
+    return out;
   },
 
   /* ===== MEDIOS PARA SUBIR según tipo de poste ===== */
@@ -3765,7 +3830,15 @@ const App = {
 
   /* ===== UTIL ===== */
   uid(){ return 'w_' + Math.random().toString(36).slice(2,9); },
-  todayISO(){ const d=new Date(); return d.toISOString().slice(0,10); },
+  // FIX v0.8.7 — usar fecha LOCAL (no UTC). Antes, toISOString() devolvía UTC y por la noche
+  // (≥22h hora España) cambiaba al día siguiente, falseando el filtro "Hoy" y la fecha por defecto.
+  todayISO(){
+    const d = new Date();
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+  },
   nowHHMM(){ const d=new Date(); return d.toTimeString().slice(0,5); },
 
   /* ===== Ejecuta cada migración una sola vez ===== */
@@ -3834,7 +3907,10 @@ const App = {
     const workers = this.load(this.KEYS.workers, []);
     const reports = this.load(this.KEYS.reports, []);
     const today   = this.todayISO();
-    const hoy     = reports.filter(r => (r.fecha || r.createdAt || '').startsWith(today)).length;
+    // FIX v0.8.7 — el campo real es `created_at` (snake_case), no `createdAt`.
+    // El bug hacía que "Hoy = 0" aunque hubiese partes guardados, porque `r.createdAt`
+    // siempre era undefined. Mantenemos `r.createdAt` como fallback por si hay datos viejos.
+    const hoy     = reports.filter(r => (r.fecha || r.created_at || r.createdAt || '').startsWith(today)).length;
 
     const emp = this.setting('empresa');
     const uni = this.setting('unidad');
@@ -3862,6 +3938,7 @@ const Postes = {
     tipo: 'Madera',
     estado: 'bueno',
     climaOk: 'si',  // ¿Climatología adecuada? SI/NO
+    medio: '',           // v0.8.7 — para que defaultEpis() conozca el medio actual
     workersSelected: [], // ids
     tempWorkers: [],     // [{id, nombre, categoria, nif, _temp:true}]
     epis: {}             // {epiId: true|false}
@@ -3890,7 +3967,14 @@ const Postes = {
     document.getElementById('p-medio').addEventListener('change', (e)=> {
       const otro = e.target.value === 'Otro';
       document.getElementById('p-medio-otro-wrap').style.display = otro ? '' : 'none';
+      // v0.8.7 — Al cambiar el medio, actualizar los EPIs marcados con los que el usuario
+      // configuró para ese medio en Ajustes. Si el usuario había tocado EPIs a mano,
+      // se reemplazan: es el comportamiento esperado para que la nueva preferencia se aplique.
+      this.state.medio = e.target.value;
+      this.state.epis = this.defaultEpis(e.target.value);
+      this.renderEpis();
       this.saveDraft();
+      App.toast('EPIs actualizados para: ' + e.target.value);
     });
     // Recurso preventivo: el cambio se gestiona vía selectRP() (toque en tarjeta)
 
@@ -3899,9 +3983,15 @@ const Postes = {
 
     // Botón "Ahora" para hora actual
     document.getElementById('p-hora-now').addEventListener('click', () => {
+      // v0.8.7 — al pulsar el reloj, también nos aseguramos de que la fecha
+      // sea la de hoy (corrige el caso de haber dejado el formulario abierto desde ayer).
+      const today = App.todayISO();
+      const fEl   = document.getElementById('p-fecha');
+      const fechaActualizada = fEl && fEl.value !== today;
+      if(fEl) fEl.value = today;
       document.getElementById('p-hora').value = App.nowHHMM();
       this.saveDraft();
-      App.toast('🕐 Hora actualizada');
+      App.toast(fechaActualizada ? '🕐 Fecha y hora actualizadas' : '🕐 Hora actualizada');
     });
 
     // Botones de acción
@@ -3929,25 +4019,27 @@ const Postes = {
       this.state.tipo    = draft.tipo    || App.parteDefault('tipoPoste');
       this.state.estado  = draft.estado  || 'bueno';
       this.state.climaOk = draft.climaOk || App.parteDefault('climaOk');
+      this.state.medio   = draft.medio   || App.parteDefault('medioSubida') || '';
       this.state.workersSelected = draft.workersSelected || [];
-      this.state.epis = draft.epis || this.defaultEpis();
+      this.state.epis = draft.epis || this.defaultEpis(this.state.medio);
     } else {
       // Sin borrador: aplicar preferencias del usuario
       this.state.tipo    = App.parteDefault('tipoPoste');
       this.state.estado  = 'bueno';
       this.state.climaOk = App.parteDefault('climaOk');
-      this.state.epis    = this.defaultEpis();
+      this.state.medio   = App.parteDefault('medioSubida') || 'Escalera con patas extensibles';
+      this.state.epis    = this.defaultEpis(this.state.medio);
     }
     this.renderEpis();
   },
 
-  defaultEpis(){
+  // v0.8.7 — los EPIs por defecto dependen ahora del medio de subida.
+  // Si no se pasa medio, usa el medio del state actual o el medio por defecto del usuario.
+  defaultEpis(medio){
+    const m = medio || this.state.medio || App.parteDefault('medioSubida') || 'Escalera con patas extensibles';
     const out = {};
     App.EPIS_LIST.forEach(e => {
-      // Usar preferencia del usuario si está definida, si no el default de la app
-      const prefKey = 'epi_' + e.id;
-      const pref = App.parteDefault(prefKey);
-      out[e.id] = (pref !== undefined) ? pref : !!e.def;
+      out[e.id] = App.parteDefaultEpiForMedio(m, e.id);
     });
     return out;
   },
@@ -3983,14 +4075,23 @@ const Postes = {
     this.renderWorkers();
     this.populateRPSelect();
     this.applyDraft();
+    // v0.8.7 — Tras applyDraft, el <select> de medio puede tener un valor distinto al del state.
+    // Sincronizamos el state.medio con lo que muestra el formulario.
+    const medioSelEl = document.getElementById('p-medio');
+    if(medioSelEl) this.state.medio = medioSelEl.value;
     this.autoSelectDefaultRP();
     this.renderEpis();
     this.refreshGenerateButton();
     // Garantizar fecha y hora aunque applyDraft no las haya puesto
     const _fEl = document.getElementById('p-fecha');
     const _hEl = document.getElementById('p-hora');
-    if(_fEl && !_fEl.value) _fEl.value = App.todayISO();
+    const _today = App.todayISO();
+    if(_fEl && !_fEl.value) _fEl.value = _today;
     if(_hEl && !_hEl.value) _hEl.value = App.nowHHMM();
+    // v0.8.7 — Si el formulario tiene una fecha más antigua que hoy
+    // (porque el formulario llevaba abierto desde ayer), la corregimos.
+    // No tocamos fechas futuras (puede haber casos legítimos).
+    if(_fEl && _fEl.value && _fEl.value < _today) _fEl.value = _today;
     // GPS automático si no hay dirección ya rellenada
     const dir = document.getElementById('p-direccion');
     if(!dir?.value) setTimeout(() => this.requestGPS(), 600);
@@ -4029,8 +4130,14 @@ const Postes = {
     const opts = App.MEDIOS[this.state.tipo] || [];
     const current = sel.value;
     sel.innerHTML = opts.map(o => `<option value="${this.esc(o)}">${this.esc(o)}</option>`).join('');
-    // mantener valor si sigue válido
-    if(opts.includes(current)) sel.value = current;
+    // mantener valor si sigue válido, si no, aplicar el medio por defecto del usuario
+    if(opts.includes(current)){
+      sel.value = current;
+    } else if(opts.includes(App.parteDefault('medioSubida'))){
+      sel.value = App.parteDefault('medioSubida');
+    }
+    // v0.8.7 — sincronizar el medio con el state para que defaultEpis() funcione
+    this.state.medio = sel.value;
     // ocultar campo "otro" si no aplica
     const otro = sel.value === 'Otro';
     document.getElementById('p-medio-otro-wrap').style.display = otro ? '' : 'none';
@@ -4265,7 +4372,12 @@ const Postes = {
     // Defaults siempre que falten
     const fechaEl = document.getElementById('p-fecha');
     const horaEl  = document.getElementById('p-hora');
-    if(!fechaEl.value) fechaEl.value = (d && d.fecha) ? d.fecha : App.todayISO();
+    const today   = App.todayISO();
+    // v0.8.7 — si el draft trae una fecha más antigua que hoy, la actualizamos a hoy.
+    // Antes: si abrías el formulario ayer, el draft te dejaba la fecha de ayer al volver hoy.
+    const draftFecha = d && d.fecha;
+    const usarFecha  = (draftFecha && draftFecha >= today) ? draftFecha : today;
+    if(!fechaEl.value) fechaEl.value = usarFecha;
     if(!horaEl.value)  horaEl.value  = (d && d.hora)  ? d.hora  : App.nowHHMM();
 
     // Si no hay draft, intentar prellenar con los últimos valores usados (memoria entre días)
@@ -4359,14 +4471,16 @@ const Postes = {
     this.state.estado = 'bueno';
     this.state.climaOk = 'si';
     this.state.workersSelected = [];
-    this.state.epis = this.defaultEpis();
+    // v0.8.7 — primero resetear el medio y populate, después aplicar EPIs según el medio
+    this.state.medio = App.parteDefault('medioSubida') || 'Escalera con patas extensibles';
     document.getElementById('p-fecha').value = App.todayISO();
     document.getElementById('p-hora').value  = App.nowHHMM();
     document.getElementById('p-provincia').value = 'Coruña';
     this.renderTipo();
     this.renderEstado();
     this.renderClimaOk();
-    this.populateMedios();
+    this.populateMedios();           // sincroniza state.medio al medio por defecto
+    this.state.epis = this.defaultEpis(this.state.medio);  // EPIs para ese medio
     this.renderWorkers();
     this.renderEpis();
     this.refreshGenerateButton();
@@ -4521,8 +4635,11 @@ const Ccrr = {
     // Garantizar fecha y hora aunque applyDraft no las haya puesto
     const _fElC = document.getElementById('c-fecha');
     const _hElC = document.getElementById('c-hora');
-    if(_fElC && !_fElC.value) _fElC.value = App.todayISO();
+    const _todayC = App.todayISO();
+    if(_fElC && !_fElC.value) _fElC.value = _todayC;
     if(_hElC && !_hElC.value) _hElC.value = App.nowHHMM();
+    // v0.8.7 — Si el formulario tiene una fecha más antigua que hoy, la corregimos.
+    if(_fElC && _fElC.value && _fElC.value < _todayC) _fElC.value = _todayC;
     // GPS automático si no hay dirección ya rellenada
     const dir = document.getElementById('c-direccion');
     if(!dir?.value) setTimeout(() => this.requestGPS(), 600);
@@ -4755,7 +4872,11 @@ const Ccrr = {
 
     const fechaEl = document.getElementById('c-fecha');
     const horaEl  = document.getElementById('c-hora');
-    if(!fechaEl.value) fechaEl.value = (d && d.fecha) ? d.fecha : App.todayISO();
+    const today   = App.todayISO();
+    // v0.8.7 — si el draft trae una fecha más antigua que hoy, la actualizamos a hoy.
+    const draftFechaC = d && d.fecha;
+    const usarFechaC  = (draftFechaC && draftFechaC >= today) ? draftFechaC : today;
+    if(!fechaEl.value) fechaEl.value = usarFechaC;
     if(horaEl && !horaEl.value) horaEl.value = (d && d.hora) ? d.hora : App.nowHHMM();
 
     if(!d){
@@ -6151,7 +6272,7 @@ const History = {
     const all    = App.load(App.KEYS.reports, []);
     const today  = App.todayISO();
     let list = all;
-    if(this._filter === 'today')  list = list.filter(r => (r.fecha || r.createdAt || '').startsWith(today));
+    if(this._filter === 'today')  list = list.filter(r => (r.fecha || r.created_at || r.createdAt || '').startsWith(today));
     if(this._filter === 'postes') list = list.filter(r => r.type === 'postes');
     if(this._filter === 'ccrr')   list = list.filter(r => r.type === 'ccrr');
     if(this._query){
@@ -6277,7 +6398,7 @@ const History = {
   async exportDay(){
     const today = App.todayISO();
     const partes = App.load(App.KEYS.reports, [])
-      .filter(r => (r.fecha || r.createdAt || '').startsWith(today));
+      .filter(r => (r.fecha || r.created_at || r.createdAt || '').startsWith(today));
     if(partes.length === 0){ App.toast('No hay partes de hoy'); return; }
     App.toast(`Descargando ${partes.length} partes…`);
     for(const r of partes){
@@ -6374,6 +6495,23 @@ const Settings = {
       App.saveParteDefault('tipoPoste',    g('pref-tipo-poste').value);
       App.saveParteDefault('medioSubida',  g('pref-medio-subida').value);
       App.saveParteDefault('turno',        g('pref-turno').value);
+
+      // v0.8.7 — Guardar EPIs específicos para el medio actualmente seleccionado
+      const medioSel = g('pref-epi-medio-select');
+      const medioActual = (medioSel && medioSel.value) || 'Escalera con patas extensibles';
+      App.saveParteEpisForMedio(medioActual, {
+        casco:     g('pref-epi-casco').checked,
+        chaleco:   g('pref-epi-chaleco').checked,
+        guantes:   g('pref-epi-guantes').checked,
+        gafas:     g('pref-epi-gafas').checked,
+        botas:     g('pref-epi-botas').checked,
+        arnes:     g('pref-epi-arnes').checked,
+        cinturon:  g('pref-epi-cinturon').checked,
+        lineavida: g('pref-epi-lineavida').checked,
+        doblecabo: g('pref-epi-doblecabo').checked,
+        pertiga:   g('pref-epi-pertiga').checked,
+      });
+      // También mantenemos los EPIs globales (fallback / compatibilidad)
       App.saveParteDefault('epi_casco',    g('pref-epi-casco').checked);
       App.saveParteDefault('epi_chaleco',  g('pref-epi-chaleco').checked);
       App.saveParteDefault('epi_guantes',  g('pref-epi-guantes').checked);
@@ -6384,6 +6522,7 @@ const Settings = {
       App.saveParteDefault('epi_lineavida',g('pref-epi-lineavida').checked);
       App.saveParteDefault('epi_doblecabo',g('pref-epi-doblecabo').checked);
       App.saveParteDefault('epi_pertiga',  g('pref-epi-pertiga').checked);
+
       App.saveParteDefault('ccrr_conos',   g('pref-ccrr-conos').checked);
       App.saveParteDefault('ccrr_baranda', g('pref-ccrr-baranda').checked);
       App.saveParteDefault('ccrr_tienda',  g('pref-ccrr-tienda').checked);
@@ -6406,8 +6545,37 @@ const Settings = {
       App.saveParteDefault('ccrr_epi_guantes_quim',  g('pref-ccrr-epi-gquim').checked);
       App.saveParteDefault('ccrr_epi_ventilacion',   g('pref-ccrr-epi-ventil').checked);
       App.saveParteDefault('ccrr_epi_cremas_quim',   g('pref-ccrr-epi-cremas').checked);
-      App.toast('✓ Preferencias guardadas');
+      App.toast('✓ Preferencias guardadas para "' + medioActual + '"');
     });
+
+    // v0.8.7 — Cambio del selector de medio: refresca los checkboxes con la config
+    // guardada para ese medio. Al cambiar, guardamos automáticamente lo que el usuario
+    // hubiese marcado en el medio anterior (para no perder cambios).
+    const epiMedioSel = document.getElementById('pref-epi-medio-select');
+    if(epiMedioSel){
+      this._prevEpiMedio = epiMedioSel.value;
+      epiMedioSel.addEventListener('change', () => {
+        // Guarda silenciosamente lo marcado en el medio que estaba seleccionado antes
+        const g = id => document.getElementById(id);
+        if(this._prevEpiMedio){
+          App.saveParteEpisForMedio(this._prevEpiMedio, {
+            casco:     g('pref-epi-casco').checked,
+            chaleco:   g('pref-epi-chaleco').checked,
+            guantes:   g('pref-epi-guantes').checked,
+            gafas:     g('pref-epi-gafas').checked,
+            botas:     g('pref-epi-botas').checked,
+            arnes:     g('pref-epi-arnes').checked,
+            cinturon:  g('pref-epi-cinturon').checked,
+            lineavida: g('pref-epi-lineavida').checked,
+            doblecabo: g('pref-epi-doblecabo').checked,
+            pertiga:   g('pref-epi-pertiga').checked,
+          });
+        }
+        this._prevEpiMedio = epiMedioSel.value;
+        this.loadEpiCheckboxesForMedio(epiMedioSel.value);
+        App.toast('Mostrando EPIs para: ' + epiMedioSel.value);
+      });
+    }
     // Mostrar versión actual también en Ajustes
     const vTxt = document.getElementById('s-version-text');
     if(vTxt) vTxt.textContent = 'v' + App.version;
@@ -6594,16 +6762,18 @@ const Settings = {
     set('pref-tipo-poste',   App.parteDefault('tipoPoste'));
     set('pref-medio-subida', App.parteDefault('medioSubida'));
     set('pref-turno',        App.parteDefault('turno'));
-    chk('pref-epi-casco',    App.parteDefault('epi_casco'));
-    chk('pref-epi-chaleco',  App.parteDefault('epi_chaleco'));
-    chk('pref-epi-guantes',  App.parteDefault('epi_guantes'));
-    chk('pref-epi-gafas',    App.parteDefault('epi_gafas'));
-    chk('pref-epi-botas',    App.parteDefault('epi_botas'));
-    chk('pref-epi-arnes',    App.parteDefault('epi_arnes'));
-    chk('pref-epi-cinturon', App.parteDefault('epi_cinturon'));
-    chk('pref-epi-lineavida',App.parteDefault('epi_lineavida'));
-    chk('pref-epi-doblecabo',App.parteDefault('epi_doblecabo'));
-    chk('pref-epi-pertiga',  App.parteDefault('epi_pertiga'));
+
+    // v0.8.7 — el selector de medio para EPIs arranca con el medio por defecto.
+    // Cargamos los checkboxes con los valores específicos de ese medio.
+    const medioSel = g('pref-epi-medio-select');
+    if(medioSel){
+      const defaultMedio = App.parteDefault('medioSubida') || 'Escalera con patas extensibles';
+      medioSel.value = defaultMedio;
+      // Sincronizar el tracker del listener para que sepa cuál es el medio "anterior"
+      this._prevEpiMedio = defaultMedio;
+    }
+    this.loadEpiCheckboxesForMedio((medioSel && medioSel.value) || 'Escalera con patas extensibles');
+
     chk('pref-ccrr-conos',   App.parteDefault('ccrr_conos'));
     chk('pref-ccrr-baranda', App.parteDefault('ccrr_baranda'));
     chk('pref-ccrr-tienda',  App.parteDefault('ccrr_tienda'));
@@ -6626,6 +6796,25 @@ const Settings = {
     chk('pref-ccrr-epi-gquim',    App.parteDefault('ccrr_epi_guantes_quim'));
     chk('pref-ccrr-epi-ventil',   App.parteDefault('ccrr_epi_ventilacion'));
     chk('pref-ccrr-epi-cremas',   App.parteDefault('ccrr_epi_cremas_quim'));
+  },
+
+  // v0.8.7 — Carga los 10 checkboxes de EPIs con los valores guardados para el medio dado.
+  // Si el medio aún no tiene config propia, se rellena con el fallback (global o default).
+  loadEpiCheckboxesForMedio(medio){
+    const chk = (id, val) => { const e = document.getElementById(id); if(e) e.checked = !!val; };
+    const pairs = [
+      ['pref-epi-casco',     'casco'],
+      ['pref-epi-chaleco',   'chaleco'],
+      ['pref-epi-guantes',   'guantes'],
+      ['pref-epi-gafas',     'gafas'],
+      ['pref-epi-botas',     'botas'],
+      ['pref-epi-arnes',     'arnes'],
+      ['pref-epi-cinturon',  'cinturon'],
+      ['pref-epi-lineavida', 'lineavida'],
+      ['pref-epi-doblecabo', 'doblecabo'],
+      ['pref-epi-pertiga',   'pertiga'],
+    ];
+    pairs.forEach(([id, epiId]) => chk(id, App.parteDefaultEpiForMedio(medio, epiId)));
   },
 
   renderCategorias(){
