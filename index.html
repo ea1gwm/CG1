@@ -1005,6 +1005,34 @@
 
   [data-theme="light"] .modal-backdrop{ background: rgba(15,21,37,.45); }
 
+  /* FIX v0.8.8 — En tema claro, los avisos tenían texto amarillo claro sobre fondo claro
+     (transparente) y no se leían. Forzamos un fondo amarillo más sólido y texto oscuro. */
+  [data-theme="light"] .alert-warning{
+    background: linear-gradient(135deg, #fef3c7, #fde68a);
+    border-color: #ca8a04;
+    border-left-color: #b45309;
+    color: #78350f;
+  }
+  [data-theme="light"] .alert-warning .alert-icon{
+    background: #b45309;
+    color: #fff;
+  }
+  [data-theme="light"] .alert-warning h4{ color: #78350f; }
+  [data-theme="light"] .alert-warning p{  color: #92400e; }
+
+  [data-theme="light"] .alert-danger{
+    background: linear-gradient(135deg, #fee2e2, #fecaca);
+    border-color: #b91c1c;
+    border-left-color: #991b1b;
+    color: #7f1d1d;
+  }
+  [data-theme="light"] .alert-danger .alert-icon{
+    background: #b91c1c;
+    color: #fff;
+  }
+  [data-theme="light"] .alert-danger h4{ color: #7f1d1d; }
+  [data-theme="light"] .alert-danger p{  color: #991b1b; }
+
   [data-theme="light"] .pref-check{
     background: var(--bg-2); border-color: var(--line); color: var(--text-dim);
   }
@@ -3514,7 +3542,7 @@
    ============================================================= */
 
 const App = {
-  version: '0.8.7',
+  version: '0.8.8',
   step: 7,
 
   // ── TEMA ──────────────────────────────────────────────────────
@@ -3811,6 +3839,7 @@ const App = {
     window.scrollTo({ top: 0, behavior: 'instant' });
 
     // Hooks por vista
+    if(view === 'home'    ) this.refreshHomeStats();  // v0.8.8 — refrescar al volver
     if(view === 'postes'   && typeof Postes   !== 'undefined') Postes.onEnter();
     if(view === 'ccrr'     && typeof Ccrr     !== 'undefined') Ccrr.onEnter();
     if(view === 'manual'   && typeof Manual   !== 'undefined') Manual.onEnter();
@@ -6466,12 +6495,18 @@ const Settings = {
     if(autorEl) autorEl.textContent = App.setting('autor') || 'Braulio López';
 
     // === Empresa y unidad ===
-    document.getElementById('s-empresa-save').addEventListener('click', () => {
+    document.getElementById('s-empresa-save').addEventListener('click', async () => {
       const empresa = document.getElementById('s-empresa').value.trim();
       const unidad  = document.getElementById('s-unidad').value.trim();
       App.saveSetting('empresa', empresa);
       App.saveSetting('unidad',  unidad);
+      App.refreshHomeStats();  // v0.8.8 — refrescar contador de inicio
       App.toast('✓ Empresa guardada');
+      // v0.8.8 — Si está en un grupo, propagar el cambio en segundo plano para que
+      // los demás miembros del equipo reciban la nueva empresa al sincronizar.
+      if(typeof Sync !== 'undefined' && Sync.pin && navigator.onLine){
+        try { await Sync.push(); } catch(e){ /* sin red o error: se sincroniza después */ }
+      }
     });
 
     // === Categorías de trabajo ===
@@ -6681,6 +6716,11 @@ const Settings = {
         this.renderSync();
         this.renderWorkers();
         this.renderCentrales();
+        // v0.8.8 — Después de unirse al grupo, refrescar también la empresa y categorías
+        // que se hayan importado, y los contadores de la pantalla de inicio.
+        this.renderCategorias();
+        this.loadEmpresa();
+        App.refreshHomeStats();
       } catch(e){ App.toast('Error: ' + e.message); }
     });
     // Permitir confirmar con Enter en el campo del PIN
@@ -6717,6 +6757,10 @@ const Settings = {
       this.renderSync();
       this.renderWorkers();
       this.renderCentrales();
+      // v0.8.8 — Refrescar empresa, categorías y stats de inicio tras sync
+      this.renderCategorias();
+      this.loadEmpresa();
+      App.refreshHomeStats();
       btn.disabled = false;
     });
 
@@ -8012,10 +8056,18 @@ const Sync = {
     if(!pin) return;
     const workers   = App.load(App.KEYS.workers,   []);
     const centrales = App.load(App.KEYS.centrales,  []);
+    const categorias = App.load(App.KEYS.categorias, []);
     const sigs      = App.load('cg1.signatures',    {});
+    // v0.8.8 — Sincronizar también datos de empresa entre los miembros del grupo.
+    // Las preferencias del parte (epi_*, parteDefaults, etc.) son PERSONALES y no se sincronizan.
+    const empresa = App.setting('empresa') || '';
+    const unidad  = App.setting('unidad')  || '';
 
     await this.fbSet(`grupos/${pin}/data/workers`,   { workers,   updatedAt: Date.now() });
     await this.fbSet(`grupos/${pin}/data/centrales`, { centrales, updatedAt: Date.now() });
+    await this.fbSet(`grupos/${pin}/data/settings`,  {
+      empresa, unidad, categorias, updatedAt: Date.now()
+    });
 
     // Cada firma en su propio documento (evitar superar 1 MB por doc)
     for(const [id, data] of Object.entries(sigs)){
@@ -8046,6 +8098,23 @@ const Sync = {
       const local  = App.load(App.KEYS.centrales, []);
       const merged = [...new Set([...local, ...remC.centrales])].filter(Boolean).sort();
       App.save(App.KEYS.centrales, merged);
+    }
+
+    // v0.8.8 — Settings de empresa/unidad/categorías del grupo
+    // Estrategia: si el local no tiene empresa configurada, importamos la remota.
+    //             si tiene, mantenemos la local (last-write-wins via push).
+    //             Las categorías se fusionan (unión sin duplicados).
+    const remS = await this.fbGet(`grupos/${pin}/data/settings`);
+    if(remS){
+      const empresaLocal = App.setting('empresa');
+      const unidadLocal  = App.setting('unidad');
+      if(!empresaLocal && remS.empresa) App.saveSetting('empresa', remS.empresa);
+      if(!unidadLocal  && remS.unidad)  App.saveSetting('unidad',  remS.unidad);
+      if(Array.isArray(remS.categorias) && remS.categorias.length > 0){
+        const local  = App.load(App.KEYS.categorias, []);
+        const merged = [...new Set([...local, ...remS.categorias])].filter(Boolean);
+        App.save(App.KEYS.categorias, merged);
+      }
     }
 
     // Firmas — añadir las que no tenemos (sin sobreescribir las propias)
