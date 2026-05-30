@@ -4269,7 +4269,7 @@ const Postes = {
     empty.style.display = 'none';
     wrap.innerHTML = list.map(w => {
       const active = this.state.workersSelected.includes(w.id);
-      const tempBadge = w._temp ? ' <span style="font-family:ui-monospace,'Segoe UI Mono',monospace;font-size:10px;color:var(--amber);letter-spacing:.1em;margin-left:2px;">·TMP</span>' : '';
+      const tempBadge = w._temp ? ' <span style="font-family:ui-monospace,monospace;font-size:10px;color:var(--amber);letter-spacing:.1em;margin-left:2px;">·TMP</span>' : '';
       return `<button type="button" class="chip" aria-pressed="${active}" data-worker="${this.esc(w.id)}">
         <span class="dot"></span>${this.esc(w.nombre)}${tempBadge}
       </button>`;
@@ -4730,7 +4730,7 @@ const Ccrr = {
     empty.style.display = 'none';
     wrap.innerHTML = list.map(w => {
       const active = this.state.workersSelected.includes(w.id);
-      const tempBadge = w._temp ? ' <span style="font-family:ui-monospace,'Segoe UI Mono',monospace;font-size:10px;color:var(--amber);letter-spacing:.1em;margin-left:2px;">·TMP</span>' : '';
+      const tempBadge = w._temp ? ' <span style="font-family:ui-monospace,monospace;font-size:10px;color:var(--amber);letter-spacing:.1em;margin-left:2px;">·TMP</span>' : '';
       return `<button type="button" class="chip" aria-pressed="${active}" data-worker="${this.esc(w.id)}">
         <span class="dot"></span>${this.esc(w.nombre)}${tempBadge}
       </button>`;
