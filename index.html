@@ -1522,6 +1522,23 @@
 </div>
 
 <style>@keyframes spin{to{transform:rotate(360deg);}}</style>
+
+<!-- FAILSAFE GLOBAL: si por cualquier motivo la pantalla de verificación
+     queda colgada más de 7 segundos, se oculta automáticamente. Este
+     script va inline para garantizar que se ejecute siempre, sin
+     depender de DOMContentLoaded ni del resto del JS. -->
+<script>
+(function(){
+  setTimeout(function(){
+    var s = document.getElementById('lock-screen');
+    if(s && s.style.display !== 'none'){
+      console.warn('[FAILSAFE] Liberando lock-screen tras 7s');
+      s.style.display = 'none';
+    }
+  }, 7000);
+})();
+</script>
+
 <div class="app">
 
   <!-- ========= HEADER ========= -->
