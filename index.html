@@ -212,6 +212,22 @@
   .icon-btn:active{ transform: scale(0.91); background: rgba(37,99,235,.14); }
   .icon-btn svg{ width:20px; height:20px; }
 
+  /* Pins del mapa GeoDB — estilo "cajetín rotulador" tipo App Planos */
+  .cg1-pin {
+    display: inline-block;
+    padding: 2px 6px;
+    background: #fef08a;
+    color: #1a1a1a;
+    border: 1.5px solid #1a1a1a;
+    border-radius: 4px;
+    font: 700 11px/1.2 ui-monospace, 'Segoe UI Mono', monospace;
+    white-space: nowrap;
+    box-shadow: 0 2px 4px rgba(0,0,0,.35);
+    text-align: center;
+  }
+  .cg1-pin-camaras { background: #fef08a; }    /* CR — amarillo */
+  .cg1-pin-postes  { background: #fed7aa; }    /* Postes — naranja claro */
+
   /* ACCENT STRIP — línea de acento DIGI */
   .hazard-strip{
     height: 3px;
@@ -3620,7 +3636,7 @@
    ============================================================= */
 
 const App = {
-  version: '0.9.0',
+  version: '0.8.8',
   step: 7,
 
   // ── TEMA ──────────────────────────────────────────────────────
@@ -8562,15 +8578,23 @@ const GeoDB = {
     }).addTo(this._map).bindPopup('<b>Tú</b><br>±' + acc + ' m');
     this._mapMarkers.push(youCircle, youDot);
 
-    // Marcadores de elementos cercanos
+    // Marcadores de elementos cercanos — estilo "cajetín amarillo" tipo App Planos
     const type = this._currentType;
     this._currentNear.forEach((it, i) => {
       const r = it.row;
-      const marker = L.circleMarker([r[4], r[5]], {
-        radius: 9, color:'#fff', weight:2, fillColor:'#fbbf24', fillOpacity:1
-      }).addTo(this._map);
-      const name = this._displayName(type, r);
-      const popup = `
+      const label = this._mapLabel(type, r);
+      const html  = `<div class="cg1-pin cg1-pin-${type}">${this._esc(label)}</div>`;
+      // Tamaño aproximado del label para anchor
+      const w = Math.max(40, label.length * 7 + 12);
+      const icon = L.divIcon({
+        className: '',
+        html: html,
+        iconSize:   [w, 22],
+        iconAnchor: [w/2, 22]   // anclar abajo-centro
+      });
+      const marker = L.marker([r[4], r[5]], { icon }).addTo(this._map);
+      const name   = this._displayName(type, r);
+      const popup  = `
         <div style="font-family:-apple-system,'Segoe UI',Roboto,sans-serif;min-width:160px;">
           <div style="font-weight:700;font-size:13px;margin-bottom:2px;">${this._esc(name)}</div>
           <div style="font-size:11px;color:#555;margin-bottom:6px;">${this._esc(r[2] || '—')} · ${it.dist} m</div>
@@ -8603,6 +8627,21 @@ const GeoDB = {
         document.getElementById('modal-geo-search').classList.remove('show');
       };
     });
+  },
+
+  // Etiqueta corta para mostrar dentro del pin del mapa
+  _mapLabel(type, row){
+    const raw = row[1] || '';
+    if(type === 'postes'){
+      const mNum = raw.match(/N[ºo°]\s*(\d+)/i);
+      if(mNum) return 'Nº ' + mNum[1];
+      const mLin = raw.match(/L\s*(\d+)/i);
+      if(mLin) return 'L' + mLin[1];
+    } else {
+      const mCR = raw.match(/CR\s*([A-Z]*)\s*(\d+)/i);
+      if(mCR) return 'CR ' + (mCR[1] ? mCR[1] + ' ' : '') + mCR[2];
+    }
+    return raw.slice(0, 14);
   },
 
   // Nombre legible (corto) para la lista
