@@ -1452,9 +1452,11 @@
 
 <body>
 
-<!-- ===== PANTALLA DE BLOQUEO ===== -->
-<!-- Cubre toda la app mientras se verifica el acceso. Se oculta si el acceso es correcto. -->
-<div id="lock-screen" style="
+<!-- ===== PANTALLA DE BLOQUEO (DESHABILITADA) =====
+     El control de acceso se eliminó por causar problemas de carga.
+     Mantenemos el div oculto con display:none por compatibilidad con
+     referencias del JS que aún apuntan a #lock-screen. -->
+<div id="lock-screen" style="display:none !important;
   position:fixed;inset:0;z-index:9999;
   background:#050810;
   display:flex;flex-direction:column;align-items:center;justify-content:center;
@@ -7852,60 +7854,15 @@ const Access = {
   PATH_SOLICITUDES: 'grupos/cg1sistema/solicitudes',
 
   async check() {
-    const screen   = document.getElementById('lock-screen');
+    // Control de acceso DESHABILITADO — la app abre directamente.
+    // Se mantiene el método para no romper la llamada en DOMContentLoaded.
+    const screen = document.getElementById('lock-screen');
+    if(screen) screen.style.display = 'none';
+    try { if(typeof Sync !== 'undefined') Sync.init(); } catch(e){}
+    return;
+    // --- código anterior conservado debajo en caso de querer reactivar ---
     const checking = document.getElementById('lock-checking');
     const form     = document.getElementById('lock-form');
-
-    // Failsafe absoluto: si después de 5s seguimos verificando, dejar pasar.
-    // Evita que la pantalla quede colgada por cualquier motivo.
-    const failsafe = setTimeout(() => {
-      if(screen && screen.style.display !== 'none'){
-        console.warn('[Access] Failsafe — abriendo app por timeout');
-        try { screen.style.display = 'none'; } catch(e){}
-        try { if(typeof Sync !== 'undefined') Sync.init(); } catch(e){}
-      }
-    }, 5000);
-
-    let config = null;
-    try {
-      const timeout = new Promise(res => setTimeout(() => res(null), 4000));
-      config = await Promise.race([Sync.fbGet(this.PATH_CONFIG), timeout]);
-    } catch(e) { console.warn('[Access] fbGet error:', e); }
-
-    // Sin config (offline, error, timeout): si tenemos token local lo damos por bueno
-    if(!config){
-      clearTimeout(failsafe);
-      const local = App.load('cg1.access.token', null);
-      if(local){
-        screen.style.display = 'none';
-        try { Sync.init(); } catch(e){}
-        this.checkBadge();
-        return;
-      }
-      // Sin token local y sin config: dejar pasar igualmente (no bloquear nunca por red)
-      screen.style.display = 'none';
-      try { Sync.init(); } catch(e){}
-      return;
-    }
-
-    if(!config.enabled){
-      clearTimeout(failsafe);
-      screen.style.display = 'none';
-      try { Sync.init(); } catch(e){}
-      this.checkBadge();
-      return;
-    }
-    const local = App.load('cg1.access.token', null);
-    if(local && local.version === config.version){
-      clearTimeout(failsafe);
-      screen.style.display = 'none';
-      try { Sync.init(); } catch(e){}
-      this.checkBadge();
-      return;
-    }
-    clearTimeout(failsafe);
-    checking.style.display = 'none';
-    form.style.display = 'flex';
     const btn = document.getElementById('lock-submit');
     const input = document.getElementById('lock-code-input');
     const errEl = document.getElementById('lock-error');
