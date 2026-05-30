@@ -10,10 +10,7 @@
 <meta name="apple-mobile-web-app-title" content="Partes CG1" />
 <title>Partes de Seguridad · CG1</title>
 
-<!-- Tipografías -->
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=IBM+Plex+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<!-- Tipografías — sistema DIGI (sin Google Fonts) -->
 
 <!-- pdf-lib para generar partes PDF a partir de plantilla auténtica -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
@@ -36,7 +33,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="CG1">
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23fbbf24'/%3E%3Cpath d='M16 4 L27 8.5 V15.5 C27 21.5 22.3 26 16 28 C9.7 26 5 21.5 5 15.5 V8.5 Z' fill='rgba(5,8,16,0.15)' stroke='%23050810' stroke-width='1.5' stroke-linejoin='round'/%3E%3Ccircle cx='16' cy='21' r='1.8' fill='%23050810'/%3E%3Cpath d='M12 18 A5 5 0 0 1 20 18' stroke='%23050810' stroke-width='1.8' stroke-linecap='round' fill='none'/%3E%3Cpath d='M9 14.5 A8.5 8.5 0 0 1 23 14.5' stroke='%23050810' stroke-width='1.8' stroke-linecap='round' fill='none'/%3E%3C/svg%3E">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232563eb'/%3E%3Cpath d='M16 4 L27 8.5 V15.5 C27 21.5 22.3 26 16 28 C9.7 26 5 21.5 5 15.5 V8.5 Z' fill='rgba(255,255,255,0.12)' stroke='%23ffffff' stroke-width='1.5' stroke-linejoin='round'/%3E%3Ccircle cx='16' cy='21' r='1.8' fill='%23ffffff'/%3E%3Cpath d='M12 18 A5 5 0 0 1 20 18' stroke='%23ffffff' stroke-width='1.8' stroke-linecap='round' fill='none'/%3E%3Cpath d='M9 14.5 A8.5 8.5 0 0 1 23 14.5' stroke='%23ffffff' stroke-width='1.8' stroke-linecap='round' fill='none'/%3E%3C/svg%3E">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
@@ -47,25 +44,25 @@
      ========================================================== */
   /* ── Tema oscuro (por defecto) ────────────────────────────────── */
   :root{
-    --bg:        #0a0e1a;
-    --bg-2:     #0f1525;
-    --surface:   #131a2e;
-    --surface-2: #19223b;
-    --line:      #1f2940;
-    --line-2:    #2a3754;
-    --text:      #e6ecf5;
-    --text-dim:  #94a3b8;
-    --text-mute: #64748b;
-    --amber:     #fbbf24;
-    --amber-2:   #f59e0b;
-    --amber-glow: rgba(251,191,36,.18);
-    --cyan:      #38bdf8;
-    --green:     #4ade80;
-    --red:       #f87171;
+    --bg:        #1a1d24;
+    --bg-2:      #0f1115;
+    --surface:   #14171f;
+    --surface-2: #1f2530;
+    --line:      #2a2f3a;
+    --line-2:    #3a4050;
+    --text:      #e5e7eb;
+    --text-dim:  #9ca3af;
+    --text-mute: #6b7280;
+    --amber:     #2563eb;
+    --amber-2:   #1d4ed8;
+    --amber-glow: rgba(37,99,235,.18);
+    --cyan:      #60a5fa;
+    --green:     #10b981;
+    --red:       #ef4444;
     --red-deep:  #b91c1c;
-    --r-sm: 10px; --r-md: 14px; --r-lg: 20px; --r-xl: 28px;
-    --shadow-1: 0 1px 0 rgba(255,255,255,.04) inset, 0 8px 24px rgba(0,0,0,.35);
-    --shadow-2: 0 1px 0 rgba(255,255,255,.05) inset, 0 24px 60px rgba(0,0,0,.55);
+    --r-sm: 6px; --r-md: 8px; --r-lg: 10px; --r-xl: 14px;
+    --shadow-1: 0 1px 0 rgba(255,255,255,.04) inset, 0 4px 16px rgba(0,0,0,.4);
+    --shadow-2: 0 1px 0 rgba(255,255,255,.05) inset, 0 12px 40px rgba(0,0,0,.55);
     color-scheme: dark;
   }
 
@@ -78,13 +75,13 @@
     --line:      #c8d2e2;
     --line-2:    #b0bdd0;
     --text:      #0d1624;
-    --text-dim:  #2e4060;
-    --text-mute: #64748b;
-    --amber:     #d97706;
-    --amber-2:   #b45309;
-    --amber-glow: rgba(217,119,6,.14);
-    --cyan:      #0369a1;
-    --green:     #16a34a;
+    --text-dim:  #374151;
+    --text-mute: #6b7280;
+    --amber:     #2563eb;
+    --amber-2:   #1d4ed8;
+    --amber-glow: rgba(37,99,235,.12);
+    --cyan:      #3b82f6;
+    --green:     #059669;
     --red:       #dc2626;
     --red-deep:  #991b1b;
     --shadow-1: 0 1px 0 rgba(255,255,255,.8) inset, 0 4px 16px rgba(0,0,0,.10);
@@ -102,13 +99,13 @@
       --line:      #c8d2e2;
       --line-2:    #b0bdd0;
       --text:      #0d1624;
-      --text-dim:  #2e4060;
-      --text-mute: #64748b;
-      --amber:     #d97706;
-      --amber-2:   #b45309;
-      --amber-glow: rgba(217,119,6,.14);
-      --cyan:      #0369a1;
-      --green:     #16a34a;
+      --text-dim:  #374151;
+      --text-mute: #6b7280;
+      --amber:     #2563eb;
+      --amber-2:   #1d4ed8;
+      --amber-glow: rgba(37,99,235,.12);
+      --cyan:      #3b82f6;
+      --green:     #059669;
       --red:       #dc2626;
       --red-deep:  #991b1b;
       --shadow-1: 0 1px 0 rgba(255,255,255,.8) inset, 0 4px 16px rgba(0,0,0,.10);
@@ -121,11 +118,11 @@
   html, body{ margin:0; padding:0; }
   html{ background: var(--bg); }
   body{
-    font-family: 'IBM Plex Sans', system-ui, sans-serif;
+    font-family: -apple-system, 'Segoe UI', Roboto, sans-serif;
     color: var(--text);
     background:
-      radial-gradient(1200px 600px at 80% -10%, rgba(56,189,248,.06), transparent 60%),
-      radial-gradient(900px 500px at -10% 110%, rgba(251,191,36,.05), transparent 60%),
+      radial-gradient(1200px 600px at 80% -10%, rgba(37,99,235,.06), transparent 60%),
+      radial-gradient(900px 500px at -10% 110%, rgba(96,165,250,.04), transparent 60%),
       var(--bg);
     min-height: 100dvh;
     -webkit-font-smoothing: antialiased;
@@ -135,8 +132,8 @@
   }
 
   /* Tipografía display */
-  .display{ font-family: 'Bricolage Grotesque', serif; letter-spacing:-0.01em; }
-  .mono{ font-family: 'JetBrains Mono', ui-monospace, monospace; }
+  .display{ font-family: -apple-system, 'Segoe UI', Roboto, sans-serif; font-weight: 800; letter-spacing:-0.02em; }
+  .mono{ font-family: ui-monospace, 'Segoe UI Mono', 'Cascadia Mono', monospace; }
 
   /* ==========================================================
      APP SHELL
@@ -182,13 +179,13 @@
   .brand-mark svg{ width:22px; height:22px; }
   .brand-text{ display:flex; flex-direction:column; line-height:1.1; min-width:0; }
   .brand-text .t1{
-    font-family:'Bricolage Grotesque',serif;
+    font-family:-apple-system,'Segoe UI',Roboto,sans-serif; font-weight:800;
     font-weight:800; font-size: 15px;
     letter-spacing:.02em;
     text-transform: uppercase;
   }
   .brand-text .t2{
-    font-family:'JetBrains Mono', monospace;
+    font-family: ui-monospace, 'Segoe UI Mono', monospace;
     font-size: 10.5px; color: var(--text-mute);
     letter-spacing:.18em;
     margin-top:2px;
@@ -205,19 +202,15 @@
     cursor: pointer;
     transition: transform .12s ease, background .15s ease, color .15s ease, border-color .15s ease;
   }
-  .icon-btn:hover{ color: var(--amber); background: rgba(251,191,36,.08); border-color: rgba(251,191,36,.2); }
-  .icon-btn:active{ transform: scale(0.91); background: rgba(251,191,36,.14); }
+  .icon-btn:hover{ color: var(--amber); background: rgba(37,99,235,.08); border-color: rgba(37,99,235,.2); }
+  .icon-btn:active{ transform: scale(0.91); background: rgba(37,99,235,.14); }
   .icon-btn svg{ width:20px; height:20px; }
 
-  /* HAZARD STRIP — cinta de peligro decorativa */
+  /* ACCENT STRIP — línea de acento DIGI */
   .hazard-strip{
-    height: 6px;
-    background-image: repeating-linear-gradient(
-      135deg,
-      var(--amber) 0 14px,
-      #1a1a1a 14px 28px
-    );
-    opacity: .85;
+    height: 3px;
+    background: linear-gradient(90deg, transparent, var(--amber) 20%, var(--cyan) 80%, transparent);
+    opacity: .6;
   }
 
   /* MAIN */
@@ -238,7 +231,7 @@
   }
   .eyebrow{
     display:inline-flex; align-items:center; gap:8px;
-    font-family:'JetBrains Mono', monospace;
+    font-family: ui-monospace, 'Segoe UI Mono', monospace;
     font-size: 11px; color: var(--amber);
     letter-spacing: .22em; text-transform: uppercase;
   }
@@ -246,7 +239,7 @@
     content:""; width:18px; height:1px; background: var(--amber); opacity:.7;
   }
   h1.section-title{
-    font-family:'Bricolage Grotesque', serif;
+    font-family:-apple-system,'Segoe UI',Roboto,sans-serif; font-weight:800;
     font-weight: 800;
     font-size: clamp(28px, 7vw, 36px);
     line-height: 1.05;
@@ -356,14 +349,14 @@
     display:flex; align-items: flex-end; justify-content: space-between; gap: 14px;
   }
   .big-card .label{
-    font-family:'JetBrains Mono', monospace;
+    font-family: ui-monospace, 'Segoe UI Mono', monospace;
     font-size: 11px; letter-spacing:.22em;
     color: var(--text-mute);
     text-transform: uppercase;
     margin-bottom: 6px;
   }
   .big-card .title{
-    font-family:'Bricolage Grotesque', serif;
+    font-family:-apple-system,'Segoe UI',Roboto,sans-serif; font-weight:800;
     font-weight: 800;
     font-size: 26px;
     line-height: 1.05;
@@ -383,7 +376,7 @@
     background: var(--amber);
     color: #0a0e1a;
     display:grid; place-items:center;
-    box-shadow: 0 8px 22px -8px rgba(251,191,36,.55);
+    box-shadow: 0 8px 22px -8px rgba(37,99,235,.55);
     transition: transform .15s ease;
   }
   .big-card:hover .go{ transform: translateX(3px); }
@@ -403,13 +396,13 @@
     min-width:0;
   }
   .meta-cell .k{
-    font-family:'JetBrains Mono', monospace;
+    font-family: ui-monospace, 'Segoe UI Mono', monospace;
     font-size: 10px; letter-spacing:.2em;
     color: var(--text-mute); text-transform: uppercase;
   }
   .meta-cell .v{
     margin-top: 6px;
-    font-family:'Bricolage Grotesque', serif;
+    font-family:-apple-system,'Segoe UI',Roboto,sans-serif; font-weight:800;
     font-weight: 700;
     font-size: 18px;
     color: var(--text);
@@ -418,7 +411,7 @@
     white-space: nowrap;
   }
   .meta-cell .v small{
-    font-family:'JetBrains Mono', monospace;
+    font-family: ui-monospace, 'Segoe UI Mono', monospace;
     font-weight: 400;
     color: var(--text-dim);
     font-size: 11px;
@@ -437,7 +430,7 @@
   }
   .placeholder .pill{
     display:inline-block;
-    font-family:'JetBrains Mono', monospace;
+    font-family: ui-monospace, 'Segoe UI Mono', monospace;
     font-size: 10.5px; letter-spacing:.2em;
     color: #0a0e1a; background: var(--amber);
     padding: 4px 8px; border-radius: 6px;
@@ -446,7 +439,7 @@
   }
   .placeholder h2{
     margin: 0 0 6px;
-    font-family:'Bricolage Grotesque', serif;
+    font-family:-apple-system,'Segoe UI',Roboto,sans-serif; font-weight:800;
     font-size: 22px;
     letter-spacing:-.01em;
   }
@@ -464,7 +457,7 @@
     display:flex; gap:10px; align-items:center;
   }
   .placeholder li .step{
-    font-family:'JetBrains Mono', monospace;
+    font-family: ui-monospace, 'Segoe UI Mono', monospace;
     font-size: 10.5px;
     color: var(--amber);
     letter-spacing:.15em;
@@ -493,7 +486,7 @@
     gap: 12px;
   }
   footer.app-foot .sig{
-    font-family:'JetBrains Mono', monospace;
+    font-family: ui-monospace, 'Segoe UI Mono', monospace;
     font-size: 11.5px;
     letter-spacing:.08em;
     color: var(--text-mute);
@@ -501,7 +494,7 @@
   footer.app-foot .sig b{ color: var(--text); font-weight:600; }
   footer.app-foot .sig .dot{ color: var(--amber); margin: 0 6px; }
   footer.app-foot .ver{
-    font-family:'JetBrains Mono', monospace;
+    font-family: ui-monospace, 'Segoe UI Mono', monospace;
     font-size: 10.5px;
     color: var(--text-mute);
     border: 1px solid var(--line);
@@ -555,7 +548,7 @@
     margin: -2px 0 14px;
   }
   .form-section .sec-num{
-    font-family:'JetBrains Mono', monospace;
+    font-family: ui-monospace, 'Segoe UI Mono', monospace;
     font-size: 10px;
     color: #0a0e1a;
     background: var(--amber);
@@ -565,7 +558,7 @@
     font-weight: 700;
   }
   .form-section .sec-title{
-    font-family:'Bricolage Grotesque', serif;
+    font-family:-apple-system,'Segoe UI',Roboto,sans-serif; font-weight:800;
     font-size: 17px; font-weight: 700;
     letter-spacing:-.01em;
   }
@@ -579,7 +572,7 @@
   .field-row > .field{ margin-top: 0; }
 
   .field label, .field-label{
-    font-family:'JetBrains Mono', monospace;
+    font-family: ui-monospace, 'Segoe UI Mono', monospace;
     font-size: 10.5px;
     color: var(--text-mute);
     letter-spacing:.18em;
@@ -611,7 +604,7 @@
   .input::placeholder, .textarea::placeholder{ color: var(--text-mute); }
   .input:focus, .select:focus, .textarea:focus{
     border-color: var(--amber);
-    box-shadow: 0 0 0 3px rgba(251,191,36,.12);
+    box-shadow: 0 0 0 3px rgba(37,99,235,.12);
     background: #0e1525;
   }
   .textarea{ resize: vertical; min-height: 80px; line-height: 1.5; }
@@ -638,7 +631,7 @@
     padding: 0 14px;
     cursor:pointer;
     display:flex; align-items:center; gap:6px;
-    font-family:'JetBrains Mono', monospace;
+    font-family: ui-monospace, 'Segoe UI Mono', monospace;
     font-size: 11.5px;
     letter-spacing: .12em;
     transition: all .15s ease;
@@ -680,7 +673,7 @@
   .segmented button[aria-pressed="true"]{
     background: var(--amber);
     color: #0a0e1a;
-    box-shadow: 0 4px 12px -4px rgba(251,191,36,.45);
+    box-shadow: 0 4px 12px -4px rgba(37,99,235,.45);
   }
   .segmented.danger button[aria-pressed="true"][data-danger]{
     background: var(--red-deep);
@@ -711,7 +704,7 @@
     transition: background .15s ease;
   }
   .chip[aria-pressed="true"]{
-    background: rgba(251,191,36,.12);
+    background: rgba(37,99,235,.12);
     border-color: var(--amber);
     color: var(--text);
   }
@@ -749,7 +742,7 @@
   }
   .rp-card:active{ transform: scale(.98); }
   .rp-card[aria-pressed="true"]{
-    background: rgba(251,191,36,.10);
+    background: rgba(37,99,235,.10);
     border-color: var(--amber);
     color: var(--text);
     box-shadow: 0 0 0 1px var(--amber) inset;
@@ -763,7 +756,7 @@
   .rp-card .rp-nif{
     font-size: 11.5px;
     color: var(--text-mute);
-    font-family: 'JetBrains Mono', monospace;
+    font-family: ui-monospace,'Segoe UI Mono',monospace;
     letter-spacing: .2px;
   }
   .rp-card .rp-sig{
@@ -792,7 +785,7 @@
 
   .empty-list{
     padding: 14px; border-radius: 12px;
-    background: rgba(251,191,36,.05);
+    background: rgba(37,99,235,.05);
     border: 1px dashed var(--line-2);
     font-size: 13px;
     color: var(--text-dim);
@@ -827,7 +820,7 @@
   .alert-danger .alert-icon svg{ width: 18px; height: 18px; }
   .alert-danger h4{
     margin: 0 0 4px;
-    font-family: 'Bricolage Grotesque', serif;
+    font-family: -apple-system,'Segoe UI',Roboto,sans-serif; font-weight:800;
     font-size: 16px; font-weight: 800;
     color: #fecaca;
     letter-spacing: -.005em;
@@ -856,7 +849,7 @@
   .alert-warning .alert-icon svg{ width: 18px; height: 18px; }
   .alert-warning h4{
     margin: 0 0 4px;
-    font-family: 'Bricolage Grotesque', serif;
+    font-family: -apple-system,'Segoe UI',Roboto,sans-serif; font-weight:800;
     font-size: 16px; font-weight: 800;
     color: #fef3c7;
     letter-spacing: -.005em;
@@ -894,7 +887,7 @@
   .btn-primary{
     background: var(--amber);
     color: #0a0e1a;
-    box-shadow: 0 10px 24px -10px rgba(251,191,36,.6);
+    box-shadow: 0 10px 24px -10px rgba(37,99,235,.6);
     flex: 1;
   }
   .btn-primary:disabled{
@@ -950,7 +943,7 @@
   [data-theme="light"] body{
     background:
       radial-gradient(900px 500px at 80% -10%, rgba(56,189,248,.04), transparent 60%),
-      radial-gradient(700px 400px at -10% 110%, rgba(217,119,6,.04), transparent 60%),
+      radial-gradient(700px 400px at -10% 110%, rgba(37,99,235,.04), transparent 60%),
       var(--bg);
   }
 
@@ -979,7 +972,7 @@
   [data-theme="light"] .segmented button{ color: var(--text-dim); }
   [data-theme="light"] .segmented button[aria-pressed="true"]{
     background: var(--amber); color: #0d1624;
-    box-shadow: 0 2px 8px -2px rgba(217,119,6,.35);
+    box-shadow: 0 2px 8px -2px rgba(37,99,235,.35);
   }
 
   [data-theme="light"] .btn,
@@ -995,7 +988,7 @@
     border-color: rgba(0,0,0,.08);
     color: var(--text-dim);
   }
-  [data-theme="light"] .icon-btn:hover{ background: rgba(217,119,6,.1); border-color: rgba(217,119,6,.25); }
+  [data-theme="light"] .icon-btn:hover{ background: rgba(37,99,235,.1); border-color: rgba(37,99,235,.25); }
 
   [data-theme="light"] .modal{
     background: var(--bg-2);
@@ -1043,7 +1036,7 @@
   [data-theme="light"] .help-body{ color: var(--text-dim); }
 
   [data-theme="light"] .brand-mark{ background: var(--surface); border-color: var(--line); }
-  [data-theme="light"] .brand-mark svg [stroke="#fbbf24"]{ stroke: var(--amber); }
+  [data-theme="light"] .brand-mark svg [stroke="#2563eb"]{ stroke: var(--amber); }
 
   [data-theme="light"] .input,
   [data-theme="light"] .select,
@@ -1084,7 +1077,7 @@
     [data-theme="auto"] textarea{ color-scheme: light; }
     [data-theme="auto"] body{
       background: radial-gradient(900px 500px at 80% -10%, rgba(56,189,248,.04), transparent 60%),
-                  radial-gradient(700px 400px at -10% 110%, rgba(217,119,6,.04), transparent 60%),
+                  radial-gradient(700px 400px at -10% 110%, rgba(37,99,235,.04), transparent 60%),
                   var(--bg);
     }
     [data-theme="auto"] .form-section,
@@ -1136,7 +1129,7 @@
     color: var(--amber);
     margin-top: 4px;
     padding: 5px 8px;
-    background: rgba(251,191,36,.08);
+    background: rgba(37,99,235,.08);
     border-radius: 6px;
     border-left: 2px solid var(--amber);
     line-height: 1.4;
@@ -1178,7 +1171,7 @@
   }
   .modal-head h3{
     margin:0;
-    font-family:'Bricolage Grotesque', serif;
+    font-family:-apple-system,'Segoe UI',Roboto,sans-serif; font-weight:800;
     font-size: 20px; font-weight: 800;
     letter-spacing: -.01em;
   }
@@ -1233,7 +1226,7 @@
     align-items: center;
   }
   .atm-grid .atm-h{
-    font-family:'JetBrains Mono', monospace;
+    font-family: ui-monospace, 'Segoe UI Mono', monospace;
     font-size: 9.5px;
     letter-spacing:.1em;
     color: var(--text-mute);
@@ -1311,7 +1304,7 @@
     white-space:nowrap;
   }
   .item-card .item-meta{
-    font-family:'JetBrains Mono', monospace;
+    font-family: ui-monospace, 'Segoe UI Mono', monospace;
     font-size: 10.5px;
     color: var(--text-mute);
     letter-spacing: .08em;
@@ -1347,7 +1340,7 @@
     transition: all .14s ease;
     flex-shrink: 0;
   }
-  .icon-action:hover{ color: var(--amber); border-color: rgba(251,191,36,.35); background: rgba(251,191,36,.07); }
+  .icon-action:hover{ color: var(--amber); border-color: rgba(37,99,235,.35); background: rgba(37,99,235,.07); }
   .icon-action:active{ transform: scale(0.9); }
   .icon-action.danger:hover{ color: var(--red); border-color: rgba(248,113,113,.35); background: rgba(248,113,113,.07); }
   .icon-action svg{ width: 15px; height: 15px; stroke-width: 1.6; }
@@ -1398,7 +1391,7 @@
     position:absolute; inset:0;
     display:grid; place-items:center;
     color: rgba(0,0,0,.35);
-    font-family:'JetBrains Mono', monospace;
+    font-family: ui-monospace, 'Segoe UI Mono', monospace;
     font-size: 11px;
     letter-spacing: .15em;
     pointer-events:none;
@@ -1432,7 +1425,7 @@
   .signature-wrap .sig-saved-tag{
     position: absolute;
     top: 8px; right: 8px;
-    font-family:'JetBrains Mono', monospace;
+    font-family: ui-monospace, 'Segoe UI Mono', monospace;
     font-size: 10px;
     background: var(--green);
     color: #0a0e1a;
@@ -1468,7 +1461,7 @@
   padding:32px 24px;gap:0;
 ">
   <!-- Logo -->
-  <div style="width:72px;height:72px;background:var(--amber);border-radius:22px;display:flex;align-items:center;justify-content:center;margin-bottom:22px;box-shadow:0 8px 24px rgba(251,191,36,.35);">
+  <div style="width:72px;height:72px;background:var(--amber);border-radius:22px;display:flex;align-items:center;justify-content:center;margin-bottom:22px;box-shadow:0 8px 24px rgba(37,99,235,.35);">
     <svg viewBox="0 0 24 24" fill="none" style="width:40px;height:40px;">
       <!-- Escudo moderno -->
       <path d="M12 2.5 L20.5 6.5 V12.5 C20.5 17.2 16.8 20.8 12 22.5 C7.2 20.8 3.5 17.2 3.5 12.5 V6.5 Z"
@@ -1499,7 +1492,7 @@
       placeholder="Código de acceso"
       style="width:100%;padding:16px;background:var(--surface);border:1.5px solid var(--line-2);border-radius:14px;
              color:var(--text);font-size:24px;text-align:center;letter-spacing:8px;
-             font-family:'JetBrains Mono',monospace;outline:none;box-sizing:border-box;margin-bottom:12px;">
+             font-family:ui-monospace,'Segoe UI Mono',monospace;outline:none;box-sizing:border-box;margin-bottom:12px;">
     <button id="lock-submit" type="button"
       style="width:100%;padding:16px;background:var(--amber);border:none;border-radius:14px;
              color:#050810;font-size:16px;font-weight:700;cursor:pointer;margin-bottom:20px;">
@@ -1539,13 +1532,13 @@
         <svg viewBox="0 0 24 24" fill="none">
           <!-- Escudo -->
           <path d="M12 2.5 L20.5 6.5 V12.5 C20.5 17.2 16.8 20.8 12 22.5 C7.2 20.8 3.5 17.2 3.5 12.5 V6.5 Z"
-                fill="rgba(5,8,16,0.15)" stroke="#fbbf24" stroke-width="1.3" stroke-linejoin="round"/>
+                fill="rgba(5,8,16,0.15)" stroke="#2563eb" stroke-width="1.3" stroke-linejoin="round"/>
           <!-- Señal telecomunicaciones -->
-          <circle cx="12" cy="15.5" r="1.2" fill="#fbbf24"/>
+          <circle cx="12" cy="15.5" r="1.2" fill="#2563eb"/>
           <path d="M9.3 13.1 A3.6 3.6 0 0 1 14.7 13.1"
-                stroke="#fbbf24" stroke-width="1.3" stroke-linecap="round" fill="none"/>
+                stroke="#2563eb" stroke-width="1.3" stroke-linecap="round" fill="none"/>
           <path d="M7 10.9 A6.3 6.3 0 0 1 17 10.9"
-                stroke="#fbbf24" stroke-width="1.3" stroke-linecap="round" fill="none"/>
+                stroke="#2563eb" stroke-width="1.3" stroke-linecap="round" fill="none"/>
         </svg>
       </span>
       <span class="brand-text">
@@ -1623,14 +1616,14 @@
 
             <!-- suelo -->
             <rect x="0" y="172" width="320" height="28" fill="url(#groundGrad)"/>
-            <line x1="0" y1="178" x2="320" y2="178" stroke="#1f2940" stroke-width="1"/>
-            <line x1="20" y1="184" x2="60" y2="184" stroke="#2a3754" stroke-width="1"/>
-            <line x1="240" y1="184" x2="290" y2="184" stroke="#2a3754" stroke-width="1"/>
+            <line x1="0" y1="178" x2="320" y2="178" stroke="#2a2f3a" stroke-width="1"/>
+            <line x1="20" y1="184" x2="60" y2="184" stroke="#3a4050" stroke-width="1"/>
+            <line x1="240" y1="184" x2="290" y2="184" stroke="#3a4050" stroke-width="1"/>
 
             <!-- cables de fondo -->
-            <path d="M0,40 Q160,72 320,40" stroke="#2a3754" stroke-width="1" fill="none"/>
-            <path d="M0,52 Q160,82 320,52" stroke="#2a3754" stroke-width="1" fill="none"/>
-            <path d="M0,62 Q160,90 320,62" stroke="#2a3754" stroke-width="1" fill="none" opacity=".7"/>
+            <path d="M0,40 Q160,72 320,40" stroke="#3a4050" stroke-width="1" fill="none"/>
+            <path d="M0,52 Q160,82 320,52" stroke="#3a4050" stroke-width="1" fill="none"/>
+            <path d="M0,62 Q160,90 320,62" stroke="#3a4050" stroke-width="1" fill="none" opacity=".7"/>
 
             <!-- POSTE -->
             <rect x="155" y="20" width="10" height="158" fill="url(#poleGrad)" rx="1"/>
@@ -1648,13 +1641,13 @@
             <rect x="174" y="26" width="4" height="8" fill="#94a3b8" rx="1"/>
             <rect x="192" y="26" width="4" height="8" fill="#94a3b8" rx="1"/>
             <!-- caja PTR/empalme arriba -->
-            <rect x="146" y="40" width="28" height="14" fill="#19223b" stroke="#2a3754" stroke-width="1" rx="2"/>
-            <rect x="150" y="44" width="20" height="2" fill="#fbbf24" opacity=".7"/>
+            <rect x="146" y="40" width="28" height="14" fill="#19223b" stroke="#3a4050" stroke-width="1" rx="2"/>
+            <rect x="150" y="44" width="20" height="2" fill="#2563eb" opacity=".7"/>
 
             <!-- TÉCNICO sobre el poste (lado derecho) -->
             <!-- arnés / cinturón rodeando el poste por delante -->
             <path d="M150,118 Q160,108 192,118 Q220,128 218,134 Q205,142 192,134 Q175,128 158,134 Q150,128 150,118 Z"
-                  fill="#0a0e1a" stroke="#fbbf24" stroke-width="1.5"/>
+                  fill="#0a0e1a" stroke="#2563eb" stroke-width="1.5"/>
             <!-- pierna trasera con trepador -->
             <rect x="172" y="128" width="8" height="26" fill="#1f2940" rx="2"/>
             <!-- trepador trasero (forma de hoz/garra naranja) -->
@@ -1664,7 +1657,7 @@
             <!-- pierna delantera -->
             <rect x="196" y="124" width="9" height="32" fill="#1f2940" rx="2"/>
             <!-- bota -->
-            <rect x="194" y="152" width="14" height="6" fill="#0a0e1a" stroke="#2a3754" stroke-width="1" rx="2"/>
+            <rect x="194" y="152" width="14" height="6" fill="#0a0e1a" stroke="#3a4050" stroke-width="1" rx="2"/>
             <!-- trepador delantero (espiga curva agarrando el poste) -->
             <path d="M192,150 Q172,160 158,150" stroke="#f59e0b" stroke-width="3.5" fill="none" stroke-linecap="round"/>
             <path d="M158,150 L154,146 L156,152 Z" fill="#f59e0b"/>
@@ -1672,15 +1665,15 @@
             <!-- torso con chaleco -->
             <path d="M188,96 L210,96 L214,128 L184,128 Z" fill="url(#vestGrad)" stroke="#0a0e1a" stroke-width="1"/>
             <!-- bandas reflectantes del chaleco -->
-            <rect x="184" y="108" width="30" height="3" fill="#fbbf24" opacity=".95"/>
-            <rect x="184" y="120" width="30" height="3" fill="#fbbf24" opacity=".95"/>
+            <rect x="184" y="108" width="30" height="3" fill="#2563eb" opacity=".95"/>
+            <rect x="184" y="120" width="30" height="3" fill="#2563eb" opacity=".95"/>
             <!-- cuello/camisa -->
             <rect x="194" y="92" width="10" height="6" fill="#e6ecf5"/>
 
             <!-- brazo agarrado al poste -->
             <path d="M188,102 Q170,108 162,118 Q160,124 168,124 Q180,118 190,114 Z" fill="url(#vestGrad)" stroke="#0a0e1a" stroke-width="1"/>
             <!-- guante -->
-            <circle cx="166" cy="120" r="4.5" fill="#0a0e1a" stroke="#fbbf24" stroke-width="1"/>
+            <circle cx="166" cy="120" r="4.5" fill="#0a0e1a" stroke="#2563eb" stroke-width="1"/>
             <!-- brazo derecho con herramienta -->
             <path d="M210,100 Q224,104 232,116 L228,122 Q218,114 208,112 Z" fill="url(#vestGrad)" stroke="#0a0e1a" stroke-width="1"/>
             <circle cx="230" cy="120" r="4" fill="#0a0e1a"/>
@@ -1695,9 +1688,9 @@
             <path d="M192,87 Q199,93 206,87" stroke="#0a0e1a" stroke-width="1" fill="none"/>
 
             <!-- destellos / chispas pequeñas -->
-            <circle cx="246" cy="100" r="1.6" fill="#fbbf24"/>
-            <circle cx="252" cy="108" r="1" fill="#fbbf24" opacity=".7"/>
-            <circle cx="240" cy="110" r="1" fill="#fbbf24" opacity=".7"/>
+            <circle cx="246" cy="100" r="1.6" fill="#2563eb"/>
+            <circle cx="252" cy="108" r="1" fill="#2563eb" opacity=".7"/>
+            <circle cx="240" cy="110" r="1" fill="#2563eb" opacity=".7"/>
           </svg>
         </div>
 
@@ -1745,10 +1738,10 @@
             <!-- calzada -->
             <rect x="0" y="100" width="320" height="100" fill="url(#streetGrad)"/>
             <!-- líneas de carril -->
-            <g stroke="#2a3754" stroke-width="2" stroke-dasharray="14 10">
+            <g stroke="#3a4050" stroke-width="2" stroke-dasharray="14 10">
               <line x1="0" y1="170" x2="320" y2="170"/>
             </g>
-            <line x1="0" y1="100" x2="320" y2="100" stroke="#fbbf24" stroke-width="1.5" opacity=".4"/>
+            <line x1="0" y1="100" x2="320" y2="100" stroke="#2563eb" stroke-width="1.5" opacity=".4"/>
 
             <!-- gases/atmósfera saliendo del registro -->
             <g opacity=".55">
@@ -1759,9 +1752,9 @@
 
             <!-- símbolo de atmósfera peligrosa (triángulo con !) -->
             <g transform="translate(202,30)">
-              <path d="M0,28 L16,0 L32,28 Z" fill="#0a0e1a" stroke="#fbbf24" stroke-width="2.2" stroke-linejoin="round"/>
-              <rect x="14.5" y="9" width="3" height="11" fill="#fbbf24" rx="1"/>
-              <circle cx="16" cy="23.5" r="1.6" fill="#fbbf24"/>
+              <path d="M0,28 L16,0 L32,28 Z" fill="#0a0e1a" stroke="#2563eb" stroke-width="2.2" stroke-linejoin="round"/>
+              <rect x="14.5" y="9" width="3" height="11" fill="#2563eb" rx="1"/>
+              <circle cx="16" cy="23.5" r="1.6" fill="#2563eb"/>
             </g>
 
             <!-- TAPA abierta (en el aire, levantada) -->
@@ -1769,7 +1762,7 @@
               <ellipse cx="44" cy="14" rx="48" ry="10" fill="url(#coverGrad)" stroke="#0a0e1a" stroke-width="1"/>
               <ellipse cx="44" cy="12" rx="44" ry="8" fill="none" stroke="#0a0e1a" stroke-width="1" opacity=".6"/>
               <!-- texto/logo en la tapa -->
-              <text x="44" y="15" text-anchor="middle" font-family="JetBrains Mono, monospace"
+              <text x="44" y="15" text-anchor="middle" font-family="ui-monospace,'Segoe UI Mono',monospace"
                     font-size="7" fill="#0a0e1a" font-weight="700" letter-spacing="1">TLF</text>
               <!-- ganchos -->
               <rect x="20" y="2" width="4" height="6" fill="#0a0e1a" rx="1"/>
@@ -2685,7 +2678,7 @@
           <div class="field">
             <span class="field-label">Código del grupo (6 dígitos)</span>
             <input class="input" type="tel" inputmode="numeric" maxlength="6" id="s-sync-pin-input"
-                   placeholder="ej. 472831" style="letter-spacing:6px;font-size:22px;text-align:center;font-family:'JetBrains Mono',monospace;">
+                   placeholder="ej. 472831" style="letter-spacing:6px;font-size:22px;text-align:center;font-family:ui-monospace,'Segoe UI Mono',monospace;">
           </div>
           <div style="display:flex;gap:8px;margin-top:8px;">
             <button type="button" class="btn btn-ghost" id="s-sync-join-cancel" style="flex:1;">Cancelar</button>
@@ -2699,7 +2692,7 @@
         <!-- Display del código -->
         <div style="background:var(--surface);border:1px solid var(--line-2);border-radius:14px;padding:16px;text-align:center;">
           <p style="font-size:11px;color:var(--text-mute);margin:0 0 8px;text-transform:uppercase;letter-spacing:.8px;">Código del grupo</p>
-          <div id="s-sync-pin-display" style="font-size:34px;font-weight:700;letter-spacing:10px;font-family:'JetBrains Mono',monospace;color:var(--amber);margin:0 0 12px;"></div>
+          <div id="s-sync-pin-display" style="font-size:34px;font-weight:700;letter-spacing:10px;font-family:ui-monospace,'Segoe UI Mono',monospace;color:var(--amber);margin:0 0 12px;"></div>
           <div style="display:flex;gap:8px;justify-content:center;">
             <button type="button" class="btn btn-ghost" id="s-sync-copy" style="padding:10px 16px;font-size:13px;">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="width:16px;height:16px;">
@@ -2822,7 +2815,7 @@
             <div class="field">
               <span class="field-label">Código que usará el equipo (4-8 dígitos)</span>
               <input class="input" type="tel" inputmode="numeric" id="s-access-new-code" placeholder="ej. 8472" maxlength="8"
-                     style="letter-spacing:6px;font-size:20px;text-align:center;font-family:'JetBrains Mono',monospace;">
+                     style="letter-spacing:6px;font-size:20px;text-align:center;font-family:ui-monospace,'Segoe UI Mono',monospace;">
             </div>
             <button type="button" class="btn btn-primary" id="s-access-activate">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" style="width:18px;height:18px;">
@@ -2837,7 +2830,7 @@
             </div>
             <div style="background:var(--surface);border-radius:12px;padding:14px;text-align:center;">
               <p style="font-size:11px;color:var(--text-mute);margin:0 0 6px;text-transform:uppercase;letter-spacing:.8px;">Código actual</p>
-              <div id="s-access-code-display" style="font-size:34px;font-weight:700;letter-spacing:10px;font-family:'JetBrains Mono',monospace;color:var(--amber);margin:0 0 10px;"></div>
+              <div id="s-access-code-display" style="font-size:34px;font-weight:700;letter-spacing:10px;font-family:ui-monospace,'Segoe UI Mono',monospace;color:var(--amber);margin:0 0 10px;"></div>
               <div style="display:flex;gap:8px;justify-content:center;">
                 <button type="button" class="btn btn-ghost" id="s-access-copy" style="padding:9px 14px;font-size:13px;">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="width:14px;height:14px;"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Copiar
@@ -2938,7 +2931,7 @@
       <p style="margin:0 0 14px;font-size:13.5px;color:var(--text-dim);line-height:1.5;">
         El parte se ha generado y guardado en <b style="color:var(--text)">Historial</b>. ¿Qué quieres hacer ahora?
       </p>
-      <div id="mpr-filename" style="font-family:'JetBrains Mono', monospace; font-size:12px; color: var(--text-mute); padding: 10px 12px; background: var(--surface); border-radius: 10px; word-break: break-all; margin-bottom: 16px;"></div>
+      <div id="mpr-filename" style="font-family:ui-monospace,'Segoe UI Mono',monospace; font-size:12px; color: var(--text-mute); padding: 10px 12px; background: var(--surface); border-radius: 10px; word-break: break-all; margin-bottom: 16px;"></div>
       <div style="display:flex; flex-direction:column; gap: 10px;">
         <button type="button" class="btn btn-primary" id="mpr-share" style="justify-content:flex-start; padding: 16px 18px;">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;">
@@ -2967,13 +2960,13 @@
 
   <!-- ===== BANNER ACTUALIZACIÓN ===== -->
   <div id="update-banner" style="display:none;position:fixed;inset:0;z-index:9998;background:rgba(5,8,16,.9);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);align-items:center;justify-content:center;padding:24px;">
-    <div style="background:var(--bg-2);border:2px solid var(--amber);border-radius:24px;padding:32px 28px;max-width:360px;width:100%;text-align:center;box-shadow:0 0 60px rgba(251,191,36,.3),0 24px 80px rgba(0,0,0,.5);">
-      <div style="width:68px;height:68px;background:var(--amber);border-radius:20px;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;box-shadow:0 8px 24px rgba(251,191,36,.4);">
+    <div style="background:var(--bg-2);border:2px solid var(--amber);border-radius:24px;padding:32px 28px;max-width:360px;width:100%;text-align:center;box-shadow:0 0 60px rgba(37,99,235,.3),0 24px 80px rgba(0,0,0,.5);">
+      <div style="width:68px;height:68px;background:var(--amber);border-radius:20px;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;box-shadow:0 8px 24px rgba(37,99,235,.4);">
         <svg viewBox="0 0 24 24" fill="none" stroke="#050810" stroke-width="2.5" stroke-linecap="round" style="width:36px;height:36px;">
           <path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M3 22v-6h6"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/>
         </svg>
       </div>
-      <div style="display:inline-block;background:rgba(251,191,36,.15);border:1px solid rgba(251,191,36,.4);border-radius:20px;padding:4px 12px;font-size:12px;font-weight:700;color:var(--amber);letter-spacing:.5px;margin-bottom:12px;">ACTUALIZACIÓN DISPONIBLE</div>
+      <div style="display:inline-block;background:rgba(37,99,235,.15);border:1px solid rgba(37,99,235,.4);border-radius:20px;padding:4px 12px;font-size:12px;font-weight:700;color:var(--amber);letter-spacing:.5px;margin-bottom:12px;">ACTUALIZACIÓN DISPONIBLE</div>
       <h2 style="font-size:24px;font-weight:800;color:var(--text);margin:0 0 10px;line-height:1.2;">Nueva versión lista</h2>
       <p style="font-size:14.5px;color:var(--text-dim);margin:0 0 24px;line-height:1.6;">Hay mejoras disponibles. Para aplicarlas, cierra la app completamente y vuelve a abrirla.</p>
       <button type="button" id="update-banner-close"
@@ -4260,7 +4253,7 @@ const Postes = {
     empty.style.display = 'none';
     wrap.innerHTML = list.map(w => {
       const active = this.state.workersSelected.includes(w.id);
-      const tempBadge = w._temp ? ' <span style="font-family:JetBrains Mono,monospace;font-size:10px;color:var(--amber);letter-spacing:.1em;margin-left:2px;">·TMP</span>' : '';
+      const tempBadge = w._temp ? ' <span style="font-family:ui-monospace,'Segoe UI Mono',monospace;font-size:10px;color:var(--amber);letter-spacing:.1em;margin-left:2px;">·TMP</span>' : '';
       return `<button type="button" class="chip" aria-pressed="${active}" data-worker="${this.esc(w.id)}">
         <span class="dot"></span>${this.esc(w.nombre)}${tempBadge}
       </button>`;
@@ -4721,7 +4714,7 @@ const Ccrr = {
     empty.style.display = 'none';
     wrap.innerHTML = list.map(w => {
       const active = this.state.workersSelected.includes(w.id);
-      const tempBadge = w._temp ? ' <span style="font-family:JetBrains Mono,monospace;font-size:10px;color:var(--amber);letter-spacing:.1em;margin-left:2px;">·TMP</span>' : '';
+      const tempBadge = w._temp ? ' <span style="font-family:ui-monospace,'Segoe UI Mono',monospace;font-size:10px;color:var(--amber);letter-spacing:.1em;margin-left:2px;">·TMP</span>' : '';
       return `<button type="button" class="chip" aria-pressed="${active}" data-worker="${this.esc(w.id)}">
         <span class="dot"></span>${this.esc(w.nombre)}${tempBadge}
       </button>`;
@@ -6042,11 +6035,10 @@ const Pdf = {
     // Limpiar caracteres problemáticos en filename pero permitir espacios y º
     fileName = fileName.replace(/[<>:"\\|?*]/g, '_');
 
-    // Convertir a dataURL para guardar
+    // Crear blob para entrega inmediata (no se guarda en localStorage)
     const blob = new Blob([pdfBytes], { type: 'application/pdf' });
-    const dataUrl = await this._blobToDataURL(blob);
 
-    // Guardar metadata + dataURL en historial
+    // Guardar solo metadata + datos del formulario (sin PDF) en historial
     const reports = App.load(App.KEYS.reports, []);
     const entry = {
       id: 'r_' + Date.now() + '_' + Math.random().toString(36).slice(2,6),
@@ -6057,11 +6049,11 @@ const Pdf = {
         : `${data.turno || ''} · ${data.trabajo ? data.trabajo.slice(0, 40) : ''}`,
       created_at: new Date().toISOString(),
       fileName,
-      data,
-      pdf: dataUrl
+      data
+      // pdf ya no se guarda — se regenera bajo demanda para no saturar localStorage
     };
     reports.unshift(entry);
-    if(reports.length > 80) reports.length = 80;
+    if(reports.length > 200) reports.length = 200;
     App.save(App.KEYS.reports, reports);
     App.refreshHomeStats();
 
@@ -6178,9 +6170,23 @@ const Pdf = {
     setTimeout(() => URL.revokeObjectURL(url), 60000);
   },
 
+  async _rebuildBlob(entry){
+    try {
+      App.toast('Regenerando PDF…');
+      const bytes = entry.type === 'postes'
+        ? await Partes.buildPostes(entry.data)
+        : await Partes.buildCcrr(entry.data);
+      return new Blob([bytes], { type: 'application/pdf' });
+    } catch(e){
+      console.error(e);
+      App.toast('Error al regenerar el PDF');
+      throw e;
+    }
+  },
+
   async share(entry){
     try {
-      const blob = this._dataURLtoBlob(entry.pdf);
+      const blob = await this._rebuildBlob(entry);
       const file = new File([blob], entry.fileName, { type: 'application/pdf' });
       if(navigator.canShare && navigator.canShare({ files: [file] })){
         await navigator.share({ files: [file], title: entry.title });
@@ -6198,13 +6204,12 @@ const Pdf = {
   },
 
   async download(entry){
-    const blob = this._dataURLtoBlob(entry.pdf);
-    // Mismo flujo que generación: en iOS abre share/pestaña, en resto descarga.
+    const blob = await this._rebuildBlob(entry);
     await this._deliverBlob(blob, entry.fileName, entry.title);
   },
 
-  view(entry){
-    const blob = this._dataURLtoBlob(entry.pdf);
+  async view(entry){
+    const blob = await this._rebuildBlob(entry);
     this._openBlobInNewTab(blob);
   },
 
@@ -6343,7 +6348,7 @@ const History = {
     wrap.innerHTML = list.map(r => `
       <div class="item-card" data-id="${this._esc(r.id)}">
         <div style="width:36px;height:36px;border-radius:8px;background:var(--surface);border:1px solid var(--line-2);display:grid;place-items:center;flex-shrink:0;">
-          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="${r.type === 'postes' ? '#fbbf24' : '#38bdf8'}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="${r.type === 'postes' ? '#2563eb' : '#38bdf8'}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             ${r.type === 'postes'
               ? '<path d="M12 3v18"/><path d="M5 7c2 1.5 4 2.2 7 2.2S17 8.5 19 7"/>'
               : '<circle cx="12" cy="14" r="6"/><path d="M6 8 Q12 4 18 8"/>'}
@@ -6429,10 +6434,10 @@ const History = {
     const partes = App.load(App.KEYS.reports, [])
       .filter(r => (r.fecha || r.created_at || r.createdAt || '').startsWith(today));
     if(partes.length === 0){ App.toast('No hay partes de hoy'); return; }
-    App.toast(`Descargando ${partes.length} partes…`);
+    App.toast(`Regenerando y descargando ${partes.length} partes…`);
     for(const r of partes){
-      await new Promise(ok => setTimeout(ok, 300)); // pequeña pausa entre descargas
-      const blob = Pdf._dataURLtoBlob(r.pdf);
+      await new Promise(ok => setTimeout(ok, 300));
+      const blob = await this._rebuildBlob(r);
       await Pdf._deliverBlob(blob, r.fileName, r.title);
     }
   },

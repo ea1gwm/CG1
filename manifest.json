@@ -4,8 +4,8 @@
   "description": "Generación de partes de seguridad para trabajos en postes y cámaras de registro de Telefonía.",
   "start_url": "./",
   "display": "standalone",
-  "background_color": "#0a0e1a",
-  "theme_color": "#fbbf24",
+  "background_color": "#1a1d24",
+  "theme_color": "#2563eb",
   "orientation": "portrait-primary",
   "icons": [
     {
