@@ -16,6 +16,12 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
 <script src="https://unpkg.com/@pdf-lib/fontkit@1.1.1/dist/fontkit.umd.min.js"></script>
 
+<!-- Leaflet para mapa de búsqueda GPS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+  integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+<script defer src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+  integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
 <!-- PWA -->
 <script>
   // Aplicar tema antes de renderizar para evitar flash
@@ -1917,6 +1923,16 @@
           </select>
         </div>
 
+        <!-- Botón: buscar poste cercano por GPS -->
+        <button type="button" class="btn btn-ghost" id="p-buscar-cerca"
+          style="width:100%;display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:10px;">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/>
+            <path d="M12 3v3M12 18v3M3 12h3M18 12h3"/>
+          </svg>
+          Buscar poste cercano
+        </button>
+
         <div class="field-row">
           <div class="field">
             <span class="field-label">Nº Poste</span>
@@ -2216,6 +2232,16 @@
       <!-- 01. Identificación -->
       <section class="form-section">
         <div class="sec-head"><span class="sec-num">01</span><span class="sec-title">Identificación</span></div>
+        <!-- Botón: buscar cámara cercana por GPS -->
+        <button type="button" class="btn btn-ghost" id="c-buscar-cerca"
+          style="width:100%;display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:10px;">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/>
+            <path d="M12 3v3M12 18v3M3 12h3M18 12h3"/>
+          </svg>
+          Buscar cámara cercana
+        </button>
+
         <div class="field">
           <span class="field-label">Nº CCRR / PTRO <span class="hint">(ej. Cr 01)</span></span>
           <input class="input" type="text" id="c-num" placeholder="Cr 01">
@@ -2588,10 +2614,35 @@
       <button type="button" class="btn btn-primary" id="pref-save">Guardar preferencias</button>
     </section>
 
-    <!-- RP por defecto -->
+    <!-- Búsqueda GPS de elementos cercanos -->
     <section class="settings-section">
       <div class="sec-head">
         <span class="sec-num">04</span>
+        <span class="sec-title">Búsqueda GPS de postes / cámaras</span>
+      </div>
+      <p style="font-size:13px;color:var(--text-dim);margin:0 0 14px;">Ajustes para el botón "Buscar cercano" de los formularios.</p>
+
+      <div class="field-row">
+        <div class="field">
+          <span class="field-label">Radio máximo (m)</span>
+          <input class="input" type="number" id="geo-radius" min="50" max="5000" step="50" value="500">
+        </div>
+        <div class="field">
+          <span class="field-label">Precisión mínima GPS (m)</span>
+          <input class="input" type="number" id="geo-min-acc" min="5" max="200" step="5" value="50">
+        </div>
+      </div>
+      <p style="font-size:12px;color:var(--text-mute);margin:6px 0 14px;line-height:1.5;">
+        <b>Radio:</b> solo se muestran elementos dentro de este radio.<br>
+        <b>Precisión:</b> si tu GPS reporta peor precisión que esto, se avisa antes de buscar.
+      </p>
+      <button type="button" class="btn btn-primary" id="geo-save">Guardar ajustes GPS</button>
+    </section>
+
+    <!-- RP por defecto -->
+    <section class="settings-section">
+      <div class="sec-head">
+        <span class="sec-num">05</span>
         <span class="sec-title">Recurso Preventivo por defecto</span>
       </div>
       <p style="font-size:12.5px;color:var(--text-mute);margin:-6px 0 12px;line-height:1.5;">
@@ -2922,6 +2973,36 @@
         </button>
         <button type="button" class="btn btn-ghost" data-close-mw style="flex:1;">Cancelar</button>
         <button type="button" class="btn btn-primary" id="mw-save" style="flex:1;">Guardar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Buscar elemento cercano por GPS -->
+  <div class="modal-backdrop" id="modal-geo-search" role="dialog" aria-modal="true" aria-labelledby="mgs-title">
+    <div class="modal" style="max-width:560px;width:100%;">
+      <div class="modal-head">
+        <h3 id="mgs-title">Cercanos</h3>
+        <button class="modal-close" type="button" aria-label="Cerrar"
+          onclick="document.getElementById('modal-geo-search').classList.remove('show')">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="modal-body" style="padding:12px 16px 20px;">
+        <p id="mgs-sub" style="font-size:12px;color:var(--text-mute);margin:0 0 10px;text-align:center;"></p>
+        <!-- Switch Lista / Mapa -->
+        <div style="display:flex;gap:4px;background:var(--surface);border-radius:8px;padding:3px;margin-bottom:10px;">
+          <button type="button" id="mgs-tab-list" class="mgs-tab"
+            style="flex:1;padding:8px;background:var(--amber);border:none;border-radius:6px;color:#fff;font-weight:700;font-size:13px;cursor:pointer;">Lista</button>
+          <button type="button" id="mgs-tab-map" class="mgs-tab"
+            style="flex:1;padding:8px;background:transparent;border:none;border-radius:6px;color:var(--text-dim);font-weight:600;font-size:13px;cursor:pointer;">Mapa</button>
+        </div>
+        <div id="mgs-list" style="max-height:55vh;overflow-y:auto;"></div>
+        <div id="mgs-map-wrap" style="display:none;">
+          <div id="mgs-map" style="height:50vh;min-height:320px;border-radius:10px;overflow:hidden;border:1px solid var(--line);background:#222;"></div>
+          <p style="font-size:11.5px;color:var(--text-mute);margin:8px 0 0;text-align:center;line-height:1.5;">
+            🔵 Tu posición · 🟡 Elementos cercanos · Toca un pin para seleccionarlo
+          </p>
+        </div>
       </div>
     </div>
   </div>
@@ -3539,7 +3620,7 @@
    ============================================================= */
 
 const App = {
-  version: '0.8.8',
+  version: '0.9.0',
   step: 7,
 
   // ── TEMA ──────────────────────────────────────────────────────
@@ -8254,6 +8335,363 @@ document.addEventListener('DOMContentLoaded', () => PWA.init());
 document.addEventListener('DOMContentLoaded', () => History.init());
 document.addEventListener('DOMContentLoaded', () => Manual.init());
 document.addEventListener('DOMContentLoaded', async () => { await Access.check(); });
+document.addEventListener('DOMContentLoaded', () => GeoDB.init());
+
+/* =====================================================================
+   GEO DB — Búsqueda de postes y cámaras cercanas usando GPS
+   Carga dos BDs gzipped al primer uso (lazy) y mantiene en memoria.
+   ===================================================================== */
+const GeoDB = {
+  _postes:   null,   // {count, rows: [[gid,name,material,structure,lat,lon], ...]}
+  _camaras:  null,
+  _loading:  {},     // {postes: Promise, camaras: Promise}
+
+  // Valores por defecto si no hay ajustes guardados
+  DEFAULT_RADIUS_M:    500,
+  DEFAULT_MIN_ACC_M:    50,
+
+  getRadius()  { return parseInt(App.setting('geo_radius_m'),   10) || this.DEFAULT_RADIUS_M; },
+  getMinAcc()  { return parseInt(App.setting('geo_min_acc_m'),  10) || this.DEFAULT_MIN_ACC_M; },
+
+  init(){
+    const pBtn = document.getElementById('p-buscar-cerca');
+    const cBtn = document.getElementById('c-buscar-cerca');
+    if(pBtn) pBtn.addEventListener('click', () => this.openSearch('postes'));
+    if(cBtn) cBtn.addEventListener('click', () => this.openSearch('camaras'));
+
+    // Cargar ajustes guardados en los campos del panel Ajustes
+    const rEl = document.getElementById('geo-radius');
+    const aEl = document.getElementById('geo-min-acc');
+    if(rEl) rEl.value = this.getRadius();
+    if(aEl) aEl.value = this.getMinAcc();
+    const sBtn = document.getElementById('geo-save');
+    if(sBtn) sBtn.addEventListener('click', () => {
+      const r = parseInt(rEl.value, 10);
+      const a = parseInt(aEl.value, 10);
+      if (isNaN(r) || r < 50 || r > 5000) { App.toast('Radio entre 50 y 5000 m'); return; }
+      if (isNaN(a) || a < 5  || a > 200)  { App.toast('Precisión entre 5 y 200 m'); return; }
+      App.saveSetting('geo_radius_m',  r);
+      App.saveSetting('geo_min_acc_m', a);
+      App.toast('✓ Ajustes GPS guardados');
+    });
+  },
+
+  // Carga la BD comprimida desde el servidor (lazy + cache memoria)
+  async load(type){
+    if(this['_'+type]) return this['_'+type];
+    if(this._loading[type]) return this._loading[type];
+    this._loading[type] = (async () => {
+      const url = type === 'postes' ? 'db-postes.json.gz' : 'db-camaras.json.gz';
+      const r = await fetch(url);
+      if(!r.ok) throw new Error('No se pudo cargar ' + url);
+      const ds = new DecompressionStream('gzip');
+      const stream = r.body.pipeThrough(ds);
+      const txt = await new Response(stream).text();
+      const db  = JSON.parse(txt);
+      this['_'+type] = db;
+      return db;
+    })();
+    return this._loading[type];
+  },
+
+  _currentType: null,
+  _currentPos:  null,
+  _currentNear: [],
+  _map: null,
+  _mapMarkers: [],
+  _mapReady: false,
+
+  // Pedir GPS y mostrar modal con los más cercanos
+  async openSearch(type){
+    const modal = document.getElementById('modal-geo-search');
+    const list  = document.getElementById('mgs-list');
+    const title = document.getElementById('mgs-title');
+    const sub   = document.getElementById('mgs-sub');
+    this._currentType = type;
+    title.textContent = type === 'postes' ? 'Postes cercanos' : 'Cámaras (CR) cercanas';
+    sub.textContent = 'Obteniendo tu posición GPS…';
+    list.innerHTML = '<div style="padding:24px;text-align:center;color:var(--text-mute);">Cargando…</div>';
+    // Reset: mostrar lista, ocultar mapa al abrir
+    document.getElementById('mgs-list').style.display = 'block';
+    document.getElementById('mgs-map-wrap').style.display = 'none';
+    this._setActiveTab('list');
+    // Enganchar tabs (idempotente)
+    this._bindTabs();
+    modal.classList.add('show');
+
+    let pos;
+    try {
+      pos = await new Promise((res, rej) => {
+        if(!navigator.geolocation) return rej(new Error('GPS no disponible'));
+        navigator.geolocation.getCurrentPosition(
+          p => res(p.coords),
+          e => rej(e),
+          { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 }
+        );
+      });
+    } catch(e) {
+      list.innerHTML = `<div style="padding:24px;text-align:center;color:var(--red);">
+        No se pudo obtener tu ubicación.<br><small>${this._esc(e.message || 'Error GPS')}</small>
+      </div>`;
+      sub.textContent = '';
+      return;
+    }
+
+    const acc    = Math.round(pos.accuracy);
+    const minAcc = this.getMinAcc();
+    const radius = this.getRadius();
+    const accColor = acc > minAcc ? 'var(--red)' : 'var(--green)';
+    sub.innerHTML = `Tu posición: <b>${pos.latitude.toFixed(5)}, ${pos.longitude.toFixed(5)}</b>
+      · precisión <span style="color:${accColor};font-weight:700;">±${acc} m</span>
+      · radio <b>${radius} m</b>`;
+
+    let db;
+    try {
+      list.innerHTML = '<div style="padding:24px;text-align:center;color:var(--text-mute);">Buscando…</div>';
+      db = await this.load(type);
+    } catch(e) {
+      list.innerHTML = `<div style="padding:24px;text-align:center;color:var(--red);">
+        Error cargando la base de datos.<br><small>${this._esc(e.message)}</small>
+      </div>`;
+      return;
+    }
+
+    const near = this.findNearest(pos.latitude, pos.longitude, db.rows, 15, radius);
+    this._currentPos  = { lat: pos.latitude, lon: pos.longitude, acc: acc };
+    this._currentNear = near;
+    const accWarn = acc > minAcc
+      ? `<div style="padding:10px 12px;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.3);border-radius:8px;margin-bottom:10px;font-size:12.5px;color:var(--text);line-height:1.5;">
+           ⚠️ <b>Precisión GPS baja</b> (±${acc} m). Los resultados pueden no ser exactos. Espera unos segundos o sal a un sitio abierto y reintenta.
+         </div>` : '';
+    if(near.length === 0){
+      list.innerHTML = accWarn + `<div style="padding:24px;text-align:center;color:var(--text-mute);">
+        No hay ${type === 'postes' ? 'postes' : 'cámaras'} en ${radius} m.<br>
+        <small>Aumenta el radio en Ajustes → Búsqueda GPS.</small>
+      </div>`;
+      return;
+    }
+    list.innerHTML = accWarn + near.map((it, i) => `
+      <button type="button" class="geo-item" data-i="${i}"
+        style="display:flex;align-items:center;gap:12px;width:100%;padding:12px 14px;background:var(--surface);border:1px solid var(--line);border-radius:10px;margin-bottom:8px;text-align:left;cursor:pointer;color:var(--text);">
+        <div style="flex:0 0 60px;text-align:center;">
+          <div style="font-size:18px;font-weight:700;color:var(--amber);line-height:1;">${it.dist}</div>
+          <div style="font-size:10px;color:var(--text-mute);margin-top:2px;">metros</div>
+        </div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:13px;font-weight:600;color:var(--text);line-height:1.3;">${this._esc(this._displayName(type, it.row))}</div>
+          <div style="font-size:11px;color:var(--text-mute);margin-top:3px;">${this._esc(it.row[2] || '—')}</div>
+        </div>
+      </button>
+    `).join('');
+
+    list.querySelectorAll('.geo-item').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const idx  = +btn.dataset.i;
+        const item = near[idx];
+        this.applySelection(type, item.row);
+        modal.classList.remove('show');
+      });
+    });
+  },
+
+  // ── Tabs Lista / Mapa ─────────────────────────────────────────────
+  _bindTabs(){
+    if(this._tabsBound) return;
+    this._tabsBound = true;
+    document.getElementById('mgs-tab-list').addEventListener('click', () => this._showTab('list'));
+    document.getElementById('mgs-tab-map').addEventListener('click',  () => this._showTab('map'));
+  },
+  _setActiveTab(which){
+    const lBtn = document.getElementById('mgs-tab-list');
+    const mBtn = document.getElementById('mgs-tab-map');
+    const active   = { background:'var(--amber)',     color:'#fff',          fontWeight:'700' };
+    const inactive = { background:'transparent',      color:'var(--text-dim)', fontWeight:'600' };
+    Object.assign((which==='list'?lBtn:mBtn).style, active);
+    Object.assign((which==='list'?mBtn:lBtn).style, inactive);
+  },
+  _showTab(which){
+    this._setActiveTab(which);
+    const list = document.getElementById('mgs-list');
+    const map  = document.getElementById('mgs-map-wrap');
+    if(which === 'list'){
+      list.style.display = 'block';
+      map.style.display  = 'none';
+    } else {
+      list.style.display = 'none';
+      map.style.display  = 'block';
+      this._renderMap();
+    }
+  },
+
+  // ── Renderizar mapa Leaflet ───────────────────────────────────────
+  _renderMap(){
+    if(typeof L === 'undefined'){
+      document.getElementById('mgs-map').innerHTML =
+        '<div style="padding:24px;text-align:center;color:var(--text-mute);">Cargando mapa…</div>';
+      // Reintenta cuando Leaflet termine de cargar (defer script)
+      const wait = setInterval(() => {
+        if(typeof L !== 'undefined'){ clearInterval(wait); this._renderMap(); }
+      }, 200);
+      return;
+    }
+    if(!this._currentPos){
+      document.getElementById('mgs-map').innerHTML =
+        '<div style="padding:24px;text-align:center;color:var(--text-mute);">Necesitas obtener tu posición primero.</div>';
+      return;
+    }
+    const { lat, lon, acc } = this._currentPos;
+    if(!this._map){
+      this._map = L.map('mgs-map', { zoomControl: true }).setView([lat, lon], 17);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '© OpenStreetMap'
+      }).addTo(this._map);
+    } else {
+      this._map.setView([lat, lon], 17);
+    }
+    // Limpia marcadores previos
+    this._mapMarkers.forEach(m => this._map.removeLayer(m));
+    this._mapMarkers = [];
+
+    // Círculo de precisión + punto azul (tú)
+    const youCircle = L.circle([lat, lon], {
+      radius: acc, color:'#2563eb', fillColor:'#2563eb', fillOpacity:0.10, weight:1
+    }).addTo(this._map);
+    const youDot = L.circleMarker([lat, lon], {
+      radius: 8, color:'#fff', weight:2, fillColor:'#2563eb', fillOpacity:1
+    }).addTo(this._map).bindPopup('<b>Tú</b><br>±' + acc + ' m');
+    this._mapMarkers.push(youCircle, youDot);
+
+    // Marcadores de elementos cercanos
+    const type = this._currentType;
+    this._currentNear.forEach((it, i) => {
+      const r = it.row;
+      const marker = L.circleMarker([r[4], r[5]], {
+        radius: 9, color:'#fff', weight:2, fillColor:'#fbbf24', fillOpacity:1
+      }).addTo(this._map);
+      const name = this._displayName(type, r);
+      const popup = `
+        <div style="font-family:-apple-system,'Segoe UI',Roboto,sans-serif;min-width:160px;">
+          <div style="font-weight:700;font-size:13px;margin-bottom:2px;">${this._esc(name)}</div>
+          <div style="font-size:11px;color:#555;margin-bottom:6px;">${this._esc(r[2] || '—')} · ${it.dist} m</div>
+          <button type="button" class="mgs-popup-pick" data-i="${i}"
+            style="width:100%;padding:7px 10px;background:#2563eb;color:#fff;border:none;border-radius:6px;font-weight:700;cursor:pointer;font-size:12px;">
+            Seleccionar
+          </button>
+        </div>`;
+      marker.bindPopup(popup);
+      this._mapMarkers.push(marker);
+    });
+
+    // Ajustar vista para que se vean todos
+    if(this._currentNear.length > 0){
+      const pts = [[lat, lon], ...this._currentNear.map(it => [it.row[4], it.row[5]])];
+      this._map.fitBounds(pts, { padding: [30, 30], maxZoom: 18 });
+    }
+
+    // Refrescar tamaño (importante: el div estaba display:none al crear)
+    setTimeout(() => this._map.invalidateSize(), 100);
+
+    // Click en popup "Seleccionar"
+    this._map.off('popupopen');
+    this._map.on('popupopen', (e) => {
+      const btn = e.popup.getElement().querySelector('.mgs-popup-pick');
+      if(btn) btn.onclick = () => {
+        const idx = +btn.dataset.i;
+        const item = this._currentNear[idx];
+        this.applySelection(this._currentType, item.row);
+        document.getElementById('modal-geo-search').classList.remove('show');
+      };
+    });
+  },
+
+  // Nombre legible (corto) para la lista
+  _displayName(type, row){
+    const raw = row[1] || '';
+    if(type === 'postes'){
+      const mLin = raw.match(/L\s*(\d+)/i);
+      const mNum = raw.match(/N[ºo°]\s*(\d+)/i);
+      if(mLin && mNum) return `Línea ${mLin[1]} · Nº ${mNum[1]}`;
+    } else {
+      const mCR = raw.match(/CR\s*([A-Z]*)\s*(\d+)/i);
+      if(mCR) return `Cr ${mCR[1] ? mCR[1] + ' ' : ''}${mCR[2]}`;
+    }
+    return raw;
+  },
+
+  // Devuelve los N más cercanos por distancia Haversine, dentro de maxMeters.
+  // Pre-filtra por bounding box para acelerar sobre 100k+ rows.
+  findNearest(lat, lon, rows, topN = 15, maxMeters = 500){
+    // BBOX = maxMeters convertido a grados (con margen)
+    const DLAT = (maxMeters / 111000) * 1.2;
+    const DLON = DLAT / Math.cos(lat * Math.PI/180);
+    const candidates = [];
+    for (let i = 0; i < rows.length; i++) {
+      const r = rows[i];
+      const a = r[4], o = r[5];
+      if (Math.abs(a - lat) > DLAT) continue;
+      if (Math.abs(o - lon) > DLON) continue;
+      candidates.push(r);
+    }
+    const withDist = [];
+    for (const r of candidates) {
+      const d = this._haversine(lat, lon, r[4], r[5]);
+      if (d <= maxMeters) withDist.push({ row: r, dist: Math.round(d) });
+    }
+    withDist.sort((a, b) => a.dist - b.dist);
+    return withDist.slice(0, topN);
+  },
+
+  _haversine(lat1, lon1, lat2, lon2){
+    const R = 6371000;
+    const toRad = d => d * Math.PI / 180;
+    const dLat = toRad(lat2 - lat1);
+    const dLon = toRad(lon2 - lon1);
+    const a = Math.sin(dLat/2)**2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon/2)**2;
+    return 2 * R * Math.asin(Math.sqrt(a));
+  },
+
+  // Rellenar campos del formulario con los datos del elemento seleccionado
+  applySelection(type, row){
+    const name = row[1];
+    const mat  = (row[2] || '').toUpperCase();
+    if (type === 'postes') {
+      // FIELD_NAME ejemplo: "L 1510003 Nº 360 (9E) (ID 1272639)"
+      const mLin = name.match(/L\s*(\d+)/i);
+      const mNum = name.match(/N[ºo°]\s*(\d+)/i);
+      if (mNum) document.getElementById('p-num-poste').value = mNum[1];
+      if (mLin) document.getElementById('p-num-linea').value = mLin[1];
+
+      // Auto-seleccionar tipo de poste según MATERIAL_T
+      let tipo = null;
+      if (mat.includes('MADERA')) tipo = 'Madera';
+      else if (mat.includes('HORMIG') || mat.includes('HOMRIG') || mat.includes('HORMII') || mat.includes('CONCRETO') || mat.includes('COCRETO')) tipo = 'Hormigón';
+      else if (mat.includes('FIBRA') || mat.includes('PRFV')) tipo = 'Fibra';
+      if (tipo) {
+        const segmented = document.getElementById('p-tipo');
+        if (segmented) {
+          segmented.querySelectorAll('button').forEach(b => {
+            const isOne = b.dataset.val === tipo;
+            b.setAttribute('aria-pressed', isOne ? 'true' : 'false');
+          });
+        }
+      }
+      App.toast('✓ Cargado: ' + (mLin ? 'L' + mLin[1] : '') + (mNum ? ' Nº ' + mNum[1] : '') + (tipo ? ' (' + tipo + ')' : ''));
+    } else {
+      // CR ejemplo: "CR GEN 174 (ID 1271921)"  →  num: "Cr 174"
+      const mCR = name.match(/CR\s*([A-Z]*)\s*(\d+)/i);
+      if (mCR) {
+        const tipoCR = mCR[1] ? mCR[1].toUpperCase() : '';
+        document.getElementById('c-num').value = `Cr ${tipoCR ? tipoCR + ' ' : ''}${mCR[2]}`;
+      } else {
+        document.getElementById('c-num').value = name;
+      }
+      App.toast('✓ Cámara cargada');
+    }
+  },
+
+  _esc(s){ return String(s ?? '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+};
 </script>
 
 </body>

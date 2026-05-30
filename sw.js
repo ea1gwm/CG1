@@ -7,7 +7,7 @@
    Eso fuerza al SW a invalidar la cache vieja.
    ============================================================= */
 
-const CACHE_VERSION = 'cg1-v0.8.17';
+const CACHE_VERSION = 'cg1-v0.9.0';
 const PRECACHE_URLS = [
   './',
   './index.html',
@@ -18,7 +18,9 @@ const PRECACHE_URLS = [
   './icon-512.png',
   './icon-512-maskable.png',
   './apple-touch-icon.png',
-  './favicon.png'
+  './favicon.png',
+  './db-postes.json.gz',
+  './db-camaras.json.gz'
 ];
 
 // CDNs externos a cachear cuando se carguen
