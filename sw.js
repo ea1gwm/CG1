@@ -7,7 +7,7 @@
    Eso fuerza al SW a invalidar la cache vieja.
    ============================================================= */
 
-const CACHE_VERSION = 'cg1-v0.8.8';
+const CACHE_VERSION = 'cg1-v0.8.9';
 const PRECACHE_URLS = [
   './',
   './index.html',
@@ -68,7 +68,17 @@ self.addEventListener('fetch', (event) => {
 
   const url = new URL(req.url);
 
-  // Mismo origen → cache-first
+  // Documento HTML / navegación → network-first
+  // (así una versión nueva en GitHub llega siempre que haya conexión,
+  //  sin quedar atrapada en una cache vieja)
+  if (req.mode === 'navigate' ||
+      url.pathname.endsWith('/') ||
+      url.pathname.endsWith('/index.html')) {
+    event.respondWith(networkFirstHTML(req));
+    return;
+  }
+
+  // Resto de mismo origen (pdf, iconos, manifest) → cache-first
   if (url.origin === self.location.origin) {
     event.respondWith(cacheFirst(req));
     return;
@@ -115,6 +125,23 @@ async function staleWhileRevalidate(request) {
     return response;
   }).catch(() => cached);
   return cached || networkPromise;
+}
+
+// Network-first específico para el HTML: intenta la red, actualiza la cache,
+// y solo cae a la cache si no hay conexión.
+async function networkFirstHTML(request) {
+  try {
+    const fresh = await fetch(request);
+    if (fresh && fresh.status === 200) {
+      const cache = await caches.open(CACHE_VERSION);
+      cache.put(request, fresh.clone()).catch(() => {});
+    }
+    return fresh;
+  } catch (err) {
+    const cached = await caches.match(request) || await caches.match('./index.html') || await caches.match('./');
+    if (cached) return cached;
+    throw err;
+  }
 }
 
 async function networkFirst(request) {
