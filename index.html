@@ -7842,7 +7842,23 @@ const Access = {
     const checking = document.getElementById('lock-checking');
     const form     = document.getElementById('lock-form');
     let config = null;
-    try { config = await Sync.fbGet(this.PATH_CONFIG); } catch(e) {}
+
+    // Timeout de 6 s para no quedarse colgado si Firebase no responde
+    try {
+      const timeout = new Promise(res => setTimeout(() => res(null), 6000));
+      config = await Promise.race([Sync.fbGet(this.PATH_CONFIG), timeout]);
+    } catch(e) {}
+
+    // Sin conexión o Firebase no responde: comprobar si hay token local válido
+    if(config === null && !navigator.onLine){
+      const local = App.load('cg1.access.token', null);
+      if(local){
+        screen.style.display = 'none';
+        Sync.init();
+        this.checkBadge();
+        return;
+      }
+    }
 
     if(!config || !config.enabled){
       screen.style.display = 'none';
