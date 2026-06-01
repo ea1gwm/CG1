@@ -7,7 +7,7 @@
    Eso fuerza al SW a invalidar la cache vieja.
    ============================================================= */
 
-const CACHE_VERSION = 'cg1-v0.9.12';
+const CACHE_VERSION = 'cg1-v0.9.13';
 const PRECACHE_URLS = [
   './',
   './index.html',
@@ -45,23 +45,17 @@ self.addEventListener('install', (event) => {
   );
 });
 
-/* === ACTIVATE: limpiar caches antiguas + recargar pestañas abiertas === */
+/* === ACTIVATE: limpiar caches antiguas === */
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((keys) => {
       return Promise.all(
         keys.filter(k => k !== CACHE_VERSION).map(k => caches.delete(k))
       );
-    })
-    .then(() => self.clients.claim())
-    .then(() => self.clients.matchAll({ type: 'window' }))
-    .then((clients) => {
-      // Forzar recarga de todas las pestañas/instancias abiertas para que
-      // carguen el HTML/JS nuevo en lugar de seguir con la versión vieja.
-      clients.forEach((client) => {
-        try { client.navigate(client.url); } catch(e) {}
-      });
-    })
+    }).then(() => self.clients.claim())
+    // NOTA: no forzamos recarga de las pestañas activas al activar el SW
+    // nuevo — eso provocaba el "amago de volver" molesto al abrir la app.
+    // El usuario verá el banner "Nueva versión disponible" y decidirá.
   );
 });
 
