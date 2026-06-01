@@ -1572,7 +1572,7 @@
       </span>
       <span class="brand-text">
         <span class="t1">Partes de Seguridad</span>
-        <span class="t2">Telefonía <b>·</b> <span id="brand-version">v0.9.8</span></span>
+        <span class="t2">Telefonía <b>·</b> <span id="brand-version">v0.9.9</span></span>
       </span>
     </button>
 
@@ -2244,6 +2244,24 @@
     </div>
 
     <form class="form" id="form-ccrr" autocomplete="off" novalidate>
+
+      <!-- 00. Cabecera del PDF (Suc + Empalme) -->
+      <section class="form-section">
+        <div class="sec-head"><span class="sec-num">00</span><span class="sec-title">Cabecera</span></div>
+        <div class="field-row">
+          <div class="field">
+            <span class="field-label">Suc <span class="hint">(esquina sup. izq. del PDF)</span></span>
+            <input class="input" type="text" id="c-suc" placeholder="Ej. 34570" inputmode="numeric">
+          </div>
+          <div class="field">
+            <span class="field-label">Empalme <span class="hint">(para fusionadores)</span></span>
+            <input class="input" type="text" id="c-empalme" placeholder="Ej. 01E2030">
+          </div>
+        </div>
+        <p style="font-size:11.5px;color:var(--text-mute);margin:6px 0 0;line-height:1.5;">
+          Estos dos campos solo aparecen en la cabecera del PDF (arriba del logo Telefónica). Déjalos en blanco si no aplican.
+        </p>
+      </section>
 
       <!-- 01. Identificación -->
       <section class="form-section">
@@ -3636,7 +3654,7 @@
    ============================================================= */
 
 const App = {
-  version: '0.9.8',
+  version: '0.9.9',
   step: 7,
 
   // ── TEMA ──────────────────────────────────────────────────────
@@ -5015,6 +5033,8 @@ const Ccrr = {
     }
     const setIf = (id, v) => { const e=document.getElementById(id); if(e && v!=null) e.value=v; };
     setIf('c-num',         d.num);
+    setIf('c-suc',         d.suc);
+    setIf('c-empalme',     d.empalme);
     setIf('c-provincia',   d.provincia);
     setIf('c-poblacion',   d.poblacion);
     setIf('c-direccion',   d.direccion);
@@ -5042,6 +5062,8 @@ const Ccrr = {
     return {
       turno:       this.state.turno,
       num:         v('c-num'),
+      suc:         v('c-suc'),
+      empalme:     v('c-empalme'),
       provincia:   v('c-provincia'),
       poblacion:   v('c-poblacion'),
       direccion:   v('c-direccion'),
@@ -5973,6 +5995,10 @@ const Pdf = {
     };
 
     // === PÁGINA 1: textos ===
+    // Cabecera (encima del logo Telefónica): "Suc XXXX" a la izq, Empalme a la dcha
+    if(d.suc)     txt1( 60, 795, 10, 'Suc ' + d.suc);
+    if(d.empalme) txt1(490, 795, 10, d.empalme);
+
     txt1(94,  718, 9, d.num);
     txt1(243, 717, 9, d.provincia);
     txt1(398, 717, 9, d.poblacion);
