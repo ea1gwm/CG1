@@ -1572,7 +1572,7 @@
       </span>
       <span class="brand-text">
         <span class="t1">Partes de Seguridad</span>
-        <span class="t2">Telefonía <b>·</b> <span id="brand-version">v0.9.6</span></span>
+        <span class="t2">Telefonía <b>·</b> <span id="brand-version">v0.9.7</span></span>
       </span>
     </button>
 
@@ -3636,7 +3636,7 @@
    ============================================================= */
 
 const App = {
-  version: '0.9.6',
+  version: '0.9.7',
   step: 7,
 
   // ── TEMA ──────────────────────────────────────────────────────
@@ -4120,7 +4120,16 @@ const Postes = {
     // Botones de acción
     document.getElementById('p-clear').addEventListener('click', () => this.clearForm());
     document.getElementById('p-new').addEventListener('click', () => this.newPole());
-    document.getElementById('p-generate').addEventListener('click', () => this.generate());
+    // Para diagnosticar por qué el botón está oscuro, capturamos el click
+    // en el wrapper padre (los disabled no reciben clicks)
+    const pGen = document.getElementById('p-generate');
+    pGen.parentElement.addEventListener('click', (e) => {
+      if(pGen.disabled){
+        e.preventDefault(); e.stopPropagation();
+        App.toast(pGen.title || 'Hay campos sin rellenar');
+      }
+    }, true);
+    pGen.addEventListener('click', () => this.generate());
 
     // Trabajador temporal
     document.getElementById('p-worker-add-temp').addEventListener('click', () => this.openTempModal());
@@ -4579,11 +4588,24 @@ const Postes = {
     if(!btn) return;
     const d = this.collect();
     const blocked = this.state.estado === 'malo' || this.state.climaOk === 'no';
-    const minOk =
-      d.central && d.numPoste && d.direccion && d.poblacion &&
-      d.fecha && d.hora && d.trabajo && d.medio &&
-      this.state.workersSelected.length > 0;
+    const checks = {
+      central: !!d.central, 'Nº poste': !!d.numPoste, dirección: !!d.direccion, población: !!d.poblacion,
+      fecha: !!d.fecha, hora: !!d.hora, 'trabajo a realizar': !!d.trabajo, 'medio de subida': !!d.medio,
+      trabajadores: this.state.workersSelected.length > 0
+    };
+    const faltan = Object.entries(checks).filter(([_,v])=>!v).map(([k])=>k);
+    const minOk = faltan.length === 0;
     btn.disabled = blocked || !minOk;
+    // Tooltip diagnóstico
+    if(blocked){
+      btn.title = this.state.climaOk === 'no'
+        ? 'No se puede generar: climatología marcada como no adecuada (sección 3)'
+        : 'No se puede generar: estado del poste marcado como Malo';
+    } else if(!minOk){
+      btn.title = 'Faltan campos: ' + faltan.join(', ');
+    } else {
+      btn.title = '';
+    }
   },
 
   clearForm(){
@@ -4707,7 +4729,14 @@ const Ccrr = {
 
     document.getElementById('c-clear').addEventListener('click', () => this.clearForm());
     document.getElementById('c-new').addEventListener('click', () => this.newCamara());
-    document.getElementById('c-generate').addEventListener('click', () => this.generate());
+    const cGen = document.getElementById('c-generate');
+    cGen.parentElement.addEventListener('click', (e) => {
+      if(cGen.disabled){
+        e.preventDefault(); e.stopPropagation();
+        App.toast(cGen.title || 'Hay campos sin rellenar');
+      }
+    }, true);
+    cGen.addEventListener('click', () => this.generate());
 
     // Trabajador temporal
     document.getElementById('c-worker-add-temp').addEventListener('click', () => this.openTempModal());
@@ -5067,13 +5096,16 @@ const Ccrr = {
     const btn = document.getElementById('c-generate');
     if(!btn) return;
     const d = this.collect();
-    const minOk =
-      d.num && d.provincia && d.poblacion && d.direccion &&
-      d.fecha && d.desde && d.trabajo &&
-      this.state.workersSelected.length > 0 &&
-      Object.values(d.ubic).some(Boolean) &&        // al menos una ubicación
-      Object.values(d.senal).some(Boolean);          // al menos una señalización
-    btn.disabled = !minOk;
+    const checks = {
+      'Nº CCRR': !!d.num, provincia: !!d.provincia, población: !!d.poblacion, dirección: !!d.direccion,
+      fecha: !!d.fecha, 'hora desde': !!d.desde, 'trabajo a realizar': !!d.trabajo,
+      trabajadores: this.state.workersSelected.length > 0,
+      ubicación: Object.values(d.ubic).some(Boolean),
+      señalización: Object.values(d.senal).some(Boolean)
+    };
+    const faltan = Object.entries(checks).filter(([_,v])=>!v).map(([k])=>k);
+    btn.disabled = faltan.length > 0;
+    btn.title = faltan.length > 0 ? 'Faltan campos: ' + faltan.join(', ') : '';
   },
 
   clearForm(){
