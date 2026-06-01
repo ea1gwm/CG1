@@ -1572,7 +1572,7 @@
       </span>
       <span class="brand-text">
         <span class="t1">Partes de Seguridad</span>
-        <span class="t2">Telefonía <b>·</b> <span id="brand-version">v0.9.5</span></span>
+        <span class="t2">Telefonía <b>·</b> <span id="brand-version">v0.9.6</span></span>
       </span>
     </button>
 
@@ -3636,7 +3636,7 @@
    ============================================================= */
 
 const App = {
-  version: '0.9.5',
+  version: '0.9.6',
   step: 7,
 
   // ── TEMA ──────────────────────────────────────────────────────
@@ -8694,12 +8694,20 @@ const GeoDB = {
   applySelection(type, row){
     const name = row[1];
     const mat  = (row[2] || '').toUpperCase();
+    // Asigna valor a un input y dispara 'input' para que el formulario detecte el cambio
+    const setVal = (id, val) => {
+      const el = document.getElementById(id);
+      if(!el) return;
+      el.value = val;
+      el.dispatchEvent(new Event('input',  { bubbles: true }));
+      el.dispatchEvent(new Event('change', { bubbles: true }));
+    };
     if (type === 'postes') {
       // FIELD_NAME ejemplo: "L 1510003 Nº 360 (9E) (ID 1272639)"
       const mLin = name.match(/L\s*(\d+)/i);
       const mNum = name.match(/N[ºo°]\s*(\d+)/i);
-      if (mNum) document.getElementById('p-num-poste').value = mNum[1];
-      if (mLin) document.getElementById('p-num-linea').value = mLin[1];
+      if (mNum) setVal('p-num-poste', mNum[1]);
+      if (mLin) setVal('p-num-linea', mLin[1]);
 
       // Auto-seleccionar tipo de poste según MATERIAL_T
       let tipo = null;
@@ -8712,19 +8720,23 @@ const GeoDB = {
           segmented.querySelectorAll('button').forEach(b => {
             const isOne = b.dataset.val === tipo;
             b.setAttribute('aria-pressed', isOne ? 'true' : 'false');
+            if(isOne) b.click();  // Dispara la lógica que actualiza state.tipo
           });
         }
       }
+      // Refrescar botón Generar PDF (los .value silenciosos no disparan listeners)
+      if(typeof Postes !== 'undefined' && Postes.refreshGenerateButton) Postes.refreshGenerateButton();
       App.toast('✓ Cargado: ' + (mLin ? 'L' + mLin[1] : '') + (mNum ? ' Nº ' + mNum[1] : '') + (tipo ? ' (' + tipo + ')' : ''));
     } else {
       // CR ejemplo: "CR GEN 174 (ID 1271921)"  →  num: "Cr 174"
       const mCR = name.match(/CR\s*([A-Z]*)\s*(\d+)/i);
       if (mCR) {
         const tipoCR = mCR[1] ? mCR[1].toUpperCase() : '';
-        document.getElementById('c-num').value = `Cr ${tipoCR ? tipoCR + ' ' : ''}${mCR[2]}`;
+        setVal('c-num', `Cr ${tipoCR ? tipoCR + ' ' : ''}${mCR[2]}`);
       } else {
-        document.getElementById('c-num').value = name;
+        setVal('c-num', name);
       }
+      if(typeof Ccrr !== 'undefined' && Ccrr.refreshGenerateButton) Ccrr.refreshGenerateButton();
       App.toast('✓ Cámara cargada');
     }
   },
