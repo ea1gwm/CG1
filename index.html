@@ -1572,7 +1572,7 @@
       </span>
       <span class="brand-text">
         <span class="t1">Partes de Seguridad</span>
-        <span class="t2">Telefonía <b>·</b> <span id="brand-version">v0.9.13</span></span>
+        <span class="t2">Telefonía <b>·</b> <span id="brand-version">v0.9.14</span></span>
       </span>
     </button>
 
@@ -1853,9 +1853,38 @@
       </button>
     </div>
 
+    <!-- Mapa CTOs -->
+    <a href="mapa-ctos.html" style="
+      display:flex; align-items:center; gap:12px;
+      background:linear-gradient(135deg,rgba(37,99,235,.12),rgba(96,165,250,.06));
+      border:1px solid rgba(37,99,235,.3); border-radius:var(--r-lg);
+      padding:14px 16px; margin-top:4px; margin-bottom:8px;
+      text-decoration:none; color:inherit;
+      transition:border-color .15s,transform .15s;
+    " onmouseenter="this.style.borderColor='rgba(37,99,235,.6)';this.style.transform='translateY(-1px)'"
+       onmouseleave="this.style.borderColor='rgba(37,99,235,.3)';this.style.transform=''">
+      <div style="
+        width:38px; height:38px; border-radius:10px; flex-shrink:0;
+        background:rgba(37,99,235,.15); border:1px solid rgba(37,99,235,.3);
+        display:grid; place-items:center;
+      ">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;">
+          <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/>
+          <circle cx="12" cy="9" r="2.5"/>
+        </svg>
+      </div>
+      <div style="flex:1; min-width:0;">
+        <div style="font-weight:700; font-size:14px; margin-bottom:2px;">Mapa de CTOs</div>
+        <div style="font-size:12px; color:var(--text-mute);">25.881 nodos · Galicia · Buscar y navegar</div>
+      </div>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;color:var(--text-mute);flex-shrink:0;">
+        <path d="M5 12h14"/><path d="m13 6 6 6-6 6"/>
+      </svg>
+    </a>
+
     <!-- META / ESTADO -->
     <!-- Accesos rápidos secundarios -->
-    <div style="display:flex;gap:8px;margin-top:4px;margin-bottom:8px;">
+    <div style="display:flex;gap:8px;margin-top:0;margin-bottom:8px;">
       <button class="btn btn-ghost" data-go="manual" type="button"
               style="flex:1;justify-content:center;gap:8px;padding:13px;font-size:13px;border-style:dashed;">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;">
@@ -2673,10 +2702,37 @@
       <button type="button" class="btn btn-primary" id="geo-save">Guardar ajustes GPS</button>
     </section>
 
-    <!-- RP por defecto -->
+    <!-- Modo fusionadores -->
     <section class="settings-section">
       <div class="sec-head">
         <span class="sec-num">05</span>
+        <span class="sec-title">Modo fusionadores</span>
+      </div>
+      <p style="font-size:13px;color:var(--text-dim);margin:0 0 14px;line-height:1.5;">
+        Cambia el título de los partes de Cámara para incluir los datos que usan los fusionadores.
+      </p>
+      <label class="check" style="margin-bottom:12px;">
+        <input type="checkbox" id="modo-fusionadores">
+        <span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="5 12 10 17 19 7"/></svg></span>
+        <span class="lbl">Activar formato fusionadores</span>
+      </label>
+      <div style="background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:10px 12px;margin-bottom:10px;">
+        <p style="font-size:11px;color:var(--text-mute);margin:0 0 4px;letter-spacing:.05em;text-transform:uppercase;font-weight:600;">Ejemplo (activado)</p>
+        <p style="font-size:13px;color:var(--text);margin:0;font-family:ui-monospace,'Segoe UI Mono',monospace;line-height:1.4;">Suc 34570 Cr 23 Bis 01E2030 01-06-2026.pdf</p>
+      </div>
+      <div style="background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:10px 12px;">
+        <p style="font-size:11px;color:var(--text-mute);margin:0 0 4px;letter-spacing:.05em;text-transform:uppercase;font-weight:600;">Ejemplo (desactivado)</p>
+        <p style="font-size:13px;color:var(--text);margin:0;font-family:ui-monospace,'Segoe UI Mono',monospace;line-height:1.4;">Parte de Cr 23 Bis 01-06-2026.pdf</p>
+      </div>
+      <p style="font-size:11.5px;color:var(--text-mute);margin:10px 0 0;line-height:1.5;">
+        Afecta al nombre del archivo PDF descargado <b>y</b> al nombre que aparece en el historial. Si Suc o Empalme están vacíos, se omiten automáticamente.
+      </p>
+    </section>
+
+    <!-- RP por defecto -->
+    <section class="settings-section">
+      <div class="sec-head">
+        <span class="sec-num">06</span>
         <span class="sec-title">Recurso Preventivo por defecto</span>
       </div>
       <p style="font-size:12.5px;color:var(--text-mute);margin:-6px 0 12px;line-height:1.5;">
@@ -3654,7 +3710,7 @@
    ============================================================= */
 
 const App = {
-  version: '0.9.13',
+  version: '0.9.14',
   step: 7,
 
   // ── TEMA ──────────────────────────────────────────────────────
@@ -6151,7 +6207,17 @@ const Pdf = {
         fileName = title.replace(/\//g, '-') + '.pdf';
       } else {
         pdfBytes = await this.buildCcrr(data);
-        title = `Parte de${data.num ? ' ' + data.num : ' Cámara'}${fechaTxt ? ' ' + fechaTxt : ''}`;
+        // Si está activo el "Modo fusionadores": Suc XXX + Cr + Empalme + fecha
+        if(App.setting('modoFusionadores')){
+          const parts = [];
+          if(data.suc)     parts.push('Suc ' + data.suc);
+          if(data.num)     parts.push(data.num);
+          if(data.empalme) parts.push(data.empalme);
+          if(fechaTxt)     parts.push(fechaTxt);
+          title = parts.length > 0 ? parts.join(' ') : 'Parte de Cámara';
+        } else {
+          title = `Parte de${data.num ? ' ' + data.num : ' Cámara'}${fechaTxt ? ' ' + fechaTxt : ''}`;
+        }
         fileName = title.replace(/\//g, '-') + '.pdf';
       }
     } catch(e){
@@ -6922,6 +6988,17 @@ const Settings = {
     this.renderAccess();
     this.loadEmpresa();
     this.loadPreferencias();
+    this.loadModoFusionadores();
+  },
+
+  loadModoFusionadores(){
+    const cb = document.getElementById('modo-fusionadores');
+    if(!cb) return;
+    cb.checked = !!App.setting('modoFusionadores');
+    cb.onchange = () => {
+      App.saveSetting('modoFusionadores', cb.checked);
+      App.toast(cb.checked ? '✓ Modo fusionadores activado' : 'Modo fusionadores desactivado');
+    };
   },
 
   loadEmpresa(){
