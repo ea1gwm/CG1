@@ -1572,7 +1572,7 @@
       </span>
       <span class="brand-text">
         <span class="t1">Partes de Seguridad</span>
-        <span class="t2">Telefonía <b>·</b> <span id="brand-version">v0.9.14</span></span>
+        <span class="t2">Telefonía <b>·</b> <span id="brand-version">v0.9.15</span></span>
       </span>
     </button>
 
@@ -1853,38 +1853,9 @@
       </button>
     </div>
 
-    <!-- Mapa CTOs -->
-    <a href="mapa-ctos.html" style="
-      display:flex; align-items:center; gap:12px;
-      background:linear-gradient(135deg,rgba(37,99,235,.12),rgba(96,165,250,.06));
-      border:1px solid rgba(37,99,235,.3); border-radius:var(--r-lg);
-      padding:14px 16px; margin-top:4px; margin-bottom:8px;
-      text-decoration:none; color:inherit;
-      transition:border-color .15s,transform .15s;
-    " onmouseenter="this.style.borderColor='rgba(37,99,235,.6)';this.style.transform='translateY(-1px)'"
-       onmouseleave="this.style.borderColor='rgba(37,99,235,.3)';this.style.transform=''">
-      <div style="
-        width:38px; height:38px; border-radius:10px; flex-shrink:0;
-        background:rgba(37,99,235,.15); border:1px solid rgba(37,99,235,.3);
-        display:grid; place-items:center;
-      ">
-        <svg viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;">
-          <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/>
-          <circle cx="12" cy="9" r="2.5"/>
-        </svg>
-      </div>
-      <div style="flex:1; min-width:0;">
-        <div style="font-weight:700; font-size:14px; margin-bottom:2px;">Mapa de CTOs</div>
-        <div style="font-size:12px; color:var(--text-mute);">25.881 nodos · Galicia · Buscar y navegar</div>
-      </div>
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;color:var(--text-mute);flex-shrink:0;">
-        <path d="M5 12h14"/><path d="m13 6 6 6-6 6"/>
-      </svg>
-    </a>
-
     <!-- META / ESTADO -->
     <!-- Accesos rápidos secundarios -->
-    <div style="display:flex;gap:8px;margin-top:0;margin-bottom:8px;">
+    <div style="display:flex;gap:8px;margin-top:4px;margin-bottom:8px;">
       <button class="btn btn-ghost" data-go="manual" type="button"
               style="flex:1;justify-content:center;gap:8px;padding:13px;font-size:13px;border-style:dashed;">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;">
@@ -3710,7 +3681,7 @@
    ============================================================= */
 
 const App = {
-  version: '0.9.14',
+  version: '0.9.15',
   step: 7,
 
   // ── TEMA ──────────────────────────────────────────────────────
@@ -8540,19 +8511,18 @@ const GeoDB = {
 
     let pos;
     try {
-      pos = await new Promise((res, rej) => {
-        if(!navigator.geolocation) return rej(new Error('GPS no disponible'));
-        navigator.geolocation.getCurrentPosition(
-          p => res(p.coords),
-          e => rej(e),
-          { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 }
-        );
-      });
+      pos = await this._getPosition();
     } catch(e) {
-      list.innerHTML = `<div style="padding:24px;text-align:center;color:var(--red);">
-        No se pudo obtener tu ubicación.<br><small>${this._esc(e.message || 'Error GPS')}</small>
+      const msg = this._gpsErrorMsg(e);
+      list.innerHTML = `<div style="padding:20px 16px;text-align:center;">
+        <div style="font-size:32px;margin-bottom:8px;">📡</div>
+        <div style="color:var(--red);font-weight:600;font-size:14px;margin-bottom:6px;">No se pudo obtener tu ubicación</div>
+        <div style="color:var(--text-dim);font-size:12.5px;line-height:1.6;margin-bottom:14px;">${this._esc(msg)}</div>
+        <button type="button" id="mgs-retry" class="btn btn-primary" style="width:100%;">Reintentar</button>
       </div>`;
       sub.textContent = '';
+      const rBtn = document.getElementById('mgs-retry');
+      if(rBtn) rBtn.onclick = () => this.openSearch(type);
       return;
     }
 
@@ -8611,6 +8581,36 @@ const GeoDB = {
         modal.classList.remove('show');
       });
     });
+  },
+
+  // ── GPS robusto ───────────────────────────────────────────────────
+  // 1º intento: alta precisión, aceptando una posición cacheada de hasta 60s
+  //    (el formulario ya suele haber pedido GPS al entrar, así resuelve al instante).
+  // 2º intento: si el 1º da timeout, reintenta SIN alta precisión (red/wifi),
+  //    que es mucho más rápido aunque menos exacto.
+  _getPosition(){
+    const ask = (opts) => new Promise((res, rej) => {
+      if(!navigator.geolocation){
+        const e = new Error('GPS no disponible en este navegador'); e.code = 0; return rej(e);
+      }
+      navigator.geolocation.getCurrentPosition(p => res(p.coords), e => rej(e), opts);
+    });
+    return ask({ enableHighAccuracy: true, timeout: 12000, maximumAge: 60000 })
+      .catch(e => {
+        // Solo reintentamos si fue timeout o posición no disponible.
+        // Si el usuario denegó el permiso (code 1) no tiene sentido insistir.
+        if(e && e.code === 1) throw e;
+        return ask({ enableHighAccuracy: false, timeout: 10000, maximumAge: 120000 });
+      });
+  },
+
+  _gpsErrorMsg(e){
+    switch(e && e.code){
+      case 1: return 'Has bloqueado el permiso de ubicación. Actívalo para esta web en los ajustes del navegador y vuelve a intentarlo.';
+      case 2: return 'El dispositivo no consigue fijar tu posición. Comprueba que el GPS esté encendido y sal a un sitio despejado.';
+      case 3: return 'El GPS ha tardado demasiado. Espera unos segundos a que fije la señal y pulsa Reintentar.';
+      default: return e && e.message ? e.message : 'Error desconocido de geolocalización.';
+    }
   },
 
   // ── Tabs Lista / Mapa ─────────────────────────────────────────────

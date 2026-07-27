@@ -1,0 +1,30 @@
+# Config local de Claude Code / servidores de desarrollo
+.claude/
+
+# Fuentes de datos originales (pesan cientos de MB, no van al repo).
+# Las BD que sí usa la app son db-postes.json.gz y db-camaras.json.gz.
+base planos/
+*.geojson
+*.qmd
+*.TAB
+*.DAT
+*.MAP
+*.ID
+
+# PDFs de ejemplo / partes reales que se dejan sueltos al probar.
+# Las plantillas oficiales SÍ van al repo: postes.pdf y ccrr.pdf.
+Parte*.pdf
+parte*.pdf
+
+# Archivos que pertenecen a OTRAS apps (Mapa de CTOs, etc.).
+# Su sitio es su propia carpeta, no esta. Ver README.
+*ctos*
+*CTOS*
+firestore.rules
+
+# Ruido de Windows / editores
+Thumbs.db
+desktop.ini
+*.tmp
+*~
+README (*).md
