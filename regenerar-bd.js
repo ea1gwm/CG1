@@ -50,14 +50,18 @@ function clasificar(p) {
   if (struct.startsWith('CREG') || struct.startsWith('CR ')) return 'C';
   if (struct.startsWith('POST')) return 'P';
 
-  // 3. MATERIAL_T (cámara antes que poste para evitar falsos positivos)
+  // 3. EL NOMBRE. Va antes que MATERIAL_T a propósito: hay cámaras con
+  //    CATEGORY_N y STRUCTURE_ vacíos cuyo MATERIAL_T es HOR_ARM, PREFA o
+  //    H-II (hormigón, prefabricada…), que también son materiales de poste.
+  //    Si se mirase el material primero, esas cámaras acabarían en la BD de
+  //    postes: pasaba con ~361, entre ellas casi todas las de Carral.
+  if (/^CR\b/.test(nombre)) return 'C';
+  if (/^L\s*\d{4,}.*N[ºO°]\s*\d/.test(nombre)) return 'P';
+
+  // 4. MATERIAL_T como último recurso (cámara antes que poste)
   if (mat === 'CAMARA DE REGISTRO' || mat === 'CÁMARA DE REGISTRO' || mat === 'CAMARA') return 'C';
   if (mat.includes('POSTE') || mat === 'MADERA' || mat.includes('HORMIG') ||
       mat === 'HOR_ARM' || mat.startsWith('H-') || mat === 'PREFA') return 'P';
-
-  // 4. Último recurso: el propio nombre ("L 1510003 Nº 360", "CR GEN 174")
-  if (/^L\s*\d{4,}.*N[ºO°]\s*\d/.test(nombre)) return 'P';
-  if (/^CR\b/.test(nombre)) return 'C';
 
   return null;
 }
