@@ -1572,7 +1572,7 @@
       </span>
       <span class="brand-text">
         <span class="t1">Partes de Seguridad</span>
-        <span class="t2">Telefonía <b>·</b> <span id="brand-version">v0.9.17</span></span>
+        <span class="t2">Telefonía <b>·</b> <span id="brand-version">v0.9.18</span></span>
       </span>
     </button>
 
@@ -3681,7 +3681,7 @@
    ============================================================= */
 
 const App = {
-  version: '0.9.17',
+  version: '0.9.18',
   step: 7,
 
   // ── TEMA ──────────────────────────────────────────────────────
@@ -5196,21 +5196,65 @@ const Ccrr = {
    GEO — geolocalización + reverse-geocoding (Nominatim/OSM)
    ============================================================= */
 const Geo = {
-  // Pide la posición del dispositivo
-  getPosition(){
+  /* Pide la posición del dispositivo.
+   *
+   * POR QUÉ watchPosition Y NO getCurrentPosition:
+   * la primera lectura del día el chip GPS está frío. El móvil responde
+   * enseguida con una posición deducida de la antena de telefonía o del
+   * wifi, que puede estar a KILÓMETROS. Si nos quedamos con esa, la app
+   * se sitúa mal. watchPosition va entregando lecturas cada vez mejores
+   * conforme el GPS engancha satélites, así que esperamos a que la
+   * precisión baje del objetivo y nos quedamos con la mejor.
+   *
+   * POR QUÉ maximumAge: 0:
+   * aceptar posiciones cacheadas (antes 30-120 s) era justo lo que hacía
+   * que al abrir la app por la mañana saliese la ubicación de ayer o la
+   * de la antena. Aquí siempre se pide lectura nueva.
+   */
+  getPosition({ objetivoM = 50, esperaMs = 15000, onProgreso = null } = {}){
     return new Promise((resolve, reject) => {
       if(!navigator.geolocation) return reject(new Error('GPS no disponible'));
-      navigator.geolocation.getCurrentPosition(
-        (pos) => resolve({ lat: pos.coords.latitude, lon: pos.coords.longitude, acc: pos.coords.accuracy }),
-        (err) => {
-          // 1=PERMISSION_DENIED, 2=POSITION_UNAVAILABLE, 3=TIMEOUT
-          const msg = err.code === 1 ? 'Permiso denegado'
-                    : err.code === 3 ? 'GPS lento/timeout'
-                    : 'No se pudo obtener la ubicación';
-          reject(new Error(msg));
+
+      let mejor = null, watchId = null, corte = null, cerrado = false;
+
+      const limpiar = () => {
+        if(cerrado) return;
+        cerrado = true;
+        clearTimeout(corte);
+        if(watchId !== null){ try { navigator.geolocation.clearWatch(watchId); } catch(e){} }
+      };
+      const acabar = (errSiNoHayNada) => {
+        limpiar();
+        if(mejor) resolve(mejor);
+        else reject(errSiNoHayNada || new Error('No se pudo obtener la ubicación'));
+      };
+
+      watchId = navigator.geolocation.watchPosition(
+        (pos) => {
+          const c = pos.coords;
+          const lectura = { lat: c.latitude, lon: c.longitude, acc: c.accuracy };
+          if(!mejor || lectura.acc < mejor.acc) mejor = lectura;
+          if(onProgreso){ try { onProgreso(mejor); } catch(e){} }
+          if(mejor.acc <= objetivoM) acabar();   // ya es bastante buena, cortamos
         },
-        { enableHighAccuracy: true, timeout: 12000, maximumAge: 30000 }
+        (err) => {
+          // 1=PERMISSION_DENIED: no tiene sentido seguir esperando.
+          if(err && err.code === 1){
+            limpiar();
+            const e = new Error('Permiso denegado'); e.code = 1;
+            return reject(e);
+          }
+          // Otros errores pueden ser transitorios (2=POSITION_UNAVAILABLE,
+          // 3=TIMEOUT): seguimos escuchando por si llega una lectura buena.
+        },
+        { enableHighAccuracy: true, timeout: esperaMs, maximumAge: 0 }
       );
+
+      // Corte duro: nos quedamos con la mejor lectura recibida hasta ahora.
+      corte = setTimeout(() => {
+        const e = new Error('GPS lento/timeout'); e.code = 3;
+        acabar(e);
+      }, esperaMs);
     });
   },
 
@@ -8511,7 +8555,19 @@ const GeoDB = {
 
     let pos;
     try {
-      pos = await this._getPosition();
+      // Mientras el GPS afina, vamos enseñando la precisión que lleva.
+      // En frío tarda unos segundos en bajar de los cientos de metros;
+      // sin este aviso parecía que la app se había colgado.
+      const objetivo = this.getMinAcc();
+      list.innerHTML = `<div style="padding:24px;text-align:center;color:var(--text-mute);">
+        <div style="font-size:28px;margin-bottom:10px;">📡</div>
+        <div id="mgs-gps-estado" style="font-size:13.5px;line-height:1.6;">Buscando señal GPS…</div>
+        <div style="font-size:11.5px;margin-top:6px;opacity:.75;">Afinando hasta ±${objetivo} m</div>
+      </div>`;
+      pos = await this._getPosition((mejor) => {
+        const el = document.getElementById('mgs-gps-estado');
+        if(el) el.innerHTML = `Precisión actual <b style="color:var(--amber);">±${Math.round(mejor.acc)} m</b>`;
+      });
     } catch(e) {
       const msg = this._gpsErrorMsg(e);
       list.innerHTML = `<div style="padding:20px 16px;text-align:center;">
@@ -8588,20 +8644,19 @@ const GeoDB = {
   //    (el formulario ya suele haber pedido GPS al entrar, así resuelve al instante).
   // 2º intento: si el 1º da timeout, reintenta SIN alta precisión (red/wifi),
   //    que es mucho más rápido aunque menos exacto.
-  _getPosition(){
-    const ask = (opts) => new Promise((res, rej) => {
-      if(!navigator.geolocation){
-        const e = new Error('GPS no disponible en este navegador'); e.code = 0; return rej(e);
-      }
-      navigator.geolocation.getCurrentPosition(p => res(p.coords), e => rej(e), opts);
-    });
-    return ask({ enableHighAccuracy: true, timeout: 12000, maximumAge: 60000 })
-      .catch(e => {
-        // Solo reintentamos si fue timeout o posición no disponible.
-        // Si el usuario denegó el permiso (code 1) no tiene sentido insistir.
-        if(e && e.code === 1) throw e;
-        return ask({ enableHighAccuracy: false, timeout: 10000, maximumAge: 120000 });
-      });
+  // Usa el GPS robusto de Geo (watchPosition, sin caché) y traduce el
+  // resultado al formato que espera openSearch.
+  //
+  // Antes esto reintentaba con enableHighAccuracy:false cuando la alta
+  // precisión daba timeout. Eso devolvía la posición de la ANTENA de
+  // telefonía: rápida, pero a veces a kilómetros. Era la causa de que la
+  // app se situase mal la primera vez que se abría en el día.
+  _getPosition(onProgreso){
+    return Geo.getPosition({
+      objetivoM: this.getMinAcc(),
+      esperaMs:  15000,
+      onProgreso
+    }).then(p => ({ latitude: p.lat, longitude: p.lon, accuracy: p.acc }));
   },
 
   _gpsErrorMsg(e){
