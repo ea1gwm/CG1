@@ -1572,7 +1572,7 @@
       </span>
       <span class="brand-text">
         <span class="t1">Partes de Seguridad</span>
-        <span class="t2">Telefonía <b>·</b> <span id="brand-version">v0.9.18</span></span>
+        <span class="t2">Telefonía <b>·</b> <span id="brand-version">v0.9.19</span></span>
       </span>
     </button>
 
@@ -3681,7 +3681,7 @@
    ============================================================= */
 
 const App = {
-  version: '0.9.18',
+  version: '0.9.19',
   step: 7,
 
   // ── TEMA ──────────────────────────────────────────────────────
@@ -4262,7 +4262,7 @@ const Postes = {
     if(_fEl && _fEl.value && _fEl.value < _today) _fEl.value = _today;
     // GPS automático si no hay dirección ya rellenada
     const dir = document.getElementById('p-direccion');
-    if(!dir?.value) setTimeout(() => this.requestGPS(), 600);
+    if(!dir?.value) setTimeout(() => this.requestGPS(true), 600);
   },
 
   // Si no hay RP seleccionado y existe defaultRPId en settings, lo aplica
@@ -4495,11 +4495,23 @@ const Postes = {
   },
 
   /* ----- GPS ----- */
-  async requestGPS(){
+  // auto = lo lanzó la app sola al entrar en el formulario (no lo pulsó el
+  // usuario). En ese caso no debe pisar una dirección que el usuario haya
+  // elegido entretanto tocando un poste/cámara en el buscador: el GPS tarda
+  // unos segundos y podría terminar después de la selección.
+  async requestGPS(auto = false){
     const btn = document.getElementById('p-gps-btn');
     btn.dataset.loading = '1';
     try {
       const result = await Geo.resolve({ withAddress: true });
+      const dirEl = document.getElementById('p-direccion');
+      // El GPS automático no pisa NADA que ya esté escrito: ni la dirección
+      // del poste que el usuario haya elegido en el buscador, ni lo que haya
+      // tecleado él mientras el GPS tardaba. El botón manual sí sobrescribe.
+      if(auto && dirEl && dirEl.value.trim()){
+        App.toast('Se mantiene la dirección ya puesta');
+        return;
+      }
       const dir = document.getElementById('p-direccion');
       const pob = document.getElementById('p-poblacion');
       const pro = document.getElementById('p-provincia');
@@ -4810,7 +4822,7 @@ const Ccrr = {
     if(_fElC && _fElC.value && _fElC.value < _todayC) _fElC.value = _todayC;
     // GPS automático si no hay dirección ya rellenada
     const dir = document.getElementById('c-direccion');
-    if(!dir?.value) setTimeout(() => this.requestGPS(), 600);
+    if(!dir?.value) setTimeout(() => this.requestGPS(true), 600);
   },
 
   /* ----- RENDERS ----- */
@@ -4998,11 +5010,19 @@ const Ccrr = {
   },
 
   /* ----- GPS ----- */
-  async requestGPS(){
+  // auto = lo lanzó la app sola al entrar en el formulario. Ver la nota en
+  // Postes.requestGPS: no debe pisar la dirección de una cámara elegida.
+  async requestGPS(auto = false){
     const btn = document.getElementById('c-gps-btn');
     btn.dataset.loading = '1';
     try {
       const result = await Geo.resolve({ withAddress: true });
+      const dirEl = document.getElementById('c-direccion');
+      // Ver la nota en Postes.requestGPS: el automático no pisa nada escrito.
+      if(auto && dirEl && dirEl.value.trim()){
+        App.toast('Se mantiene la dirección ya puesta');
+        return;
+      }
       const dir = document.getElementById('c-direccion');
       const pob = document.getElementById('c-poblacion');
       const pro = document.getElementById('c-provincia');
@@ -8866,6 +8886,39 @@ const GeoDB = {
   },
 
   // Rellenar campos del formulario con los datos del elemento seleccionado
+  // Momento de la última selección explícita. Lo usa el GPS automático del
+  // formulario para no pisar una dirección que el usuario acaba de elegir.
+
+  /* Rellena dirección/población/provincia con las coordenadas DEL ELEMENTO
+   * elegido, no con las del usuario.
+   *
+   * Para qué: puedes estar junto a la cámara 210 de la calle Pericos y
+   * querer cubrir el parte de la 320, que está en la Armada Española. El
+   * GPS daría tu calle, que no es la del parte. Al tocar la 320 en la
+   * lista o en el mapa, la dirección que se pone es la suya.
+   */
+  async _direccionDelElemento(type, row, setVal){
+    const lat = row[4], lon = row[5];
+    if(!isFinite(lat) || !isFinite(lon)) return;
+    const p = (type === 'postes') ? 'p' : 'c';
+    App.toast('Buscando la dirección de ese punto…');
+    try {
+      const a = await Geo.reverseLookup(lat, lon);
+      if(a.direccion) setVal(`${p}-direccion`, a.direccion);
+      if(a.poblacion) setVal(`${p}-poblacion`, a.poblacion);
+      if(a.provincia) setVal(`${p}-provincia`, a.provincia);
+      if(a.direccion || a.poblacion) App.toast(`📍 ${a.direccion || a.poblacion}`);
+      else App.toast('Ese punto no tiene dirección conocida');
+    } catch(e){
+      // Sin cobertura o Nominatim caído: dejamos lo que hubiera y avisamos.
+      App.toast('Sin red: escribe la dirección a mano');
+    }
+    const mod = (type === 'postes') ? (typeof Postes !== 'undefined' && Postes)
+                                    : (typeof Ccrr   !== 'undefined' && Ccrr);
+    if(mod && mod.saveDraft) mod.saveDraft();
+    if(mod && mod.refreshGenerateButton) mod.refreshGenerateButton();
+  },
+
   applySelection(type, row){
     const name = row[1];
     const mat  = (row[2] || '').toUpperCase();
@@ -8903,6 +8956,7 @@ const GeoDB = {
       // Refrescar botón Generar PDF (los .value silenciosos no disparan listeners)
       if(typeof Postes !== 'undefined' && Postes.refreshGenerateButton) Postes.refreshGenerateButton();
       App.toast('✓ Cargado: ' + (mLin ? 'L' + mLin[1] : '') + (num ? ' Nº ' + num : '') + (tipo ? ' (' + tipo + ')' : ''));
+      this._direccionDelElemento(type, row, setVal);
     } else {
       // CR ejemplo: "CR GEN 174 (ID 1271921)"      -> "Cr GEN 174"
       // con Bis:    "CR GEN 173BIS (ID 1271917)"   -> "Cr GEN 173 Bis"
@@ -8914,6 +8968,7 @@ const GeoDB = {
       }
       if(typeof Ccrr !== 'undefined' && Ccrr.refreshGenerateButton) Ccrr.refreshGenerateButton();
       App.toast('✓ Cámara cargada');
+      this._direccionDelElemento(type, row, setVal);
     }
   },
 
