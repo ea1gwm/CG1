@@ -1572,7 +1572,7 @@
       </span>
       <span class="brand-text">
         <span class="t1">Partes de Seguridad</span>
-        <span class="t2">Telefonía <b>·</b> <span id="brand-version">v0.9.19</span></span>
+        <span class="t2">Telefonía <b>·</b> <span id="brand-version">v0.9.20</span></span>
       </span>
     </button>
 
@@ -3163,7 +3163,8 @@
           <ol>
             <li>Desde el inicio pulsa <b>Parte de Postes</b>.</li>
             <li>El GPS se activa automáticamente para rellenar la dirección. Si prefieres escribirla tú, cancela el permiso.</li>
-            <li>Elige el <b>tipo de poste</b> (Madera, Hormigón o Fibra).</li>
+            <li>Pulsa <b>🎯 Buscar poste cercano</b> y elige el tuyo: rellena solo el nº de poste, el nº de línea, el tipo y la dirección. Mira la sección <i>Buscar el poste o la cámara con el GPS</i>.</li>
+            <li>Elige el <b>tipo de poste</b> (Madera, Hormigón o Fibra) — si lo cogiste del buscador ya viene puesto.</li>
             <li>Indica el <b>estado</b> tras hacer las comprobaciones previas.</li>
             <li>Selecciona el <b>medio de subida</b>. Si usas escalera se despliega el check de verificación a–g.</li>
             <li>En <b>Trabajadores</b> toca los que participan. El que tenga RP marcado firma el parte.</li>
@@ -3188,7 +3189,9 @@
           <ol>
             <li>Desde el inicio pulsa <b>Parte de CCRR</b>.</li>
             <li>El GPS rellena la dirección automáticamente.</li>
-            <li>Introduce el <b>número de cámara</b>, provincia y población.</li>
+            <li>Si eres fusionador, rellena <b>Suc</b> y <b>Empalme</b> en la sección <b>Cabecera</b>. Si no, déjalos vacíos.</li>
+            <li>Pulsa <b>🎯 Buscar cámara cercana</b> y elige la tuya: rellena el nº de CCRR y la dirección <b>de esa cámara</b>. Mira la sección <i>Buscar el poste o la cámara con el GPS</i>.</li>
+            <li>Si lo prefieres a mano, introduce el <b>número de cámara</b>, provincia y población.</li>
             <li>Selecciona la <b>señalización</b> desplegada (conos, baranda, etc.).</li>
             <li>Indica el <b>turno</b> (Diurno / Nocturno) y las condiciones.</li>
             <li>Selecciona los <b>trabajadores</b> y el Recurso Preventivo.</li>
@@ -3196,6 +3199,42 @@
             <li>Pulsa <b>Generar PDF</b>. El parte tiene 2 páginas.</li>
           </ol>
           <p style="margin-top:8px;">Los EPIs, la atmósfera y los checks fijos de preparación se marcan según las preferencias que hayas configurado en <b>Ajustes → Preferencias del parte</b>.</p>
+        </div>
+      </div>
+
+      <!-- 3b -->
+      <div class="help-item">
+        <button class="help-head" type="button">
+          <span style="display:flex;align-items:center;gap:12px;">
+            <span class="help-icon">🎯</span>
+            <span>Buscar el poste o la cámara con el GPS</span>
+          </span>
+          <svg class="help-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg>
+        </button>
+        <div class="help-body">
+          <p>La app lleva dentro la <b>base de datos de Telefónica de toda Galicia</b>: unos <b>360.000 postes</b> y <b>9.000 cámaras</b>. Así no tienes que mirar el número en el plano.</p>
+          <p>En el formulario, arriba del todo, pulsa <b>Buscar poste cercano</b> o <b>Buscar cámara cercana</b>.</p>
+
+          <p style="margin-top:10px;"><b>Lo que ves</b> — dos pestañas:</p>
+          <ul>
+            <li><b>Lista</b> — ordenados del más cercano al más lejano, con los metros que te separan y el material.</li>
+            <li><b>Mapa</b> — tu posición en azul y los elementos en cajetines amarillos con su número, como en los planos. Toca un cajetín y luego <b>Seleccionar</b>.</li>
+          </ul>
+
+          <p style="margin-top:10px;"><b>Lo que rellena al elegir uno:</b></p>
+          <ul>
+            <li>En postes: <b>Nº de poste</b>, <b>Nº de línea</b> y el <b>tipo</b> (Madera u Hormigón, según el material que figure en la base de datos).</li>
+            <li>En cámaras: el <b>Nº de CCRR</b>.</li>
+            <li>En ambos: <b>dirección, población y provincia</b>.</li>
+          </ul>
+
+          <p style="margin-top:10px;"><b>Importante — la dirección es la del elemento que eliges, no la tuya.</b> Si estás junto a la cámara 210 de la calle Pericos pero cubres el parte de la 320, que está en la Armada Española, al tocar la 320 se pone <i>su</i> calle. Así puedes cubrir partes de elementos cercanos sin tener que corregir la dirección a mano.</p>
+
+          <p style="margin-top:10px;"><b>El "Bis".</b> Cuando dos postes (o dos cámaras) pegados comparten número, en la base de datos se distinguen con Bis. La app lo respeta: si eliges el <b>Nº 302 Bis</b>, en el parte sale <b>302 Bis</b>, no 302.</p>
+
+          <p style="margin-top:10px;"><b>Por qué a veces tarda unos segundos.</b> La primera búsqueda del día el GPS está "frío" y lo primero que da el móvil es una posición deducida de la antena de telefonía, que puede estar a kilómetros. La app <b>no se queda con esa</b>: espera a que el GPS enganche satélites y vaya afinando. Verás la precisión bajando en pantalla (±350 m → ±60 m → ±12 m) y corta en cuanto es suficientemente buena. Las búsquedas siguientes son rápidas.</p>
+
+          <p style="margin-top:10px;">Si sale el aviso <b>«Precisión GPS baja»</b>, sal a un sitio despejado y pulsa <b>Reintentar</b>: estando bajo cubierta o entre edificios altos los resultados pueden no ser los correctos.</p>
         </div>
       </div>
 
@@ -3236,6 +3275,34 @@
           </ul>
           <p>Si escribiste observaciones en un parte, aparecen como <b>nota amarilla</b> bajo el nombre del parte en el historial.</p>
           <p>En el filtro <b>Hoy</b> aparece el botón para descargar todos los partes del día de una vez.</p>
+          <p style="margin-top:10px;"><b>Cómo se guardan.</b> El historial guarda <b>los datos</b> del parte, no el PDF. Al pulsar Ver, Compartir o Descargar, el PDF <b>se vuelve a generar al momento</b> — por eso tarda un segundo. Sale exactamente igual que el original.</p>
+          <p>Se hace así porque guardar los PDF llenaba la memoria del navegador (cada uno ocupa cientos de KB) y, al llenarse, <b>los partes nuevos dejaban de guardarse sin avisar</b>. Guardando solo los datos caben <b>200 partes</b> sin problema.</p>
+        </div>
+      </div>
+
+      <!-- 5b -->
+      <div class="help-item">
+        <button class="help-head" type="button">
+          <span style="display:flex;align-items:center;gap:12px;">
+            <span class="help-icon">🔢</span>
+            <span>Suc, Empalme y modo fusionadores</span>
+          </span>
+          <svg class="help-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg>
+        </button>
+        <div class="help-body">
+          <p>En los <b>partes de cámara</b>, la primera sección del formulario es <b>Cabecera</b>, con dos campos opcionales:</p>
+          <ul>
+            <li><b>Suc</b> — el número de sucursal. Sale arriba a la izquierda del PDF, encima del logo de Telefónica, como «Suc 34570».</li>
+            <li><b>Empalme</b> — el número de empalme (por ejemplo 01E2030). Sale arriba a la derecha. Este dato lo usan sobre todo los <b>fusionadores</b>; el resto suele dejarlo en blanco.</li>
+          </ul>
+          <p>Si los dejas vacíos <b>no aparece nada</b> en el PDF, igual que antes.</p>
+
+          <p style="margin-top:10px;"><b>Modo fusionadores</b> (Ajustes → 05). Cambia el nombre del archivo del parte de cámara para que incluya esos datos:</p>
+          <ul>
+            <li>Apagado: <code>Parte de Cr 23 Bis 01-06-2026.pdf</code></li>
+            <li>Encendido: <code>Suc 34570 Cr 23 Bis 01E2030 01-06-2026.pdf</code></li>
+          </ul>
+          <p>Afecta al nombre del PDF <b>y</b> al nombre que ves en el historial. Es un ajuste <b>de cada móvil</b>: si lo enciendes tú, a tus compañeros no les cambia nada.</p>
         </div>
       </div>
 
@@ -3314,6 +3381,44 @@
           <p><b>Android (Chrome):</b> ve a Ajustes → 06 Aplicación → pulsa <b>Instalar app en este dispositivo</b>. También puede aparecer un banner en la parte inferior del navegador.</p>
           <p><b>iPhone (Safari):</b> pulsa el icono de compartir ⬆️ en la barra inferior → <b>Añadir a pantalla de inicio</b>. No olvides usar Safari, no Chrome ni otro navegador.</p>
           <p>Una vez instalada, la app se abre como si fuera nativa, <b>funciona sin conexión</b> y tiene su propio icono en la pantalla de inicio.</p>
+        </div>
+      </div>
+
+      <!-- 10 -->
+      <div class="help-item">
+        <button class="help-head" type="button">
+          <span style="display:flex;align-items:center;gap:12px;">
+            <span class="help-icon">🔑</span>
+            <span>Código de acceso</span>
+          </span>
+          <svg class="help-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg>
+        </button>
+        <div class="help-body">
+          <p>La app es de uso interno, así que la <b>primera vez</b> que se abre en un móvil pide un <b>código de acceso</b>. Una vez introducido, <b>no se vuelve a pedir</b> en ese dispositivo.</p>
+          <p>Si un compañero no lo tiene, en esa misma pantalla puede pulsar <b>Solicitar acceso</b> dejando su nombre y teléfono. La solicitud le llega al administrador, que la ve en <b>Ajustes → Control de acceso</b> con un aviso naranja.</p>
+          <p style="margin-top:10px;"><b>Si te quedas fuera:</b></p>
+          <ul>
+            <li><b>Sin cobertura y es la primera vez</b> en ese móvil: hace falta conexión para validar el código. Conéctate y vuelve a abrir.</li>
+            <li><b>Sin cobertura pero ya habías entrado antes</b> en ese móvil: entra igual, no te pide nada.</li>
+            <li>Si el administrador <b>cambia el código</b>, a todos se les pide el nuevo una vez.</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- 11 -->
+      <div class="help-item">
+        <button class="help-head" type="button">
+          <span style="display:flex;align-items:center;gap:12px;">
+            <span class="help-icon">🔄</span>
+            <span>Actualizaciones de la app</span>
+          </span>
+          <svg class="help-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg>
+        </button>
+        <div class="help-body">
+          <p>La app se actualiza sola. Cuando hay una versión nueva aparece una <b>franja naranja arriba</b> con el botón <b>Actualizar</b>. Al pulsarlo se recarga con la versión nueva; si lo cierras con la <b>×</b>, se aplicará la próxima vez que la abras.</p>
+          <p>No bloquea nada: puedes seguir trabajando y actualizar cuando te venga bien. <b>No se pierde ningún parte</b> al actualizar.</p>
+          <p style="margin-top:10px;">La <b>versión que tienes</b> se ve arriba del todo, junto al nombre de la app, y también en Ajustes al final.</p>
+          <p style="margin-top:10px;"><b>La base de datos de postes y cámaras</b> también se actualiza en estas versiones, cuando Telefónica saca un volcado nuevo. Si echas en falta una cámara o un poste que sabes que existe, avisa: puede que sea de los que vienen sin catalogar en el volcado.</p>
         </div>
       </div>
 
@@ -3681,7 +3786,7 @@
    ============================================================= */
 
 const App = {
-  version: '0.9.19',
+  version: '0.9.20',
   step: 7,
 
   // ── TEMA ──────────────────────────────────────────────────────
