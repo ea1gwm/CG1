@@ -1593,7 +1593,7 @@
       </span>
       <span class="brand-text">
         <span class="t1">Partes de Seguridad</span>
-        <span class="t2">Telefonía <b>·</b> <span id="brand-version">v0.9.23</span></span>
+        <span class="t2">Telefonía <b>·</b> <span id="brand-version">v0.9.24</span></span>
       </span>
     </button>
 
@@ -3131,17 +3131,21 @@
   <!-- ===== BANNER ACTUALIZACIÓN ===== -->
   <!-- Banner de actualización: franja superior NO bloqueante.
        El botón recarga directamente para aplicar la nueva versión. -->
-  <div id="update-banner" style="display:none;position:fixed;top:0;left:0;right:0;z-index:300;background:var(--amber);color:#fff;padding:10px 14px;align-items:center;gap:10px;box-shadow:0 4px 16px rgba(0,0,0,.3);font-size:13px;font-weight:600;">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="width:18px;height:18px;flex-shrink:0;">
-      <path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/>
-    </svg>
-    <span style="flex:1;">Nueva versión disponible</span>
-    <button type="button" id="update-banner-apply" onclick="location.reload()"
-      style="background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.4);color:#fff;padding:6px 12px;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;">
-      Actualizar
-    </button>
-    <button type="button" id="update-banner-close" onclick="this.parentElement.style.display='none'"
-      style="background:none;border:none;color:#fff;font-size:20px;line-height:1;cursor:pointer;padding:0 4px;">×</button>
+  <div id="update-banner" style="display:none;position:fixed;top:0;left:0;right:0;z-index:300;background:var(--amber);color:#fff;padding:10px 14px;flex-direction:column;gap:4px;box-shadow:0 4px 16px rgba(0,0,0,.3);font-size:13px;font-weight:600;max-height:55vh;overflow-y:auto;">
+    <div style="display:flex;align-items:center;gap:10px;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="width:18px;height:18px;flex-shrink:0;">
+        <path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/>
+      </svg>
+      <span style="flex:1;" id="update-banner-title">Nueva versión disponible</span>
+      <button type="button" id="update-banner-apply" onclick="location.reload()"
+        style="background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.4);color:#fff;padding:6px 12px;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;">
+        Actualizar
+      </button>
+      <button type="button" id="update-banner-close" onclick="document.getElementById('update-banner').style.display='none'"
+        style="background:none;border:none;color:#fff;font-size:20px;line-height:1;cursor:pointer;padding:0 4px;">×</button>
+    </div>
+    <!-- Qué trae la versión nueva. Se rellena desde novedades.json. -->
+    <ul id="update-banner-cambios" style="display:none;margin:2px 0 2px 28px;padding:0;list-style:disc;font-weight:500;font-size:12.5px;line-height:1.55;"></ul>
   </div>
   <main class="view" id="view-help">
     <button class="back-btn" data-go="home" type="button">
@@ -3439,6 +3443,7 @@
         </button>
         <div class="help-body">
           <p>La app se actualiza sola. Cuando hay una versión nueva aparece una <b>franja naranja arriba</b> con el botón <b>Actualizar</b>. Al pulsarlo se recarga con la versión nueva; si lo cierras con la <b>×</b>, se aplicará la próxima vez que la abras.</p>
+          <p style="margin-top:10px;"><b>El aviso te dice qué trae</b>, para que decidas si actualizas ahora o más tarde: si se ha actualizado la base de datos de postes y cámaras, qué fallos se han corregido, etc. Si llevas varias versiones sin actualizar, salen los cambios de todas ellas. Sin cobertura el aviso sale igual, solo que sin el detalle.</p>
           <p>No bloquea nada: puedes seguir trabajando y actualizar cuando te venga bien. <b>No se pierde ningún parte</b> al actualizar.</p>
           <p style="margin-top:10px;">La <b>versión que tienes</b> se ve arriba del todo, junto al nombre de la app, y también en Ajustes al final.</p>
           <p style="margin-top:10px;"><b>La base de datos de postes y cámaras</b> también se actualiza en estas versiones, cuando Telefónica saca un volcado nuevo. Si echas en falta una cámara o un poste que sabes que existe, avisa: puede que sea de los que vienen sin catalogar en el volcado.</p>
@@ -3809,7 +3814,7 @@
    ============================================================= */
 
 const App = {
-  version: '0.9.23',
+  version: '0.9.24',
   step: 7,
 
   // ── TEMA ──────────────────────────────────────────────────────
@@ -3825,9 +3830,57 @@ const App = {
     if(meta) meta.setAttribute('content', isLight ? light : dark);
   },
 
+  /* Muestra el aviso de versión nueva y, si puede, QUÉ trae.
+   *
+   * Las novedades viven en novedades.json, en el servidor. La página que
+   * está corriendo es la versión VIEJA, así que no sabe lo que hay en la
+   * nueva: hay que ir a buscarlo. Se piden sin cache (el service worker
+   * sirve ese archivo en modo red-primero) para no leer el de ayer.
+   *
+   * Si no hay cobertura o el archivo falla, el aviso sale igual con el
+   * texto de siempre: enterarse de los cambios es un extra, no puede
+   * impedir que el usuario sepa que hay versión nueva.
+   */
   showUpdateBanner(){
     const banner = document.getElementById('update-banner');
-    if(banner) banner.style.display = 'flex';
+    if(!banner) return;
+    banner.style.display = 'flex';
+
+    fetch('novedades.json?v=' + Date.now(), { cache: 'no-store' })
+      .then(r => r.ok ? r.json() : Promise.reject())
+      .then(data => {
+        // Versiones del archivo que son más nuevas que la que tiene este móvil
+        const mayor = (a, b) => {
+          const A = String(a).split('.').map(Number), B = String(b).split('.').map(Number);
+          for(let i = 0; i < Math.max(A.length, B.length); i++){
+            const x = A[i] || 0, y = B[i] || 0;
+            if(x !== y) return x - y;
+          }
+          return 0;
+        };
+        const nuevas = Object.keys(data)
+          .filter(k => /^\d+\.\d+/.test(k) && mayor(k, this.version) > 0)
+          .sort((a, b) => mayor(b, a));
+        if(!nuevas.length) return;
+
+        const cambios = [];
+        nuevas.forEach(v => (data[v].cambios || []).forEach(c => {
+          if(!cambios.includes(c)) cambios.push(c);
+        }));
+        if(!cambios.length) return;
+
+        const titulo = document.getElementById('update-banner-title');
+        if(titulo) titulo.textContent = `Nueva versión v${nuevas[0]} disponible`;
+
+        const ul = document.getElementById('update-banner-cambios');
+        if(!ul) return;
+        const MAX = 5;
+        ul.innerHTML = cambios.slice(0, MAX).map(c =>
+          `<li>${String(c).replace(/[&<>"]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]))}</li>`
+        ).join('') + (cambios.length > MAX ? `<li>y ${cambios.length - MAX} mejoras más</li>` : '');
+        ul.style.display = 'block';
+      })
+      .catch(() => { /* sin novedades: el aviso genérico ya está puesto */ });
   },
 
   setTheme(theme){

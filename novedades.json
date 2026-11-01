@@ -1,0 +1,49 @@
+{
+  "_comentario": "Novedades que muestra el banner de 'Nueva versión disponible'. Al publicar una versión, añade aquí su entrada con frases cortas y en lenguaje de obra, no de programador. La app enseña las de todas las versiones más nuevas que la que tiene el móvil.",
+
+  "0.9.24": {
+    "fecha": "2026-11-01",
+    "cambios": [
+      "Ahora el aviso de nueva versión dice qué cambia"
+    ]
+  },
+  "0.9.23": {
+    "fecha": "2026-10-28",
+    "cambios": [
+      "Base de datos de postes y cámaras actualizada: 10.293 postes y 255 cámaras nuevas"
+    ]
+  },
+  "0.9.22": {
+    "fecha": "2026-11-01",
+    "cambios": [
+      "Arreglado: Ver y Compartir del historial daban error",
+      "Al reabrir un parte vuelven los trabajadores, el recurso preventivo y los EPIs",
+      "En el móvil ya se lee entero el nombre del parte"
+    ]
+  },
+  "0.9.21": {
+    "fecha": "2026-10-05",
+    "cambios": [
+      "Base de datos de postes y cámaras actualizada"
+    ]
+  },
+  "0.9.19": {
+    "fecha": "2026-10-03",
+    "cambios": [
+      "Al elegir un poste o cámara se pone SU dirección, no la del sitio donde estás"
+    ]
+  },
+  "0.9.18": {
+    "fecha": "2026-09-29",
+    "cambios": [
+      "Arreglado: el GPS se situaba mal la primera vez del día"
+    ]
+  },
+  "0.9.17": {
+    "fecha": "2026-09-28",
+    "cambios": [
+      "El 'Bis' del número de poste y de cámara ya sale en el parte",
+      "Recuperadas 361 cámaras que faltaban, entre ellas las de Carral"
+    ]
+  }
+}

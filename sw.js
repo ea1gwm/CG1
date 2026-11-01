@@ -7,7 +7,7 @@
    Eso fuerza al SW a invalidar la cache vieja.
    ============================================================= */
 
-const CACHE_VERSION = 'cg1-v0.9.23';
+const CACHE_VERSION = 'cg1-v0.9.24';
 const PRECACHE_URLS = [
   './',
   './index.html',
@@ -80,6 +80,16 @@ self.addEventListener('fetch', (event) => {
       url.pathname.endsWith('/') ||
       url.pathname.endsWith('/index.html')) {
     event.respondWith(networkFirstHTML(req));
+    return;
+  }
+
+  // novedades.json → SIEMPRE de la red, nunca cacheado.
+  // Lo pide la versión VIEJA para contar qué trae la nueva; si se sirviera
+  // desde la cache enseñaría las novedades de la versión que ya tienes.
+  if (url.pathname.endsWith('/novedades.json')) {
+    event.respondWith(fetch(req).catch(() => new Response('{}', {
+      headers: { 'Content-Type': 'application/json' }
+    })));
     return;
   }
 
