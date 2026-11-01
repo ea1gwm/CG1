@@ -1320,10 +1320,15 @@
     font-weight: 600;
     font-size: 14.5px;
     color: var(--text);
-    line-height: 1.2;
+    line-height: 1.25;
+    /* Hasta 2 líneas en vez de cortar en una. En el móvil la tarjeta es
+       estrecha y nombres como "Suc 34570 Cr GEN 173 Bis 01-06-2026"
+       se quedaban en "Parte de Cr GB…". */
+    display:-webkit-box;
+    -webkit-line-clamp:3;
+    -webkit-box-orient:vertical;
     overflow:hidden;
-    text-overflow:ellipsis;
-    white-space:nowrap;
+    overflow-wrap:anywhere;
   }
   .item-card .item-meta{
     font-family: ui-monospace, 'Segoe UI Mono', monospace;
@@ -1351,6 +1356,22 @@
     margin-left: 4px;
   }
   .item-actions{ display:flex; gap:4px; flex-shrink:0; }
+
+  /* En pantallas estrechas los 4 botones dejaban ~109 px para el nombre y
+     los partes largos (los del modo fusionadores) salían cortados. Aquí
+     bajamos los botones a una segunda fila y el nombre ocupa todo el ancho. */
+  @media (max-width: 520px){
+    .item-card{ flex-wrap: wrap; }
+    .item-card .item-main{ flex: 1 1 auto; }
+    .item-actions{
+      flex: 1 0 100%;
+      justify-content: flex-end;
+      gap: 6px;
+      margin-top: 8px;
+      padding-top: 8px;
+      border-top: 1px solid var(--line);
+    }
+  }
   .icon-action{
     width: 34px; height: 34px;
     border-radius: 10px;
@@ -1572,7 +1593,7 @@
       </span>
       <span class="brand-text">
         <span class="t1">Partes de Seguridad</span>
-        <span class="t2">Telefonía <b>·</b> <span id="brand-version">v0.9.21</span></span>
+        <span class="t2">Telefonía <b>·</b> <span id="brand-version">v0.9.22</span></span>
       </span>
     </button>
 
@@ -3268,15 +3289,17 @@
           <ul>
             <li><b>Buscar</b> — filtra por dirección, número de poste, población…</li>
             <li><b>Filtros</b> — Todos / Hoy / Postes / CCRR.</li>
-            <li><b>✏️ Editar</b> — abre un parte anterior en el formulario para modificarlo y generar un PDF nuevo.</li>
+            <li><b>✏️ Editar</b> — reabre el parte en el formulario <b>tal y como se cubrió</b>: trabajadores, recurso preventivo, EPIs, tipo de poste, estado, señalización… Cambia lo que necesites y genera un PDF nuevo. El parte original se queda en el historial.</li>
             <li><b>⬆️ Compartir</b> — envía el PDF por WhatsApp, Telegram, correo…</li>
             <li><b>👁 Ver</b> — abre el PDF en el visor.</li>
             <li><b>🗑 Eliminar</b> — borra el parte del historial.</li>
           </ul>
+          <p>En el móvil los botones salen en una segunda fila, debajo del nombre del parte, para que el nombre se lea entero aunque sea largo.</p>
           <p>Si escribiste observaciones en un parte, aparecen como <b>nota amarilla</b> bajo el nombre del parte en el historial.</p>
           <p>En el filtro <b>Hoy</b> aparece el botón para descargar todos los partes del día de una vez.</p>
-          <p style="margin-top:10px;"><b>Cómo se guardan.</b> El historial guarda <b>los datos</b> del parte, no el PDF. Al pulsar Ver, Compartir o Descargar, el PDF <b>se vuelve a generar al momento</b> — por eso tarda un segundo. Sale exactamente igual que el original.</p>
+          <p style="margin-top:10px;"><b>Cómo se guardan.</b> El historial guarda <b>los datos</b> del parte, no el PDF. Al pulsar Ver, Compartir o Descargar, el PDF <b>se vuelve a generar al momento</b> — por eso tarda un segundo. Sale exactamente igual que el original, incluidos los <b>trabajadores temporales</b> que hubieras añadido ese día.</p>
           <p>Se hace así porque guardar los PDF llenaba la memoria del navegador (cada uno ocupa cientos de KB) y, al llenarse, <b>los partes nuevos dejaban de guardarse sin avisar</b>. Guardando solo los datos caben <b>200 partes</b> sin problema.</p>
+          <p style="margin-top:10px;">Como el PDF se rehace con los datos guardados, si <b>cambias la firma o los datos de empresa</b> en Ajustes, los partes antiguos que vuelvas a abrir saldrán con los nuevos. Los PDF que ya hayas enviado no cambian.</p>
         </div>
       </div>
 
@@ -3786,7 +3809,7 @@
    ============================================================= */
 
 const App = {
-  version: '0.9.21',
+  version: '0.9.22',
   step: 7,
 
   // ── TEMA ──────────────────────────────────────────────────────
@@ -4676,6 +4699,24 @@ const Postes = {
       return;
     }
 
+    /* Restaurar lo que NO son <input>: vive en this.state y, si no se
+     * repone aquí, al reabrir un parte del historial salía con los valores
+     * por defecto (Madera, estado bueno, sin trabajadores, sin EPIs) en vez
+     * de con los del día que se cubrió.
+     * Hay que repintar después, porque onEnter() hace los renders ANTES
+     * de llamar a applyDraft. */
+    if(d.tipo)    this.state.tipo    = d.tipo;
+    if(d.estado)  this.state.estado  = d.estado;
+    if(d.climaOk) this.state.climaOk = d.climaOk;
+    if(Array.isArray(d.tempWorkers))     this.state.tempWorkers     = d.tempWorkers.slice();
+    if(Array.isArray(d.workersSelected)) this.state.workersSelected = d.workersSelected.slice();
+    if(d.epis && typeof d.epis === 'object') this.state.epis = { ...d.epis };
+    this.renderTipo();
+    this.renderEstado();
+    this.renderClimaOk();
+    this.renderWorkers();
+    this.populateRPSelect();
+
     const setIf = (id, v) => { const e=document.getElementById(id); if(e && v!=null) e.value=v; };
     setIf('p-central', d.central);
     setIf('p-num-poste', d.numPoste);
@@ -4727,6 +4768,10 @@ const Postes = {
       medio: v('p-medio'),
       medioOtro: v('p-medio-otro'),
       workersSelected: this.state.workersSelected.slice(),
+      // Los trabajadores temporales van DENTRO del parte. Si no se guardan
+      // aquí, al reabrirlo o al regenerar su PDF desde el historial
+      // desaparecen del listado, porque no están en la lista permanente.
+      tempWorkers: this.state.tempWorkers.slice(),
       rpId: v('p-rp-select'),
       rpNombre: v('p-rp-nombre'),
       rpNif: v('p-rp-nif'),
@@ -5183,6 +5228,20 @@ const Ccrr = {
       if(desdeEl && !desdeEl.value) desdeEl.value = App.nowHHMM();
       return;
     }
+    /* Igual que en Postes: reponer lo que vive en this.state (turno,
+     * trabajadores, ubicación y señalización) y repintar, porque los
+     * renders de onEnter() se ejecutan antes que este applyDraft. */
+    if(d.turno) this.state.turno = d.turno;
+    if(Array.isArray(d.tempWorkers))     this.state.tempWorkers     = d.tempWorkers.slice();
+    if(Array.isArray(d.workersSelected)) this.state.workersSelected = d.workersSelected.slice();
+    if(d.ubic  && typeof d.ubic  === 'object') this.state.ubic  = { ...d.ubic };
+    if(d.senal && typeof d.senal === 'object') this.state.senal = { ...d.senal };
+    this.renderTurno();
+    this.renderCheckList('c-ubic-list',  App.CCRR_UBICACIONES,  this.state.ubic,  'ubic', true);
+    this.renderCheckList('c-senal-list', App.CCRR_SENALIZACION, this.state.senal, 'senal');
+    this.renderWorkers();
+    this.populateRPSelect();
+
     const setIf = (id, v) => { const e=document.getElementById(id); if(e && v!=null) e.value=v; };
     setIf('c-num',         d.num);
     setIf('c-suc',         d.suc);
@@ -5230,6 +5289,9 @@ const Ccrr = {
       ubic:        { ...this.state.ubic },
       senal:       { ...this.state.senal },
       workersSelected: this.state.workersSelected.slice(),
+      // Ver la nota en Postes.collect: sin esto los trabajadores
+      // temporales se pierden al reabrir y al regenerar el PDF.
+      tempWorkers: this.state.tempWorkers.slice(),
       rpId:        v('c-rp-select'),
       rpNombre:    v('c-rp-nombre'),
       rpNif:       v('c-rp-nif'),
@@ -6507,8 +6569,8 @@ const Pdf = {
     try {
       App.toast('Regenerando PDF…');
       const bytes = entry.type === 'postes'
-        ? await Partes.buildPostes(entry.data)
-        : await Partes.buildCcrr(entry.data);
+        ? await Pdf.buildPostes(entry.data)
+        : await Pdf.buildCcrr(entry.data);
       return new Blob([bytes], { type: 'application/pdf' });
     } catch(e){
       console.error(e);
@@ -6770,7 +6832,7 @@ const History = {
     App.toast(`Regenerando y descargando ${partes.length} partes…`);
     for(const r of partes){
       await new Promise(ok => setTimeout(ok, 300));
-      const blob = await this._rebuildBlob(r);
+      const blob = await Pdf._rebuildBlob(r);
       await Pdf._deliverBlob(blob, r.fileName, r.title);
     }
   },
